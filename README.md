@@ -1,7 +1,7 @@
 # GalenoSVFE
 
-Frontend web de GalenosSV. Esta carpeta contiene la semilla inicial del
-repositorio y el contrato REST de TipoDocumento, Clínica y Consulta académica.
+Frontend web de GalenosSV. Incluye la estructura inicial del equipo, el módulo
+de acceso a datos y el contrato REST de TipoDocumento, Clínica y Consulta académica.
 La entrega se consolida en `main` de ambos repositorios. Los cambios nacieron
 en las ramas backend `feat/rest-tipo-documento` y `feat/consulta-read-model`.
 
@@ -17,8 +17,10 @@ coordinación) y `entity` (datos). La estructura acordada está descrita en
 [`AGENTS.md`](AGENTS.md). El contrato actual y sus pendientes están en
 [`docs/api-contract.md`](docs/api-contract.md).
 
-Todavía no se fijan versiones de Node/npm ni un servidor de desarrollo: se
-acordarán con el responsable del tooling antes de incorporar dependencias.
+El módulo de acceso a datos incorpora, con autorización de su responsable,
+Mocha, Chai, Sinon y BrowserSync como dependencias de desarrollo de versión
+fija en `package.json` y `package-lock.json`. Requiere Node >=22 para pruebas
+y herramientas; no añade dependencias de producción ni frameworks.
 El contrato indica las rutas implementadas y los pendientes. Consulta y Clínica
 requieren modo demo explícito y una base con datos exclusivamente ficticios;
 todavía no hay integración del dashboard.
@@ -46,8 +48,8 @@ carga inicial; las reglas de protección para futuros cambios quedan por acordar
 ## Entrega para el equipo
 
 - Itzep: adaptar el arreglo JSON y `Total-registros` a `DefaultResponse`, con
-  base URL configurable y `credentials: "omit"`; consultar el contrato antes
-  de implementar DAOs. Esta semilla no incluye tooling ni acceso HTTP del cliente.
+  base URL configurable y `credentials: "omit"`. El módulo local implementa las
+  lecturas confirmadas y rechaza escrituras no publicadas; ver `docs/acceso-datos.md`.
 - Rodrigo: el DTO de Consulta ya define nombres de persona/rol/clínica y fechas.
   Los fixtures sintéticos están en `test/fixtures/`. Acordar con Itzep el modelo
   de presentación y los eventos de tarjetas en `docs/ui-contract.md`.
@@ -61,3 +63,35 @@ deben coordinarse en ambos repositorios. Las instrucciones de validación usan
 archivos del backend y están en [`docs/rest-validation.md`](docs/rest-validation.md).
 La entrega académica y su configuración están en
 [`docs/consulta-demo.md`](docs/consulta-demo.md).
+
+## Acceso a datos y verificación local
+
+```sh
+npm ci
+npm test
+npm run check
+npm run test:transport
+npm run dev
+```
+
+BrowserSync sirve `src/` y el runner `/test/integration/runner.html`, sin proxy
+al backend. Copiar `src/js/config/environment.example.js` a
+`environment.local.js` y completar la URL efectiva, incluido
+`/GalenosSV/resources/`. No hay host ni puerto de backend fijados en los DAO.
+
+`npm run test:integration` requiere configuración de prueba local y un backend
+real. Sin ellos informa **INTEGRACIÓN NO EJECUTADA** y devuelve código 1.
+Las pruebas de transporte usan un servidor sintético, no acreditan GalenosSV.
+
+- [API del cliente y ejemplos](docs/acceso-datos.md)
+- [Correspondencia con el contrato oficial](docs/contratos-rest.md)
+- [Inventario de los 20 DAO y estado REST](docs/inventario-dao.md)
+- [Contratos pendientes y propuestas para Fernando](docs/necesidades-backend.md)
+- [Consumo desde los componentes de Rodrigo](docs/consumo-dao-rodrigo.md)
+- [CORS y entorno](docs/cors.md)
+- [Resultados comprobados](docs/verificacion.md)
+- [Preparación del Pull Request](docs/preparacion-pr.md)
+
+Hay 20 clases DAO: TipoDocumento, Clínica y Consulta consumen las cinco lecturas
+publicadas en API 0.2. Las otras 17 rechazan `CONTRACT_PENDING` sin enviar HTTP;
+su existencia no implica que estén integradas. Ninguna habilita escrituras.

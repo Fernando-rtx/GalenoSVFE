@@ -170,8 +170,24 @@ Para integración real, copiar `test/integration/environment.example.js` como
 `max` e `id` si hay detalle. Consulta necesita `query: { idClinica }`; puede
 usar filtros de lista y `detailQuery: { idClinica }` por separado. Opcionalmente
 `missingId`/`missingStatus` permiten comprobar un error HTTP real confirmado.
+`listChecks` admite casos `{ name, first, max, query, expectedTotal,
+expectedLength }` para comparar páginas, filtros y conteos con expectativas
+del dataset sintético. `listErrors` contiene `{ name, first, max, query,
+status }`; `detailErrors`, `{ name, id, query, status }`. Cada caso declara su
+propio contexto; no hereda los filtros del caso principal. Sus parámetros deben
+superar la validación del cliente para comprobar errores HTTP del servidor,
+no errores locales. La suite rechaza expectativas vacías o inválidas.
 No declarar casos de escritura para API 0.2. El runner genérico anterior solo
 admitiría escrituras con contratos futuros explícitos y comprobación/limpieza.
+
+Para el demo oficial se entrega `environment.demo.example.js`: descubre los
+UUID por HTTP y comprueba expectativas de sus fixtures (2 tipos de documento,
+2 clínicas activas y 5 consultas seleccionables en la primera clínica). Incluye
+20 pruebas de las cinco lecturas, segundas páginas, páginas vacías con total,
+filtros de fecha/PersonaRol, rango sin coincidencias, 404 y máximo excedido 422.
+Copiarlo como `environment.local.js` y completar únicamente `baseUrl` usando
+`./demo info`. Los conteos, fechas y límite 100 pertenecen a ese demo y están
+confinados a pruebas; no son valores predeterminados de los DAO.
 
 Ejecutar `npm run test:integration`. `GALENO_INTEGRATION_CONFIG` permite elegir
 otro módulo de configuración en Node. Sin URL/casos/configuración local, el

@@ -94,7 +94,7 @@ describe('DefaultDAO con Fetch simulado', () => {
     create: dao => dao.create({}), update: dao => dao.update('fixture', {}), deleteById: dao => dao.deleteById('fixture')
   };
   Object.keys(calls).forEach(operation => {
-    [404, 422, 500].forEach(status => {
+    [403, 404, 405, 422, 500].forEach(status => {
       it(`${operation} normaliza HTTP ${status} con detalles y cabeceras`, async () => {
         fetchStub.resolves(jsonResponse({ fixtureError: 'detalle' }, status, { 'X-Fixture': 'trace' }));
         const error = await rejection(calls[operation](dao));

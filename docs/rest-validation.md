@@ -26,9 +26,9 @@ mvn test
 mvn package -DskipTests
 ```
 
-La ejecución local usó Maven 3.9.16 y OpenJDK 25.0.4.1, compilando con
-`release=21`. No se verificó un runtime Java 21 en este equipo. El WAR conserva
-JSF y PrimeFaces. El objetivo del proyecto sigue siendo Java 21.
+La primera ejecución local usó Maven 3.9.16 y OpenJDK 25.0.4.1, compilando con
+`release=21`. La comprobación posterior con JDK 21 completo se ejecuta mediante
+`./demo verify`; ver `docs/demo-setup.md`. El WAR conserva JSF y PrimeFaces.
 
 ## Ambiente HTTP aislado
 
@@ -122,6 +122,7 @@ y conservación de CORS. No aplicar esta simulación a una base clínica.
 
 Los resultados cubren el WAR real, JPA/DAO/PostgreSQL, DTO y comportamiento CORS
 en HTTP y navegador. No acreditan autorización clínica, dashboard de Itzep,
-componentes de Rodrigo, uso en Java 21 ni un recorrido completo de pantallas
-JSF con este fixture mínimo. El servidor de prueba se detiene al terminar;
+componentes de Rodrigo ni un recorrido completo de pantallas JSF con este
+fixture mínimo. La validación posterior con Java 21 y el arranque automático
+están documentados en `docs/demo-setup.md`. El servidor de prueba se detiene al terminar;
 las bases sintéticas quedan separadas y no se borran automáticamente.

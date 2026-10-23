@@ -26,7 +26,7 @@ otro recurso REST de dominio que hubiera que recuperar antes de este lote.
 
 | Elemento | Evidencia efectiva |
 |---|---|
-| Java instalado | OpenJDK 25.0.4.1; no se encontró JDK 21 local |
+| Java instalado | Inicialmente OpenJDK 25.0.4.1; posteriormente se agregó Temurin 21.0.13+9 y se verificó la demo con ese JDK |
 | Objetivo de compilación | release 21 del POM, conservado |
 | Maven | 3.9.16 |
 | Open Liberty instalado y usado | 26.0.0.8 |
@@ -81,3 +81,18 @@ Fixtures de siete consultas y relaciones sintéticas se cargaron únicamente en
 la base aislada de la entrega anterior. Contrato 0.2 y reproducción:
 `docs/consulta-demo.md`. El uso con datos reales sigue pendiente de un contrato
 de autenticación y autorización.
+
+## Preparación reproducible para la integración
+
+Se agregó el comando backend `./demo` y un perfil Maven `demo` que fija el
+runtime y lo aísla de la instalación habitual. JDK 21 se instaló en una carpeta
+del usuario, verificando su checksum oficial y conservando el Java del sistema.
+Se comprobó compilación limpia, suite Java, HTTP y Chromium con ese JDK.
+El contenedor y volumen de demostración tienen propiedad verificada; claves y
+logs se conservan solo en `.galenos-demo/`, ignorado por Git. No se accedió a
+tablas de la base clínica ni se modificó el contenedor `postgres-local`.
+
+`./demo info` entrega URL, CORS, rutas y modo de credenciales para el cliente.
+Requisitos y reproducción: `docs/demo-setup.md`. El siguiente paso depende de
+los DAOs/dashboard de Itzep y componentes de Rodrigo; no se implementan en
+esta preparación de Fernando.

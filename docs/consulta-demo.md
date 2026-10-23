@@ -21,9 +21,10 @@ directamente, sin abrir PR.
 | Demo activa (servidor 19081) | Clínica, lista y detalle de Consulta devuelven datos del fixture |
 | Chromium desde origen 3000 | Lee ambos conteos, persona ficticia y detalle; otra clínica devuelve 404 legible |
 
-Ambos servidores usan Liberty 26.0.0.8, OpenJDK 25.0.4.1 y la base sintética
-en PostgreSQL 12.22 de la entrega anterior. Compilación con `release=21`; falta
-verificar ejecución con JDK 21. Se detienen ambos servidores al terminar.
+Esa primera ejecución usó Liberty 26.0.0.8, OpenJDK 25.0.4.1 y la base sintética
+en PostgreSQL 12.22, compilando con `release=21`. Posteriormente se verificó
+compilación limpia y ejecución con JDK 21 usando `./demo verify --browser`;
+el arranque reproducible y sus requisitos están en `docs/demo-setup.md`.
 Las copias JSON del frontend se capturaron de estas respuestas HTTP y se
 validaron como datos del fixture, sin copiar información de pacientes reales.
 
@@ -44,6 +45,10 @@ paginación a `RestParameters` porque ya se usan en tres recursos; las pruebas
 existentes de TipoDocumento deben seguir pasando con el mismo contrato.
 
 ## Preparar el fixture
+
+El camino automatizado es `./demo start`, que prepara su propio contenedor,
+base, fixtures y runtime sin usar la base clínica. Las instrucciones manuales
+siguientes se mantienen como referencia; no hacen falta al usar ese comando.
 
 Preparar una base aislada y un servidor como en `docs/rest-validation.md`.
 Además de `tipo_documento.sql`, importar `test/fixtures/consulta_demo.sql` una

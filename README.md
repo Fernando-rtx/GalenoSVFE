@@ -23,6 +23,18 @@ El contrato indica las rutas implementadas y los pendientes. Consulta y Clínica
 requieren modo demo explícito y una base con datos exclusivamente ficticios;
 todavía no hay integración del dashboard.
 
+## Backend local para integrar
+
+Desde la carpeta del backend, ejecutar `./demo start`. El comando prepara su
+propio PostgreSQL, datos ficticios y Open Liberty con Java 21. `./demo info`
+entrega la conexión pública; por defecto la base URL es
+`http://localhost:19081/GalenosSV/resources` y el origen CORS es
+`http://localhost:3000`.
+
+Ver [`docs/demo-setup.md`](docs/demo-setup.md) para requisitos, puertos,
+verificación y parada. Estos comandos y scripts pertenecen al repositorio
+`Galenos`; la elección del módulo de configuración JS corresponde a Itzep.
+
 ## Colaboración
 
 Trabaja en ramas cortas distintas de `main`. Abre PR para revisar cambios de

@@ -11,6 +11,8 @@ Conserva el contrato de TipoDocumento.
 `{origen-backend}/GalenosSV/resources` con el `server.xml` versionado.
 El host y el puerto dependen del despliegue; no usar una URL `SNAPSHOT`.
 El cliente recibe esta base desde configuración, sin quemarla en tarjetas.
+El entorno reproducible se inicia con `./demo start`; `./demo info` entrega
+la configuración pública efectiva. Ver `docs/demo-setup.md`.
 
 Este lote publica únicamente lectura del catálogo `TipoDocumento`. No requiere
 sesión ni credenciales y no devuelve documentos, personas o información clínica.

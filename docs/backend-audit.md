@@ -8,7 +8,7 @@ Se encontró limpio el checkout `Cortez` (`480b325`). Después de `git fetch
 origin`, `origin/main` avanzó a `97b9c2f`. Se creó
 `feat/rest-tipo-documento` desde esa referencia, sin modificar `main` ni
 sobrescribir trabajo local. El frontend vive en `Fernando-rtx/GalenoSVFE`,
-carpeta local `GalenoFE`; su semilla todavía es local.
+carpeta local `GalenoFE`; la semilla y los contratos se consolidan en `main`.
 
 Antes de implementar no se encontraron recursos Jakarta REST, ApplicationPath
 ni filtros CORS en `origin/main`. `TipoDocumentoDAO` ya ofrecía búsqueda por
@@ -62,8 +62,9 @@ permisos a partir de un selector visual.
 
 Resultados y reproducción: `docs/rest-validation.md`. Contrato compartido:
 `docs/api-contract.md`. Las invitaciones de los tres integrantes fueron
-confirmadas por Fernando en la conversación; protección de ramas y publicación
-de la semilla no verificadas todavía.
+confirmadas por Fernando en la conversación. Fernando autorizó después la
+publicación directa de esta entrega en `main`, sin PR. La protección de ramas
+queda como política por acordar para futuros cambios.
 
 ## Segunda entrega: Consulta académica
 

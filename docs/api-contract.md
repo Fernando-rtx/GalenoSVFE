@@ -1,9 +1,10 @@
 # API de GalenosSV — contrato 0.2
 
-Fecha: 2026-10-23. Implementación inicial en `feat/rest-tipo-documento`, basada
-en `origin/main` (`97b9c2f`). Requiere revisión e integración de la rama.
-La revisión 0.2 agrega recursos académicos en `feat/consulta-read-model`,
-dependiente del commit backend `19425d3`. Conserva el contrato de TipoDocumento.
+Fecha: 2026-10-23. Entrega consolidada en `main` por instrucción de Fernando
+de publicar directamente, sin PR. La implementación inicial partió de
+`origin/main` (`97b9c2f`) en `feat/rest-tipo-documento` (`19425d3`); la revisión
+0.2 agregó los recursos académicos en `feat/consulta-read-model` (`3d59c86`).
+Conserva el contrato de TipoDocumento.
 
 ## Base y alcance
 

@@ -4,7 +4,9 @@ Decisión de Fernando el 2026-10-23: demostración académica con datos ficticio
 No se usará la selección libre de rol como si autenticara a una persona.
 Rama backend: `feat/consulta-read-model`, basada en `19425d3`.
 Rama frontend de contratos: `docs/consulta-contract`, basada en `13567d9`.
-Son ramas dependientes de la entrega anterior, todavía sin publicar/integrar.
+Estas referencias documentan los lotes de trabajo. La entrega se consolida en
+`main` de ambos repositorios por instrucción expresa de Fernando de publicar
+directamente, sin abrir PR.
 
 ## Resultados observados — 2026-10-23
 

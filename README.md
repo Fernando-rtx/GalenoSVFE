@@ -2,8 +2,8 @@
 
 Frontend web de GalenosSV. Esta carpeta contiene la semilla inicial del
 repositorio y el contrato REST de TipoDocumento, Clínica y Consulta académica.
-Las ramas backend `feat/rest-tipo-documento` y `feat/consulta-read-model`
-todavía están pendientes de integrar y publicar.
+La entrega se consolida en `main` de ambos repositorios. Los cambios nacieron
+en las ramas backend `feat/rest-tipo-documento` y `feat/consulta-read-model`.
 
 - Frontend: [Fernando-rtx/GalenoSVFE](https://github.com/Fernando-rtx/GalenoSVFE),
   carpeta local `/home/fernando/NetBeansProjects/GalenoFE`.
@@ -27,10 +27,9 @@ todavía no hay integración del dashboard.
 
 Trabaja en ramas cortas distintas de `main`. Abre PR para revisar cambios de
 código y contrato. El remoto `origin` apunta a `Fernando-rtx/GalenoSVFE`.
-Al vincularlo no se encontraron ramas ni etiquetas remotas; la semilla permanece
-local hasta su publicación. Fernando confirmó que las invitaciones de los tres
-integrantes ya están hechas. Las reglas de protección todavía no se han
-verificado.
+Fernando confirmó las invitaciones de los tres integrantes y autorizó publicar
+esta entrega directamente en `main`, sin PR. Esa excepción corresponde a esta
+carga inicial; las reglas de protección para futuros cambios quedan por acordar.
 
 ## Entrega para el equipo
 
@@ -40,7 +39,7 @@ verificado.
 - Rodrigo: el DTO de Consulta ya define nombres de persona/rol/clínica y fechas.
   Los fixtures sintéticos están en `test/fixtures/`. Acordar con Itzep el modelo
   de presentación y los eventos de tarjetas en `docs/ui-contract.md`.
-- Fernando: revisar e integrar los recursos REST. El modo demo fue autorizado
+- Fernando: recursos REST y contratos entregados para integración. El modo demo fue autorizado
   para esta entrega; autenticación real y permisos siguen pendientes antes de
   cualquier uso con información clínica real.
 

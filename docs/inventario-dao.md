@@ -1,6 +1,10 @@
 # Inventario de entidades y DAO — GalenosSV
 
-Revisión de backend: [e4edd6c6](https://github.com/Fernando-rtx/Galenos/tree/e4edd6c6da3baa0988182d60f48cb9eccfd54e93), rama main. Frontend integrado desde `81a2056`.
+Revisión inicial de backend: [e4edd6c6](https://github.com/Fernando-rtx/Galenos/tree/e4edd6c6da3baa0988182d60f48cb9eccfd54e93).
+Revalidación final contra `main` en `d7ff967` (2026-10-23): no cambió el código
+Java de entidades, DAO, recursos ni DTO; se corrigió el arranque del demo y se
+añadió evidencia de navegador. Frontend auditado desde `main` en `9a627c6`,
+que incluye el merge de PR #1 (`d0025b3`) y la evidencia de Fernando.
 Se leyeron las 20 entidades, los 20 DAO concretos, DefaultDAO/DAOInterface,
 interfaces especializadas, OrdenDAO y FiltroDAO. El contrato publicado continúa
 siendo [API 0.2](api-contract.md); RestApplication registra solo TipoDocumento,

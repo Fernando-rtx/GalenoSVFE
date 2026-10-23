@@ -50,31 +50,84 @@ inicial del módulo real se coordinará cuando Rodrigo lo entregue. La página
 reacciona también si el componente se registra después de su inicialización.
 TarjetaSimple y TarjetaConsulta siguen siendo responsabilidad de Rodrigo.
 
-## Validación y estado al publicar
+## Investigación de los fallos y correcciones
 
-Antes de que el usuario pidiera detener las pruebas se observaron:
+Fecha: 2026-10-23, America/El_Salvador. Base auditada: frontend `986f2dc`,
+backend oficial `d7ff967`, API 0.2. Se revisaron AGENTS.md, el contrato, las
+clases Java de los recursos/DTO y el código de dashboard antes de corregir.
 
-- 400 pruebas unitarias aprobadas (33 nuevas de dashboard/presentación).
-- Revisión de sintaxis aprobada para 54 archivos en ese momento.
-- 9 pruebas de transporte y 20 de integración DAO real aprobadas.
-- La suite de navegador del dashboard registró dos fallos y quedó interrumpida.
-  No se investigaron ni corrigieron esos fallos tras la instrucción de parar.
-  La prueba de propagación desde el emisor sintético estaba en curso al detenerse:
-  no se acredita su aprobación ni integración con las tarjetas reales.
+La primera ejecución se interrumpió por instrucción del usuario y se publicó
+con dos fallos registrados. Al autorizar la investigación se reprodujeron
+esos dos fallos y el bloqueo del emisor sintético; sus causas fueron:
 
-Se incluyen `test/unit/DashboardControl.test.js` y el verificador opcional
-`test/browser/dashboard.py`. Este último distingue los casos con respuestas
-interceptadas y el emisor Shadow DOM sintético; no los presenta como componentes
-reales de Rodrigo. Requiere Playwright Python externo y Chromium. Ejecución
-manual futura, si se autoriza reanudar la validación:
+1. **Estado inicial: error de la prueba.** El fieldset sí tenía `disabled`,
+   coincidía con `:disabled` y sus inputs estaban efectivamente deshabilitados.
+   Playwright Python 1.55 devolvía falso al consultar `is_disabled()` sobre
+   el fieldset. La prueba ahora verifica el atributo HTML y la deshabilitación
+   real de los tres inputs y el botón. También comprueba que se habilitan al
+   seleccionar una clínica. No se cambió el Control ni se debilitó el requisito.
+2. **Vista móvil: defecto CSS real.** En una pantalla de 390 px el documento
+   medía 449 px. Un texto `.sr-only` con posición absoluta dentro de la tabla
+   no tenía un contenedor de posicionamiento en el área desplazable y extendía
+   el documento. `.table-scroll` ahora usa `position: relative`: el documento
+   queda en 390 px y la tabla conserva 510 px dentro de su contenedor de 352 px.
+   No se oculta el overflow de body. En 320 px también se observó que los campos
+   de fecha excedían el ancho interno del formulario; hasta 360 px los filtros
+   se presentan en una columna.
+3. **Shadow DOM: ubicación incorrecta del emisor de prueba.** Se añadía como
+   tercer hijo del shell y el sidebar sticky interceptaba el clic. Ahora se
+   monta en el área de resultados, dentro de la raíz que escucha el evento.
+   Se usa un clic real, sin `force`. Con bubbles/composed verdaderos el evento
+   llega con el target retargeteado al host sintético y se carga el detalle
+   real con el DAO. Un segundo caso confirma que sin composed el evento no
+   sale del Shadow DOM y no se realiza ninguna petición de detalle.
+
+## Resultados comprobados después de corregir
+
+| Comprobación | Resultado |
+|---|---|
+| `npm test -- --reporter dot` | 400 aprobadas, 0 fallos; Mocha, Chai y Sinon. |
+| `npm run check` | 54 archivos con sintaxis válida. |
+| `test/browser/dashboard.py` | 13 aprobadas, 0 fallos, 0 errores, 0 omitidas. |
+| Pantallas de 320, 360, 390, 700, 1024 y 1440 px | Sin desbordamiento horizontal del documento; campos dentro del formulario. |
+| Tabla en pantallas estrechas | Mantiene desplazamiento horizontal interno y contenido accesible. |
+| `git diff --check` | Sin errores. |
+
+Se revisaron visualmente las capturas de escritorio y móvil. La evidencia
+versionada está en [dashboard-navegador.json](../test/evidence/dashboard-navegador.json).
+Los PNG originales quedan como artefactos locales, fuera de Git.
+El demo se inició con JDK 21, Open Liberty y PostgreSQL sintético usando su
+orquestador oficial. No se modificaron Java, SQL, CORS del backend, DAO,
+contratos REST, componentes de Rodrigo ni dependencias del proyecto.
+
+Las 13 pruebas de navegador incluyen la página real contra REST, filtros,
+paginación, cambios de clínica, detalle, campos ausentes y estados iniciales.
+También contienen casos identificados con respuestas interceptadas y emisores
+sintéticos: verifican manejo de errores, texto no confiable y Shadow DOM,
+pero **no acreditan integración con las tarjetas reales de Rodrigo**.
+La prueba de configuración ausente confirma que no se usa una URL alternativa.
+Las pruebas unitarias existentes cubren cancelación y respuestas obsoletas.
+
+## Reproducción
+
+Usar el demo oficial sintético y el origen CORS exacto de `./demo info`.
+Playwright Python 1.55.0 y Chromium 140.0.7339.16 se utilizaron como herramientas
+externas temporales, sin agregarlas al proyecto. Con ambos servidores activos:
 
 ```sh
+npm test
+npm run check
 GALENO_DASHBOARD_ORIGIN=http://127.0.0.1:3000 \
 PLAYWRIGHT_BROWSERS_PATH=/tmp/galeno-browser-tools/browsers \
   /tmp/galeno-browser-tools/bin/python test/browser/dashboard.py
 ```
 
-El dashboard se publica por instrucción expresa del usuario de detener las
-pruebas y hacer merge directo a main sin PR. **La validación del dashboard
-está incompleta.** La evidencia DAO de `docs/verificacion.md` corresponde a la
-etapa anterior; no acredita por sí sola este dashboard ni sus tarjetas.
+Ajustar origen y ruta de la herramienta según el entorno. El script escribe
+`result.json` y capturas en `/tmp/galeno-dashboard-browser`; la variable
+`GALENO_DASHBOARD_ARTIFACTS` permite elegir otra carpeta. No se versionan
+configuraciones locales, cachés Python ni secretos del demo.
+
+Los fallos investigados quedan corregidos y la validación de esta versión del
+dashboard está aprobada. Sigue pendiente el consumo de las tarjetas reales
+cuando Rodrigo entregue sus módulos; no se sustituyen con componentes falsos.
+El usuario autorizó un commit explicativo y merge directo a main sin PR.

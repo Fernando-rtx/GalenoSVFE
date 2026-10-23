@@ -1,8 +1,8 @@
 """Pruebas de la página real contra el demo oficial sintético.
 
 Playwright Python es una herramienta externa opcional; no es dependencia npm.
-Los dos tests con prefijo synthetic interceptan respuestas deliberadamente y
-NO acreditan REST real. El emisor Shadow DOM es sintético, no una tarjeta de Rodrigo.
+Los casos con respuestas interceptadas NO acreditan REST real. Los emisores
+Shadow DOM son sintéticos, no tarjetas de Rodrigo; su detalle sí usa el demo real.
 """
 import json
 import os
@@ -23,6 +23,7 @@ class DashboardBrowser(unittest.TestCase):
     def setUpClass(cls):
         cls.playwright = sync_playwright().start()
         cls.browser = cls.playwright.chromium.launch(headless=True)
+        cls.browser_version = cls.browser.version
         cls.observations = {}
 
     @classmethod
@@ -49,10 +50,19 @@ class DashboardBrowser(unittest.TestCase):
         expect(self.page.locator('[data-ui="total"]')).to_have_text('5' if index == 0 else '1')
 
     def test_initial_state(self):
-        expect(self.page.locator('[data-ui="filtersFieldset"]')).to_be_disabled()
+        # Playwright 1.55 no clasifica fieldset en is_disabled(); verificar
+        # el atributo HTML y la deshabilitación efectiva de los controles hijos.
+        expect(self.page.locator('[data-ui="filtersFieldset"]')).to_have_attribute('disabled', '')
+        for control in ('#fechaDesde', '#fechaHasta', '#idPersonaRol'):
+            expect(self.page.locator(control)).to_be_disabled()
+        expect(self.page.get_by_role('button', name='Aplicar filtros')).to_be_disabled()
         expect(self.page.locator('[data-ui="detailData"]')).to_be_hidden()
         expect(self.page.locator('[data-ui="resultStatus"]')).to_contain_text('Selecciona una clínica')
         self.page.screenshot(path=str(ARTIFACTS / 'inicial.png'), full_page=True)
+        self.choose_clinic()
+        for control in ('#fechaDesde', '#fechaHasta', '#idPersonaRol'):
+            expect(self.page.locator(control)).to_be_enabled()
+        expect(self.page.get_by_role('button', name='Aplicar filtros')).to_be_enabled()
 
     def test_real_list_and_detail(self):
         self.choose_clinic()
@@ -120,10 +130,8 @@ class DashboardBrowser(unittest.TestCase):
         expect(self.page.locator('[data-ui="actionError"]')).to_be_visible()
         expect(self.page.locator('[data-ui="total"]')).to_have_text('5')
 
-    def test_synthetic_shadow_emitter_with_real_detail(self):
-        self.choose_clinic()
-        consultation_id = self.page.locator('[data-ui="rows"] button').first.get_attribute('data-consulta')
-        self.page.evaluate('''id => {
+    def mount_synthetic_emitter(self, consultation_id, composed):
+        self.page.evaluate('''({id, composed}) => {
             // Emisor exclusivamente sintético. No define tarjeta-consulta ni tarjeta-simple.
             customElements.define('emisor-sintetico-consulta', class extends HTMLElement {
                 connectedCallback() {
@@ -131,18 +139,26 @@ class DashboardBrowser(unittest.TestCase):
                     const button = document.createElement('button');
                     button.textContent = 'Emisor sintético de selección';
                     button.onclick = () => button.dispatchEvent(new CustomEvent('consulta-seleccionada', {
-                        detail: {idConsulta: id}, bubbles: true, composed: true
+                        detail: {idConsulta: id}, bubbles: true, composed
                     }));
                     shadow.append(button);
                 }
             });
             const root = document.querySelector('[data-dashboard]');
+            window.syntheticEventObservation = null;
             root.addEventListener('consulta-seleccionada', event => {
                 window.syntheticEventObservation = {bubbles: event.bubbles, composed: event.composed,
                     retargeted: event.target.localName, idConsulta: event.detail.idConsulta};
             }, {once: true});
-            root.append(document.createElement('emisor-sintetico-consulta'));
-        }''', consultation_id)
+            // Montar el emisor donde iría el contenido de consultas. Agregarlo
+            // como tercer hijo del shell lo deja debajo del sidebar sticky.
+            document.querySelector('[data-ui="results"]').append(document.createElement('emisor-sintetico-consulta'));
+        }''', {'id': consultation_id, 'composed': composed})
+
+    def test_synthetic_shadow_emitter_with_real_detail(self):
+        self.choose_clinic()
+        consultation_id = self.page.locator('[data-ui="rows"] button').first.get_attribute('data-consulta')
+        self.mount_synthetic_emitter(consultation_id, composed=True)
         self.page.get_by_role('button', name='Emisor sintético de selección').click()
         expect(self.page.locator('[data-ui="detailData"]')).to_contain_text(consultation_id)
         observed = self.page.evaluate('window.syntheticEventObservation')
@@ -150,6 +166,18 @@ class DashboardBrowser(unittest.TestCase):
             'retargeted': 'emisor-sintetico-consulta', 'idConsulta': consultation_id})
         self.observations['shadowEvent'] = {**observed, 'syntheticEmitter': True, 'realRodrigoCard': False}
         self.assertFalse(self.page.evaluate("Boolean(customElements.get('tarjeta-consulta'))"))
+
+    def test_synthetic_shadow_event_without_composed_stays_inside_shadow(self):
+        self.choose_clinic()
+        consultation_id = self.page.locator('[data-ui="rows"] button').first.get_attribute('data-consulta')
+        requests = []
+        self.page.on('request', lambda request: requests.append(request.url) if '/v1/consulta/' in request.url else None)
+        self.mount_synthetic_emitter(consultation_id, composed=False)
+        self.page.get_by_role('button', name='Emisor sintético de selección').click()
+        self.assertIsNone(self.page.evaluate('window.syntheticEventObservation'))
+        expect(self.page.locator('[data-ui="detailData"]')).to_be_hidden()
+        self.assertEqual(requests, [])
+        self.observations['nonComposedEvent'] = {'reachesDashboard': False, 'detailRequests': 0}
 
     def test_synthetic_http_error_and_real_retry(self):
         pattern = '**/v1/consulta?*'
@@ -189,9 +217,30 @@ class DashboardBrowser(unittest.TestCase):
         self.assertEqual(requests, [])
 
     def test_mobile_layout_and_accessible_controls(self):
-        self.page.set_viewport_size({'width': 390, 'height': 844})
         self.choose_clinic()
-        self.assertLessEqual(self.page.evaluate('document.documentElement.scrollWidth'), 390)
+        layouts = []
+        for width in (320, 360, 390, 700, 1024, 1440):
+            with self.subTest(width=width):
+                self.page.set_viewport_size({'width': width, 'height': 844})
+                layout = self.page.evaluate('''() => {
+                    const table = document.querySelector('.table-scroll');
+                    const form = document.querySelector('.filter-grid').getBoundingClientRect();
+                    return {viewport: innerWidth, document: document.documentElement.scrollWidth,
+                        tableContainer: table.clientWidth, tableContent: table.scrollWidth,
+                        fieldsInsideForm: [...document.querySelectorAll('.filter-grid input')].every(input => {
+                            const box = input.getBoundingClientRect();
+                            return box.left >= form.left - 1 && box.right <= form.right + 1;
+                        })};
+                }''')
+                layouts.append(layout)
+                self.assertLessEqual(layout['document'], width)
+                self.assertTrue(layout['fieldsInsideForm'], layout)
+                # La tabla conserva desplazamiento propio; no ocultar el overflow
+                # de toda la página para hacer pasar esta prueba.
+                if width <= 390:
+                    self.assertGreater(layout['tableContent'], layout['tableContainer'])
+        self.observations['layouts'] = layouts
+        self.page.set_viewport_size({'width': 390, 'height': 844})
         expect(self.page.get_by_label('Clínica disponible')).to_be_visible()
         expect(self.page.get_by_label('Página siguiente')).to_be_disabled()
         self.page.screenshot(path=str(ARTIFACTS / 'movil.png'), full_page=True)
@@ -202,6 +251,7 @@ if __name__ == '__main__':
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     report = {'syntheticDemoOnly': True, 'frontendOrigin': ORIGIN, 'testsRun': result.testsRun,
         'failures': len(result.failures), 'errors': len(result.errors), 'skipped': len(result.skipped),
+        'browser': getattr(DashboardBrowser, 'browser_version', None),
         'notes': 'Los tests synthetic usan respuestas o emisor sintéticos; no son integración con tarjetas reales.',
         'observations': getattr(DashboardBrowser, 'observations', {})}
     (ARTIFACTS / 'result.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')

@@ -1,7 +1,12 @@
-# GalenoFE
+# GalenoSVFE
 
 Frontend web de GalenosSV. Esta carpeta contiene la semilla inicial del
 repositorio; la API REST todavía debe implementarse y verificarse en el backend.
+
+- Frontend: [Fernando-rtx/GalenoSVFE](https://github.com/Fernando-rtx/GalenoSVFE),
+  carpeta local `/home/fernando/NetBeansProjects/GalenoFE`.
+- Backend: [Fernando-rtx/Galenos](https://github.com/Fernando-rtx/Galenos),
+  carpeta local `/home/fernando/NetBeansProjects/Galenos`.
 
 ## Estructura
 
@@ -18,5 +23,7 @@ contrato.
 ## Colaboración
 
 Trabaja en ramas cortas distintas de `main`. Abre PR para revisar cambios de
-código y contrato. La carpeta local aún no tiene remoto configurado; no se han
-creado permisos, invitaciones ni reglas de protección en GitHub.
+código y contrato. El remoto `origin` apunta a `Fernando-rtx/GalenoSVFE`.
+Al vincularlo no se encontraron ramas ni etiquetas remotas; la semilla permanece
+local hasta su publicación. Los permisos, invitaciones y reglas de protección
+en GitHub todavía no se han verificado.

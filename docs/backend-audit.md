@@ -64,3 +64,19 @@ Resultados y reproducción: `docs/rest-validation.md`. Contrato compartido:
 `docs/api-contract.md`. Las invitaciones de los tres integrantes fueron
 confirmadas por Fernando en la conversación; protección de ramas y publicación
 de la semilla no verificadas todavía.
+
+## Segunda entrega: Consulta académica
+
+Fernando confirmó que la entrega usará exclusivamente datos ficticios. La rama
+`feat/consulta-read-model` agrega un modo demo explícito, desactivado por
+defecto, que solo acepta nombres de base con prefijo de demostración/prueba.
+No se interpreta la sesión JSF como autenticación. La API demo de Consulta
+requiere una clínica y la aplica también al detalle; no publica información
+clínica libre, documentos o colecciones.
+
+`GET /v1/clinica` permite obtener las opciones del selector por HTTP, sin IDs
+quemados en componentes. Se conservan los DAO y el esquema existentes.
+Fixtures de siete consultas y relaciones sintéticas se cargaron únicamente en
+la base aislada de la entrega anterior. Contrato 0.2 y reproducción:
+`docs/consulta-demo.md`. El uso con datos reales sigue pendiente de un contrato
+de autenticación y autorización.

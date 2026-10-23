@@ -1,8 +1,9 @@
 # GalenoSVFE
 
 Frontend web de GalenosSV. Esta carpeta contiene la semilla inicial del
-repositorio y el contrato del primer recurso REST de lectura de TipoDocumento,
-implementado en la rama backend `feat/rest-tipo-documento`, pendiente de integrar.
+repositorio y el contrato REST de TipoDocumento, Clínica y Consulta académica.
+Las ramas backend `feat/rest-tipo-documento` y `feat/consulta-read-model`
+todavía están pendientes de integrar y publicar.
 
 - Frontend: [Fernando-rtx/GalenoSVFE](https://github.com/Fernando-rtx/GalenoSVFE),
   carpeta local `/home/fernando/NetBeansProjects/GalenoFE`.
@@ -18,8 +19,9 @@ coordinación) y `entity` (datos). La estructura acordada está descrita en
 
 Todavía no se fijan versiones de Node/npm ni un servidor de desarrollo: se
 acordarán con el responsable del tooling antes de incorporar dependencias.
-El contrato indica las rutas implementadas y los pendientes. La API del catálogo
-ya se comprobó en un ambiente aislado; todavía no hay integración del dashboard.
+El contrato indica las rutas implementadas y los pendientes. Consulta y Clínica
+requieren modo demo explícito y una base con datos exclusivamente ficticios;
+todavía no hay integración del dashboard.
 
 ## Colaboración
 
@@ -35,12 +37,16 @@ verificado.
 - Itzep: adaptar el arreglo JSON y `Total-registros` a `DefaultResponse`, con
   base URL configurable y `credentials: "omit"`; consultar el contrato antes
   de implementar DAOs. Esta semilla no incluye tooling ni acceso HTTP del cliente.
-- Rodrigo: el catálogo todavía no define una tarjeta de Consulta. Los campos,
-  eventos y permisos del dashboard se acordarán cuando exista ese contrato.
-- Fernando: revisar e integrar el primer recurso REST; definir identidad,
-  permisos por clínica y DTO antes de exponer Consulta.
+- Rodrigo: el DTO de Consulta ya define nombres de persona/rol/clínica y fechas.
+  Los fixtures sintéticos están en `test/fixtures/`. Acordar con Itzep el modelo
+  de presentación y los eventos de tarjetas en `docs/ui-contract.md`.
+- Fernando: revisar e integrar los recursos REST. El modo demo fue autorizado
+  para esta entrega; autenticación real y permisos siguen pendientes antes de
+  cualquier uso con información clínica real.
 
 El contrato canónico está en `Galenos/docs/api-contract.md`. La copia de este
-repositorio corresponde a la misma revisión 0.1; las siguientes modificaciones
+repositorio corresponde a la misma revisión 0.2; las siguientes modificaciones
 deben coordinarse en ambos repositorios. Las instrucciones de validación usan
 archivos del backend y están en [`docs/rest-validation.md`](docs/rest-validation.md).
+La entrega académica y su configuración están en
+[`docs/consulta-demo.md`](docs/consulta-demo.md).

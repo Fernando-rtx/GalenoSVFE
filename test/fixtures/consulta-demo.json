@@ -1,0 +1,52 @@
+[
+  {
+    "clinicaNombre": "Clínica ficticia A",
+    "fechaFin": null,
+    "fechaInicio": "2026-10-22T05:59:59Z",
+    "idClinica": "00000000-0000-4000-8000-000000000011",
+    "idConsulta": "00000000-0000-4000-8000-000000001001",
+    "idPersonaRol": "00000000-0000-4000-8000-000000000101",
+    "personaNombre": "Persona ficticia Uno",
+    "rolNombre": "Rol sintético"
+  },
+  {
+    "clinicaNombre": "Clínica ficticia A",
+    "fechaFin": "2026-10-22T07:00:00Z",
+    "fechaInicio": "2026-10-22T06:00:00Z",
+    "idClinica": "00000000-0000-4000-8000-000000000011",
+    "idConsulta": "00000000-0000-4000-8000-000000001002",
+    "idPersonaRol": "00000000-0000-4000-8000-000000000101",
+    "personaNombre": "Persona ficticia Uno",
+    "rolNombre": "Rol sintético"
+  },
+  {
+    "clinicaNombre": "Clínica ficticia A",
+    "fechaFin": null,
+    "fechaInicio": "2026-10-23T05:59:59Z",
+    "idClinica": "00000000-0000-4000-8000-000000000011",
+    "idConsulta": "00000000-0000-4000-8000-000000001003",
+    "idPersonaRol": "00000000-0000-4000-8000-000000000101",
+    "personaNombre": "Persona ficticia Uno",
+    "rolNombre": "Rol sintético"
+  },
+  {
+    "clinicaNombre": "Clínica ficticia A",
+    "fechaFin": null,
+    "fechaInicio": "2026-10-23T06:00:00Z",
+    "idClinica": "00000000-0000-4000-8000-000000000011",
+    "idConsulta": "00000000-0000-4000-8000-000000001004",
+    "idPersonaRol": "00000000-0000-4000-8000-000000000104",
+    "personaNombre": null,
+    "rolNombre": "Rol sintético"
+  },
+  {
+    "clinicaNombre": "Clínica ficticia A",
+    "fechaFin": null,
+    "fechaInicio": null,
+    "idClinica": "00000000-0000-4000-8000-000000000011",
+    "idConsulta": "00000000-0000-4000-8000-000000001005",
+    "idPersonaRol": "00000000-0000-4000-8000-000000000104",
+    "personaNombre": null,
+    "rolNombre": "Rol sintético"
+  }
+]

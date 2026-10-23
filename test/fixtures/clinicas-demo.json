@@ -1,0 +1,10 @@
+[
+  {
+    "idClinica": "00000000-0000-4000-8000-000000000011",
+    "nombre": "Clínica ficticia A"
+  },
+  {
+    "idClinica": "00000000-0000-4000-8000-000000000012",
+    "nombre": "Clínica ficticia B"
+  }
+]

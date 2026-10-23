@@ -31,7 +31,7 @@ No es necesario que los compañeros usen esa misma ruta local.
 |---|---|
 | Compilación limpia `mvn clean package` | 103 fuentes y 65 fuentes de prueba compiladas con javac/release 21 |
 | Suite Java | 739 pruebas, cero fallos/errores/omitidas |
-| Protecciones del orquestador | 7 pruebas aprobadas |
+| Protecciones del orquestador | 7 pruebas iniciales; ampliadas a 10 al corregir la comprobación de versión por idioma |
 | HTTP real contra PostgreSQL 12.22 | 12 pruebas de TipoDocumento + 9 de Consulta aprobadas |
 | Chromium desde otro origen | Clínicas, consultas, conteos, detalle y 404 legibles |
 | Recursos ajenos | `postgres-local` rechazado por propiedad; sigue funcionando |
@@ -116,7 +116,7 @@ carpeta tiene permisos privados y está ignorada en Git. Nunca subir su
 ./demo info
 ```
 
-`verify` ejecuta siete pruebas del orquestador, `mvn clean package` con Java 21,
+`verify` ejecuta diez pruebas del orquestador, `mvn clean package` con Java 21,
 12 pruebas HTTP de TipoDocumento y 9 de Consulta. Al terminar detiene el
 servidor y su contenedor, conservando el volumen. Genera evidencia sin claves
 en `.galenos-demo/verification.json` y logs privados en `.galenos-demo/logs/`.
@@ -157,3 +157,14 @@ Fernando ni recibir credenciales de PostgreSQL.
 Rodrigo recibe los datos normalizados por Itzep. La integración final
 DAO → dashboard → componentes requiere sus módulos; esos archivos no se
 crean ni modifican como parte de este arranque.
+
+## Comprobación posterior con los DAO reales
+
+La entrega de Itzep integrada en frontend `main` (`d0025b3`) ya se probó desde
+BrowserSync y Chromium contra esta demo. Pasaron las siete pruebas del runner
+real y la comprobación de CORS mediante los DAO. Ver
+`docs/integracion-dao-navegador.md` para resultados y reproducción.
+
+Se corrigió una dependencia del idioma del comando `productInfo`: la versión
+ahora se lee de `lib/versions/openliberty.properties` y se compara exactamente
+con el POM. El arranque se comprobó en español, sin forzar el idioma inglés.

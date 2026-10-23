@@ -11,4 +11,8 @@ export const config = createApiConfig({ baseUrl: null });
 // Opcional: write = { createData, updateData, idFromResponse(response), assertUpdated(response) }.
 // write exige create, findById, update y deleteById confirmados y limpia lo creado.
 // Opcional: missingId y missingStatus, confirmados por el contrato REST.
+// listChecks: [{ name, first, max, query, expectedTotal, expectedLength }].
+// listErrors: [{ name, first, max, query, status }], con parámetros válidos para el cliente.
+// detailErrors: [{ name, id, query, status }], por ejemplo detalle de otra clínica (404).
+// Para el demo oficial completo ver environment.demo.example.js; no usa datos reales.
 export const cases = [];

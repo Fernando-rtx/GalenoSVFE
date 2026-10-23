@@ -1,6 +1,46 @@
 import { expect } from 'chai';
-import { DefaultDAO, DefaultError, TipoDocumentoDAO, ConsultaDAO, ClinicaDAO } from '../../src/js/index.js';
+import { DefaultDAO, DefaultResponse, DefaultError, TipoDocumentoDAO, ConsultaDAO, ClinicaDAO } from '../../src/js/index.js';
 import { appendQuery } from '../../src/js/control/query-parameters.js';
+
+function validatePage(testCase, contract, baseUrl) {
+  if (!Number.isSafeInteger(testCase.first) || testCase.first < 0 || !Number.isSafeInteger(testCase.max) || testCase.max < 1 ||
+      (contract.validateRange && !contract.validateRange(testCase.first, testCase.max))) {
+    throw new Error('Configura first y max válidos para una solicitud HTTP.');
+  }
+  appendQuery(new URL(baseUrl), testCase.query, contract);
+}
+
+function validateChecks(testCase, operations, baseUrl) {
+  ['listChecks', 'listErrors', 'detailErrors'].forEach(key => {
+    if (testCase[key] === undefined) return;
+    if (!Array.isArray(testCase[key]) || testCase[key].length === 0) throw new Error(`${key} debe contener casos explícitos.`);
+    const operation = key === 'detailErrors' ? operations.findById : operations.findRange;
+    if (!operation) throw new Error(`${key} requiere una operación publicada.`);
+    testCase[key].forEach(check => {
+      if (!check || typeof check.name !== 'string' || !check.name.trim()) throw new Error('Cada comprobación requiere un nombre.');
+      if (key === 'detailErrors') {
+        if (check.id === undefined || (operation.validateId && !operation.validateId(check.id))) throw new Error('detailErrors requiere un ID válido.');
+        appendQuery(new URL(baseUrl), check.query, operation);
+      } else validatePage(check, operation, baseUrl);
+      if (key === 'listChecks') {
+        if (!Number.isSafeInteger(check.expectedTotal) || check.expectedTotal < 0 ||
+            !Number.isSafeInteger(check.expectedLength) || check.expectedLength < 0 ||
+            check.expectedLength > check.max || check.expectedLength > check.expectedTotal) {
+          throw new Error('listChecks requiere total y tamaño esperados válidos del dataset sintético.');
+        }
+      } else if (!Number.isInteger(check.status) || check.status < 400 || check.status > 599) {
+        throw new Error('El caso de error requiere un estado HTTP confirmado.');
+      }
+    });
+  });
+}
+
+async function assertHttpError(request, status) {
+  let error;
+  try { await request; } catch (cause) { error = cause; }
+  expect(error).to.be.instanceOf(DefaultError);
+  expect(error).to.include({ type: 'http', code: 'HTTP_ERROR', status });
+}
 
 export function validateIntegrationEnvironment({ config, cases }) {
   if (!config || !config.baseUrl || !Array.isArray(cases) || cases.length === 0) {
@@ -12,14 +52,12 @@ export function validateIntegrationEnvironment({ config, cases }) {
       throw new Error(`Contrato no verificado para ${testCase.resource}.`);
     }
     const operations = resource.operations;
-    if (operations.findRange) appendQuery(new URL(config.baseUrl), testCase.query, operations.findRange);
     if (operations.findById) {
       appendQuery(new URL(config.baseUrl), testCase.detailQuery || testCase.query, operations.findById);
       if (operations.findById.validateId && !operations.findById.validateId(testCase.id)) throw new Error('Falta un UUID válido para el detalle.');
     }
-    if (operations.findRange && (!Number.isSafeInteger(testCase.first) || testCase.first < 0 || !Number.isSafeInteger(testCase.max) || testCase.max < 1)) {
-      throw new Error(`Configura first y max válidos para ${testCase.resource}.`);
-    }
+    if (operations.findRange) validatePage(testCase, operations.findRange, config.baseUrl);
+    validateChecks(testCase, operations, config.baseUrl);
     if (operations.findById && testCase.id === undefined) throw new Error(`Falta un ID de prueba de ${testCase.resource}.`);
     if (testCase.missingId !== undefined && (!operations.findById || !Number.isInteger(testCase.missingStatus) || testCase.missingStatus < 400 || testCase.missingStatus > 599)) {
       throw new Error('missingId requiere un estado HTTP de error confirmado y findById.');
@@ -59,6 +97,7 @@ export function registerIntegrationSuite(environment) {
         if (operations.findRange) {
           it('consulta una página con Fetch real y lee su total cuando está disponible', async () => {
             const response = await dao.findRange(testCase.first, testCase.max, options);
+            expect(response).to.be.instanceOf(DefaultResponse);
             expect(response.datos).to.be.an('array');
             expect(response.datos.length).to.be.at.most(testCase.max);
             if (response.totalDatos !== null) expect(response.totalDatos).to.be.at.least(response.datos.length);
@@ -72,13 +111,29 @@ export function registerIntegrationSuite(environment) {
         }
         if (testCase.missingId !== undefined) {
           it('conserva el estado confirmado para un ID inexistente', async () => {
-            let error;
-            try { await dao.findById(testCase.missingId, detailOptions); } catch (cause) { error = cause; }
-            expect(error).to.be.instanceOf(DefaultError);
-            expect(error.type).to.equal('http');
-            expect(error.status).to.equal(testCase.missingStatus);
+            await assertHttpError(dao.findById(testCase.missingId, detailOptions), testCase.missingStatus);
           });
         }
+        (testCase.listChecks || []).forEach(check => {
+          it(check.name, async () => {
+            const response = await dao.findRange(check.first, check.max, { query: check.query });
+            expect(response).to.be.instanceOf(DefaultResponse);
+            expect(response.datos).to.have.lengthOf(check.expectedLength);
+            expect(response.totalDatos).to.equal(check.expectedTotal);
+            const header = operations.findRange.pagination.totalHeader;
+            if (header) expect(response.getHeader(header)).to.equal(String(check.expectedTotal));
+          });
+        });
+        (testCase.listErrors || []).forEach(check => {
+          it(check.name, async () => {
+            await assertHttpError(dao.findRange(check.first, check.max, { query: check.query }), check.status);
+          });
+        });
+        (testCase.detailErrors || []).forEach(check => {
+          it(check.name, async () => {
+            await assertHttpError(dao.findById(check.id, { query: check.query }), check.status);
+          });
+        });
         if (testCase.write) {
           it('crea, consulta, actualiza, vuelve a consultar y elimina datos de prueba', async () => {
             const response = await dao.create(testCase.write.createData);

@@ -120,3 +120,16 @@ permitir el origen de BrowserSync y exponer Total-registros. Ver demo-setup.md.
 No se implementa un dashboard ni se cambian Web Components como parte de esta
 entrega. El consumo real se verifica aparte de las pruebas unitarias y el
 estado exacto está en verificacion.md e inventario-dao.md.
+
+La receta ejecutable independiente de presentación es
+`test/integration/environment.demo.example.js`, junto con `backend-suite.js`:
+importa los DAO y tipos desde el punto público, obtiene clínicas/consultas por
+HTTP y comprueba paginación, filtros, datos, totales y errores. Se ejecuta con
+la misma suite en Node y en el runner de navegador. La cancelación al sustituir
+una solicitud, su limpieza y el rechazo previo a Fetch se comprueban en
+`test/unit/DefaultDAO.test.js`; no se atribuye esa prueba a un Web Component.
+
+No se necesita un contrato de componente para entregar este módulo de acceso
+a datos. La conexión concreta con tarjetas/dashboard permanece pendiente del
+acuerdo de métodos, propiedades y eventos de Rodrigo; este documento no define
+esa interfaz ni asigna a Itzep la implementación visual.

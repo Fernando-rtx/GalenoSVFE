@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-23",
+  "timezone": "America/El_Salvador",
+  "frontendBase": "9a627c68b8ffdaeee2fd79fb0520bb4c1772610a",
+  "backendRevision": "d7ff967",
+  "browser": "Chromium 140.0.7339.16 (Playwright build 1187)",
+  "testDriver": "Galenos/test/integration/frontend_dao_browser.py @ d7ff967",
+  "result": {
+    "frontendOrigin": "http://127.0.0.1:3000",
+    "mocha": {
+      "status": "Pruebas configuradas completadas.",
+      "passes": 20,
+      "failures": 0
+    },
+    "daoChecks": {
+      "baseUrl": "http://localhost:19082/GalenosSV/resources/",
+      "responseClass": true,
+      "clinicsTotal": 2,
+      "total": 5,
+      "count": 1,
+      "exposedTotal": "5",
+      "emptyCount": 0,
+      "emptyTotal": 5,
+      "filteredTotal": 2,
+      "wrongClinic": {
+        "type": "http",
+        "status": 404
+      },
+      "invalidMax": {
+        "type": "http",
+        "status": 422
+      },
+      "preflightTotal": 5
+    },
+    "preflightStatuses": [
+      204
+    ],
+    "deniedOriginError": {
+      "type": "connection",
+      "code": "NETWORK_ERROR",
+      "status": null
+    },
+    "syntheticDataOnly": true
+  }
+}

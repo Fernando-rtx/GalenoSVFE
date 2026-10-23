@@ -95,3 +95,16 @@ Las pruebas de transporte usan un servidor sintético, no acreditan GalenosSV.
 Hay 20 clases DAO: TipoDocumento, Clínica y Consulta consumen las cinco lecturas
 publicadas en API 0.2. Las otras 17 rechazan `CONTRACT_PENDING` sin enviar HTTP;
 su existencia no implica que estén integradas. Ninguna habilita escrituras.
+
+## Dashboard de Itzep
+
+El dashboard está en `src/index.html`: selección de clínica, filtros, paginación
+con total real y detalle mediante los DAO. Configurar environment.local.js y
+abrir `/index.html` desde BrowserSync en el origen CORS del demo. Véase
+[dashboard-itzep.md](docs/dashboard-itzep.md) para arquitectura, configuración,
+contrato de tarjetas y estado de validación. Las tarjetas de Rodrigo aún no
+están implementadas; la selección actual utiliza la tabla de la página.
+Los fallos iniciales de validación se investigaron y corrigieron: 13 pruebas
+de navegador aprobadas, con layout comprobado de 320 a 1440 px y evento Shadow
+DOM validado mediante emisor sintético. La integración con tarjetas reales
+permanece pendiente de la entrega de Rodrigo.

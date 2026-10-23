@@ -459,6 +459,8 @@ fieldset {
   margin:0 24px 22px
 }
 .table-scroll {
+  /* Contiene también los textos absolutos de accesibilidad de la tabla. */
+  position:relative;
   overflow-x:auto
 }
 table {
@@ -821,6 +823,11 @@ tarjeta-consulta {
   }
   .page-footer>span {
     display:block
+  }
+}
+@media(max-width:360px) {
+  .filter-grid {
+    grid-template-columns:minmax(0,1fr)
   }
 }
 @media(prefers-reduced-motion:no-preference) {

@@ -104,5 +104,7 @@ abrir `/index.html` desde BrowserSync en el origen CORS del demo. Véase
 [dashboard-itzep.md](docs/dashboard-itzep.md) para arquitectura, configuración,
 contrato de tarjetas y estado de validación. Las tarjetas de Rodrigo aún no
 están implementadas; la selección actual utiliza la tabla de la página.
-La validación de navegador del dashboard quedó incompleta al detenerse por
-instrucción del usuario, después de registrar dos fallos.
+Los fallos iniciales de validación se investigaron y corrigieron: 13 pruebas
+de navegador aprobadas, con layout comprobado de 320 a 1440 px y evento Shadow
+DOM validado mediante emisor sintético. La integración con tarjetas reales
+permanece pendiente de la entrega de Rodrigo.

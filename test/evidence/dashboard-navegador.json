@@ -1,0 +1,75 @@
+{
+  "date": "2026-10-23",
+  "timezone": "America/El_Salvador",
+  "frontendBase": "986f2dc53df51c7dbd6502afac8c3656d4858f75",
+  "backendRevision": "d7ff967",
+  "driver": "test/browser/dashboard.py",
+  "result": {
+    "syntheticDemoOnly": true,
+    "frontendOrigin": "http://127.0.0.1:3000",
+    "testsRun": 13,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "browser": "140.0.7339.16",
+    "notes": "Los tests synthetic usan respuestas o emisor sintéticos; no son integración con tarjetas reales.",
+    "observations": {
+      "layouts": [
+        {
+          "viewport": 320,
+          "document": 320,
+          "tableContainer": 282,
+          "tableContent": 510,
+          "fieldsInsideForm": true
+        },
+        {
+          "viewport": 360,
+          "document": 360,
+          "tableContainer": 322,
+          "tableContent": 510,
+          "fieldsInsideForm": true
+        },
+        {
+          "viewport": 390,
+          "document": 390,
+          "tableContainer": 352,
+          "tableContent": 510,
+          "fieldsInsideForm": true
+        },
+        {
+          "viewport": 700,
+          "document": 700,
+          "tableContainer": 662,
+          "tableContent": 662,
+          "fieldsInsideForm": true
+        },
+        {
+          "viewport": 1024,
+          "document": 1024,
+          "tableContainer": 769,
+          "tableContent": 769,
+          "fieldsInsideForm": true
+        },
+        {
+          "viewport": 1440,
+          "document": 1440,
+          "tableContainer": 807,
+          "tableContent": 807,
+          "fieldsInsideForm": true
+        }
+      ],
+      "shadowEvent": {
+        "bubbles": true,
+        "composed": true,
+        "retargeted": "emisor-sintetico-consulta",
+        "idConsulta": "00000000-0000-4000-8000-000000001001",
+        "syntheticEmitter": true,
+        "realRodrigoCard": false
+      },
+      "nonComposedEvent": {
+        "reachesDashboard": false,
+        "detailRequests": 0
+      }
+    }
+  }
+}

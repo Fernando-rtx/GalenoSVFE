@@ -1,0 +1,17 @@
+# Dependencias y salidas generadas
+node_modules/
+coverage/
+dist/
+target/
+
+# Archivos locales y secretos
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+Thumbs.db
+
+# Editores
+.idea/
+.vscode/

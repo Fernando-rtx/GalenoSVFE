@@ -1,57 +1,66 @@
-# Auditoría inicial del backend
+# Auditoría para el primer recurso REST
 
-**Fecha:** 2026-10-23
-**Repositorio:** `/home/fernando/NetBeansProjects/Galenos`
-**Rama observada:** `Cortez`
-**Commit observado:** `480b325` (`fix(a11y): render consultation clinic notice as status`)
+Fecha: 2026-10-23. Backend `Fernando-rtx/Galenos`.
 
-## Estado de Git
+## Base de trabajo
 
-- `git status -sb`: limpio, `Cortez...origin/Cortez`.
-- Ramas locales observadas: `Cortez`, `backup/fix-0da093f`, `feature/fernando`,
-  `feature/fernando-parcial` y `main`.
-- Remoto `origin`: `https://github.com/Fernando-rtx/Galenos`.
-- Worktree observado: el checkout local en `Cortez`.
-- `main` y `feature/fernando-parcial` apuntan a `b5b77ea` y estaban 2 commits
-  adelante de `origin/main`; `feature/fernando` estaba 4 commits adelante de
-  su remoto. No se modificó el repositorio backend.
+Se encontró limpio el checkout `Cortez` (`480b325`). Después de `git fetch
+origin`, `origin/main` avanzó a `97b9c2f`. Se creó
+`feat/rest-tipo-documento` desde esa referencia, sin modificar `main` ni
+sobrescribir trabajo local. El frontend vive en `Fernando-rtx/GalenoSVFE`,
+carpeta local `GalenoFE`; su semilla todavía es local.
 
-## Hallazgos verificables
+Antes de implementar no se encontraron recursos Jakarta REST, ApplicationPath
+ni filtros CORS en `origin/main`. `TipoDocumentoDAO` ya ofrecía búsqueda por
+UUID, consulta paginada con orden y conteo; no fue necesario duplicar SQL ni
+modificar el esquema existente. La entidad contiene una relación hacia
+documentos que el DTO REST excluye explícitamente.
 
-- Es un WAR Maven `GalenosSV` con Java 21 (`maven.compiler.release=21`), Jakarta
-  EE 11.0.0, Open Liberty 26.0.0.8, Liberty Maven Plugin 3.12.1, PrimeFaces
-  15.0.17 Jakarta y PostgreSQL JDBC 42.7.4.
-- `server.xml` declara HTTP 9080, HTTPS 9443, contexto `/GalenosSV` y JNDI
-  `jdbc/pgdb`. La base por defecto configurada allí es `clinica`; credenciales
-  se esperan desde variables de entorno.
-- `docs/ENTORNO.md` indica PostgreSQL 18.6, pero dice que la base por defecto
-  es `universidad`. Esto contradice el `server.xml`; el nombre efectivo de la
-  base y la disponibilidad del servidor requieren confirmación en ejecución.
-- Se encontraron modelos y DAO Java para `TipoDocumento` y `Consulta`, además
-  de documentación previa de lógica clínica. Esos DAO JSF/JPA no constituyen
-  endpoints HTTP.
-- La búsqueda de `jakarta.ws.rs`, `javax.ws.rs`, `@ApplicationPath` y
-  `@Path(...)` en el código Java, `pom.xml` y `web.xml` no encontró recursos
-  REST. No existe una ruta REST confirmada en el estado inspeccionado.
-- No hay evidencia local inspeccionada de una API REST desplegada ni de
-  cabeceras CORS, paginación o un encabezado `Total-registros`.
+También se buscaron recursos en las referencias remotas descargadas. La rama
+`origin/Itzep` contiene únicamente `JakartaEE11Resource`, un ejemplo
+`@Path("jakartaee11")` que responde texto `ping Jakarta EE`; no es un recurso
+de TipoDocumento o Consulta y no está integrado en `origin/main`. No se encontró
+otro recurso REST de dominio que hubiera que recuperar antes de este lote.
 
 ## Entorno observado
 
-- `java -version`: OpenJDK 25.0.4.1; no coincide con el Java 21 objetivo del
-  POM. El compilador está configurado para release 21.
-- `mvn -version`: Apache Maven 3.9.16.
-- No se ejecutó `mvn test` ni se desplegó Liberty en esta auditoría.
-- No se inspeccionaron valores de credenciales ni datos de pacientes.
+| Elemento | Evidencia efectiva |
+|---|---|
+| Java instalado | OpenJDK 25.0.4.1; no se encontró JDK 21 local |
+| Objetivo de compilación | release 21 del POM, conservado |
+| Maven | 3.9.16 |
+| Open Liberty instalado y usado | 26.0.0.8 |
+| Jakarta EE | 11.0.0; webProfile-11.0 en Liberty |
+| PrimeFaces | 15.0.17 Jakarta |
+| JDBC PostgreSQL | 42.7.4 |
+| PostgreSQL efectivo | 12.22 en contenedor local `postgres-local` |
+| Node/npm observados | 24.17.0 / 11.13.0; tooling FE todavía no fijado |
 
-## Bloqueos y siguiente lote
+El anterior documento de entorno mencionaba PostgreSQL 18.6; la instancia local
+usada en este ensayo responde 12.22. `server.xml` define `clinica` como nombre
+de base por defecto, pero el ejemplo de entorno decía `universidad`. Se alineó
+el ejemplo con `server.xml`; no se cambió ninguna base existente.
 
-1. Confirmar la configuración efectiva de base de datos y ejecutar el WAR en un
-   ambiente de prueba con Java 21 y datos sintéticos.
-2. Diseñar e implementar un recurso REST de lectura para `TipoDocumento` sobre
-   los DAO existentes, con DTO explícito y pruebas HTTP; acordar ruta, forma de
-   respuesta, permisos, paginación y cabeceras antes de fijar el contrato.
-3. Probar CORS desde el origen de desarrollo aprobado y publicar resultados.
-4. Luego acordar el DTO y los permisos de lectura de `Consulta` con el equipo.
+## Cambios y límites
 
-Hasta completar esos pasos, GalenoFE no debe consumir ni anunciar endpoints.
+Se añadió REST de lectura para `TipoDocumento` con DTO, validación, errores JSON
+y CORS configurable. No se añadieron dependencias Maven/npm, escrituras REST,
+endpoints clínicos ni cambios de tablas de la aplicación. El WAR sigue
+conteniendo JSF/PrimeFaces y se ejecutaron las pruebas Java existentes.
+
+La integración se hizo contra una nueva base `galenos_rest_test_*` con solo dos
+tipos de documento sintéticos, usando un servidor Liberty separado en 19080.
+No se leyó el contenido de la base clínica ni se copiaron credenciales al repo.
+
+## Pendiente para Consulta
+
+La aplicación contiene selección de rol y clínica en la sesión JSF. Eso no
+demuestra autenticación ni autorización HTTP de una API para datos clínicos.
+Antes del recurso `Consulta` deben acordarse identidad verificable, reglas de
+acceso por actor/clínica y campos autorizados del DTO. No se asumen esos
+permisos a partir de un selector visual.
+
+Resultados y reproducción: `docs/rest-validation.md`. Contrato compartido:
+`docs/api-contract.md`. Las invitaciones de los tres integrantes fueron
+confirmadas por Fernando en la conversación; protección de ramas y publicación
+de la semilla no verificadas todavía.

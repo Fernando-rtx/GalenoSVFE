@@ -1,0 +1,27 @@
+:host {
+  display: block;
+  min-width: 0;
+  color: var(--ink, #172d31);
+  font-family: inherit;
+}
+
+* { box-sizing: border-box; }
+
+.card {
+  min-width: 0;
+  overflow: hidden;
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #dde7e3);
+  border-radius: var(--radius, 16px);
+  box-shadow: 0 5px 18px rgb(23 45 49 / 5%);
+}
+
+header, .card-content, footer { padding: 16px 18px; }
+header { border-bottom: 1px solid var(--line, #dde7e3); }
+.card-content { line-height: 1.5; }
+footer {
+  border-top: 1px solid var(--line, #dde7e3);
+  background: var(--canvas, #f5f8f6);
+}
+
+::slotted(*) { margin: 0; }

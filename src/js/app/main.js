@@ -1,5 +1,6 @@
 import { mountDashboard } from './dashboard.js';
 import { config as defaultConfig } from '../config/environment.example.js';
+import '../boundary/components/tarjeta_consulta.js';
 
 const root = document.querySelector('[data-dashboard]');
 let dashboard;

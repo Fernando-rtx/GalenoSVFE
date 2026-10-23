@@ -1,6 +1,6 @@
 # Contrato de interfaz: tarjetas de consulta
 
-**Estado:** borrador para revisión de Rodrigo e Itzep.  
+**Estado:** implementado en `cortez` conforme al consumo del dashboard de Itzep.
 **Alcance:** presentación de consultas académicas con datos sintéticos. Este documento no define ni modifica el contrato REST.
 
 ## Responsabilidades
@@ -38,9 +38,9 @@ Campos:
 | `fechaInicio` | fecha ISO 8601 UTC o `null` | Fecha de inicio, formateada para lectura. |
 | `fechaFin` | fecha ISO 8601 UTC o `null` | Fecha de finalización, si existe. |
 
-Estos campos provienen del DTO de Consulta del contrato REST 0.2. Los nombres y las fechas pueden ser `null`. No hay campos confirmados de médico ni estado clínico, por lo que la tarjeta no debe inventarlos. Los textos de respaldo propuestos son “Persona no especificada”, “Clínica no disponible” y “Fecha no disponible”; Rodrigo e Itzep pueden acordar otros textos.
+Estos campos provienen del DTO de Consulta del contrato REST 0.2. Los nombres y las fechas pueden ser `null`. No hay campos confirmados de médico ni estado clínico, por lo que la tarjeta no debe inventarlos. La tarjeta usa “Persona sin nombre” para el título ausente y “Sin especificar” para los demás datos ausentes, igual que el dashboard.
 
-La API representa las fechas en UTC. Propuesta de presentación: formatearlas con `Intl.DateTimeFormat` para `es-SV` y la zona `America/El_Salvador`. Confirmar esta decisión antes de cerrar el contrato.
+La API representa las fechas en UTC. La tarjeta y el dashboard comparten `formatUtcDate`: muestra fecha y hora con `Intl.DateTimeFormat('es-SV', { timeZone: 'UTC' })` y el sufijo “UTC”. Esta decisión fue indicada por Rodrigo para mantener ambas vistas coherentes.
 
 ## Contrato de `tarjeta-simple`
 
@@ -74,7 +74,7 @@ new CustomEvent("consulta-seleccionada", {
 });
 ```
 
-`detail` contiene solo el identificador necesario para que el dashboard determine qué consulta fue seleccionada. El dashboard decide la acción posterior. Confirmar con Itzep el nombre del evento, el elemento que lo escucha y la acción esperada antes de implementar la integración.
+`detail` contiene solo el identificador necesario para que el dashboard determine qué consulta fue seleccionada. `DashboardPage` ya escucha este evento en la raíz y pide el detalle a través de `DashboardControl`. El control visible del pie se llama “Ver detalle”.
 
 ## Estados y límites
 
@@ -83,9 +83,8 @@ new CustomEvent("consulta-seleccionada", {
 - Los datos de Consulta y Clínica descritos en API 0.2 son únicamente para la demostración sintética. La demo está desactivada por defecto y no cuenta con autenticación real.
 - Las tarjetas no almacenan datos clínicos en `localStorage`.
 
-## Pendientes de revisión con Itzep
+## Registro e integración
 
-1. Confirmar que el dashboard asignará el modelo por la propiedad `consulta`.
-2. Confirmar textos de respaldo y formato de fecha.
-3. Confirmar nombre y detalle del evento, y cómo lo usará el dashboard.
-4. Confirmar si el pie de tarjeta requiere una acción para esta primera entrega.
+`src/js/app/main.js` importa `tarjeta_consulta.js`, que registra ambos elementos. La página crea `tarjeta-consulta`, asigna la propiedad `consulta` antes de conectarla al DOM y escucha `consulta-seleccionada`. Si se actualiza la propiedad después, la tarjeta vuelve a presentar sus datos sin duplicar su estructura.
+
+Los estilos se cargan dentro de cada Shadow DOM desde `src/resources/estilos/tarjeta.css` y `tarjeta_consulta.css`. Las rutas se resuelven con `new URL(..., import.meta.url)` al servir el proyecto desde `src`.

@@ -2,7 +2,8 @@
 
 Playwright Python es una herramienta externa opcional; no es dependencia npm.
 Los casos con respuestas interceptadas NO acreditan REST real. Los emisores
-Shadow DOM son sintéticos, no tarjetas de Rodrigo; su detalle sí usa el demo real.
+Shadow DOM sintético comprueban el caso negativo; las tarjetas reales se prueban
+contra el demo con datos ficticios.
 """
 import json
 import os
@@ -49,6 +50,15 @@ class DashboardBrowser(unittest.TestCase):
         self.page.locator('#clinica').select_option(self.ids[index])
         expect(self.page.locator('[data-ui="total"]')).to_have_text('5' if index == 0 else '1')
 
+    def cards(self):
+        return self.page.locator('[data-ui="cards"] tarjeta-consulta')
+
+    def card_button(self, index=0):
+        return self.cards().nth(index).locator('button')
+
+    def card_id(self, index=0):
+        return self.cards().nth(index).evaluate('(card) => card.consulta.idConsulta')
+
     def test_initial_state(self):
         # Playwright 1.55 no clasifica fieldset en is_disabled(); verificar
         # el atributo HTML y la deshabilitación efectiva de los controles hijos.
@@ -66,8 +76,9 @@ class DashboardBrowser(unittest.TestCase):
 
     def test_real_list_and_detail(self):
         self.choose_clinic()
-        expect(self.page.locator('[data-ui="rows"] tr')).to_have_count(5)
-        self.page.locator('[data-ui="rows"] button').first.click()
+        expect(self.cards()).to_have_count(5)
+        expect(self.cards().first).to_contain_text('UTC')
+        self.card_button().click()
         expect(self.page.locator('[data-ui="detailData"]')).to_be_visible()
         expect(self.page.locator('[data-ui="detailData"]')).to_contain_text('Sin especificar')
         expect(self.page.locator('[data-ui="detailData"]')).to_contain_text('UTC')
@@ -77,10 +88,10 @@ class DashboardBrowser(unittest.TestCase):
         self.choose_clinic()
         self.page.locator('#pageSize').select_option('2')
         expect(self.page.locator('[data-ui="pageInfo"]')).to_have_text('1–2 de 5 consultas')
-        first_id = self.page.locator('[data-ui="rows"] button').first.get_attribute('data-consulta')
+        first_id = self.card_id()
         self.page.locator('[data-ui="next"]').click()
         expect(self.page.locator('[data-ui="pageInfo"]')).to_have_text('3–4 de 5 consultas')
-        self.assertNotEqual(self.page.locator('[data-ui="rows"] button').first.get_attribute('data-consulta'), first_id)
+        self.assertNotEqual(self.card_id(), first_id)
         self.page.locator('[data-ui="next"]').click()
         expect(self.page.locator('[data-ui="pageInfo"]')).to_have_text('5–5 de 5 consultas')
         expect(self.page.locator('[data-ui="next"]')).to_be_disabled()
@@ -103,7 +114,7 @@ class DashboardBrowser(unittest.TestCase):
 
     def test_real_persona_rol_filter(self):
         self.choose_clinic()
-        self.page.locator('[data-ui="rows"] button').first.click()
+        self.card_button().click()
         detail = self.page.locator('[data-ui="detailData"]')
         expect(detail).to_be_visible()
         assignment = detail.locator('dd').last.inner_text()
@@ -114,13 +125,60 @@ class DashboardBrowser(unittest.TestCase):
 
     def test_real_clinic_change_clears_detail_and_filters(self):
         self.choose_clinic()
-        self.page.locator('[data-ui="rows"] button').first.click()
+        self.card_button().click()
         expect(self.page.locator('[data-ui="detailData"]')).to_be_visible()
         self.page.locator('#fechaDesde').fill('2026-10-22')
         self.choose_clinic(1)
         expect(self.page.locator('[data-ui="detailData"]')).to_be_hidden()
         expect(self.page.locator('#fechaDesde')).to_have_value('')
-        expect(self.page.locator('[data-ui="rows"] tr')).to_have_count(1)
+        expect(self.cards()).to_have_count(1)
+
+    def test_real_card_model_event_and_update(self):
+        self.choose_clinic()
+        expect(self.cards()).to_have_count(5)
+        model = self.cards().first.evaluate('(card) => card.consulta')
+        self.assertEqual(set(model), {
+            'idConsulta', 'personaNombre', 'rolNombre', 'clinicaNombre',
+            'fechaInicio', 'fechaFin'
+        })
+        self.page.evaluate('''() => {
+            window.realCardEvent = null;
+            document.querySelector('[data-dashboard]').addEventListener('consulta-seleccionada', event => {
+                window.realCardEvent = { idConsulta: event.detail.idConsulta,
+                    bubbles: event.bubbles, composed: event.composed };
+            }, { once: true });
+        }''')
+        self.cards().first.evaluate('''card => {
+            card.consulta = { ...card.consulta, personaNombre: null, fechaInicio: null };
+        }''')
+        expect(self.cards().first).to_contain_text('Persona sin nombre')
+        expect(self.cards().first).to_contain_text('Sin especificar')
+        self.card_button().click()
+        self.assertEqual(self.page.evaluate('window.realCardEvent'), {
+            'idConsulta': model['idConsulta'], 'bubbles': True, 'composed': True
+        })
+        expect(self.page.locator('[data-ui="detailData"]')).to_contain_text(model['idConsulta'])
+
+    def test_generic_card_slots_and_reconnection(self):
+        observed = self.page.evaluate('''() => {
+            const card = document.createElement('tarjeta-simple');
+            document.body.append(card);
+            const slots = card.shadowRoot.querySelectorAll('slot');
+            const fallback = [...slots].map(item => item.textContent);
+            const title = document.createElement('span');
+            title.slot = 'titulo';
+            title.textContent = 'Título sintético';
+            card.append(title);
+            const assigned = card.shadowRoot.querySelector('slot[name="titulo"]').assignedElements().length;
+            card.remove();
+            document.body.append(card);
+            const articles = card.shadowRoot.querySelectorAll('article').length;
+            card.remove();
+            return { fallback, assigned, articles };
+        }''')
+        self.assertEqual(observed['fallback'], ['Sin título', 'Sin contenido', 'Sin contenido adicional'])
+        self.assertEqual(observed['assigned'], 1)
+        self.assertEqual(observed['articles'], 1)
 
     def test_validation_is_visible(self):
         self.choose_clinic()
@@ -157,7 +215,7 @@ class DashboardBrowser(unittest.TestCase):
 
     def test_synthetic_shadow_emitter_with_real_detail(self):
         self.choose_clinic()
-        consultation_id = self.page.locator('[data-ui="rows"] button').first.get_attribute('data-consulta')
+        consultation_id = self.card_id()
         self.mount_synthetic_emitter(consultation_id, composed=True)
         self.page.get_by_role('button', name='Emisor sintético de selección').click()
         expect(self.page.locator('[data-ui="detailData"]')).to_contain_text(consultation_id)
@@ -165,11 +223,11 @@ class DashboardBrowser(unittest.TestCase):
         self.assertEqual(observed, {'bubbles': True, 'composed': True,
             'retargeted': 'emisor-sintetico-consulta', 'idConsulta': consultation_id})
         self.observations['shadowEvent'] = {**observed, 'syntheticEmitter': True, 'realRodrigoCard': False}
-        self.assertFalse(self.page.evaluate("Boolean(customElements.get('tarjeta-consulta'))"))
+        self.assertTrue(self.page.evaluate("Boolean(customElements.get('tarjeta-consulta'))"))
 
     def test_synthetic_shadow_event_without_composed_stays_inside_shadow(self):
         self.choose_clinic()
-        consultation_id = self.page.locator('[data-ui="rows"] button').first.get_attribute('data-consulta')
+        consultation_id = self.card_id()
         requests = []
         self.page.on('request', lambda request: requests.append(request.url) if '/v1/consulta/' in request.url else None)
         self.mount_synthetic_emitter(consultation_id, composed=False)
@@ -202,8 +260,8 @@ class DashboardBrowser(unittest.TestCase):
             route.fulfill(response=real_response, json=data)
         self.page.route(pattern, fulfill)
         self.choose_clinic()
-        expect(self.page.locator('[data-ui="rows"] tr').first).to_contain_text(text)
-        self.assertEqual(self.page.locator('[data-ui="rows"] img').count(), 0)
+        expect(self.cards().first).to_contain_text(text)
+        self.assertEqual(self.cards().first.locator('img').count(), 0)
         self.assertIsNone(self.page.evaluate('window.xssFromSyntheticTest'))
 
     def test_missing_configuration_is_visible_without_backend_fallback(self):
@@ -223,10 +281,11 @@ class DashboardBrowser(unittest.TestCase):
             with self.subTest(width=width):
                 self.page.set_viewport_size({'width': width, 'height': 844})
                 layout = self.page.evaluate('''() => {
-                    const table = document.querySelector('.table-scroll');
+                    const card = document.querySelector('tarjeta-consulta').getBoundingClientRect();
+                    const results = document.querySelector('[data-ui="results"]').getBoundingClientRect();
                     const form = document.querySelector('.filter-grid').getBoundingClientRect();
                     return {viewport: innerWidth, document: document.documentElement.scrollWidth,
-                        tableContainer: table.clientWidth, tableContent: table.scrollWidth,
+                        cardInsideResults: card.left >= results.left - 1 && card.right <= results.right + 1,
                         fieldsInsideForm: [...document.querySelectorAll('.filter-grid input')].every(input => {
                             const box = input.getBoundingClientRect();
                             return box.left >= form.left - 1 && box.right <= form.right + 1;
@@ -235,10 +294,7 @@ class DashboardBrowser(unittest.TestCase):
                 layouts.append(layout)
                 self.assertLessEqual(layout['document'], width)
                 self.assertTrue(layout['fieldsInsideForm'], layout)
-                # La tabla conserva desplazamiento propio; no ocultar el overflow
-                # de toda la página para hacer pasar esta prueba.
-                if width <= 390:
-                    self.assertGreater(layout['tableContent'], layout['tableContainer'])
+                self.assertTrue(layout['cardInsideResults'], layout)
         self.observations['layouts'] = layouts
         self.page.set_viewport_size({'width': 390, 'height': 844})
         expect(self.page.get_by_label('Clínica disponible')).to_be_visible()

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Integración REST — GalenoSVFE</title>
+  <link rel="stylesheet" href="/node_modules/mocha/mocha.css">
+  <script type="importmap">
+    { "imports": {
+      "chai": "/node_modules/chai/index.js"
+    } }
+  </script>
+</head>
+<body>
+  <h1>Integración REST desde el navegador</h1>
+  <p>Utiliza Fetch real y la política CORS del navegador. Requiere configuración y datos de prueba locales.</p>
+  <p id="status" role="status">Cargando configuración…</p>
+  <div id="mocha"></div>
+  <script src="/node_modules/mocha/mocha.js"></script>
+  <script type="module">
+    mocha.setup('bdd');
+    const status = document.getElementById('status');
+    try {
+      const environment = await import('./environment.local.js');
+      const { registerIntegrationSuite } = await import('./backend-suite.js');
+      registerIntegrationSuite(environment);
+      status.textContent = 'Ejecutando solicitudes reales…';
+      mocha.run(failures => {
+        status.textContent = failures ? `Fallaron ${failures} pruebas.` : 'Pruebas configuradas completadas.';
+      });
+    } catch (error) {
+      status.textContent = `INTEGRACIÓN NO EJECUTADA: ${error.message}. Consulta docs/acceso-datos.md.`;
+    }
+  </script>
+</body>
+</html>

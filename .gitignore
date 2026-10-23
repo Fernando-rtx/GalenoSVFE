@@ -15,3 +15,7 @@ Thumbs.db
 # Editores
 .idea/
 .vscode/
+
+# Entornos locales del módulo de acceso a datos
+src/js/config/environment.local.js
+test/integration/environment.local.js

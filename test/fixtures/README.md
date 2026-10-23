@@ -18,3 +18,8 @@ copiarse como valores fijos a componentes o métodos del cliente.
 No hay campo médico ni estado clínico de Consulta. Acordar el view-model y los
 eventos de tarjetas entre Rodrigo e Itzep; los campos y nulabilidad del DTO se
 describen en `docs/api-contract.md`.
+
+`tipo-documento.json` es el ejemplo sintético de TipoDocumento publicado en
+el mismo contrato 0.2. Se añadió para las pruebas del módulo HTTP; no es una
+captura nueva de un backend ejecutado en esta sesión. Ningún fixture se importa
+desde el código de producción de `src/`.

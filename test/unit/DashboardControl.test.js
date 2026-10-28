@@ -246,6 +246,12 @@ describe('Presentación del dashboard y modelo compartido', () => {
     expect(formatDate(consulta.fechaInicio)).to.include('UTC');
   });
 
+  it('muestra el mismo instante en UTC aunque llegue con otra zona', () => {
+    expect(formatDate('2026-10-22T06:00:00Z'))
+      .to.equal(formatDate('2026-10-22T00:00:00-06:00'));
+    expect(formatDate('fecha inválida')).to.equal('Sin especificar');
+  });
+
   [
     [{ type: 'connection', code: 'TIMEOUT' }, 'tardó demasiado'],
     [{ type: 'connection', code: 'NETWORK_ERROR' }, 'conectar'],

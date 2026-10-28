@@ -30,11 +30,10 @@ si una dependencia inyectada no respeta AbortSignal.
 
 ## Contrato con Rodrigo
 
-El contrato implementado está en [cortez, docs/ui-contract.md](https://github.com/Fernando-rtx/GalenoSVFE/blob/93d9554da902c967961b2d795aa379ffd25e30b6/docs/ui-contract.md).
-Rodrigo publicó los módulos en `93d9554`; no se incluyen sus archivos en los
-commits de esta validación de Itzep. El usuario aceptó los
-seis campos y el evento de selección. Cuando esté registrado `tarjeta-consulta`,
-la página asigna a su propiedad JavaScript `consulta` el modelo:
+El contrato implementado está en [ui-contract.md](ui-contract.md).
+Rodrigo publicó los módulos en `93d9554`, incorporados sin modificar sus
+componentes originales. La página asigna a la propiedad JavaScript `consulta`
+de cada `tarjeta-consulta` el modelo acordado:
 `idConsulta`, `personaNombre`, `rolNombre`, `clinicaNombre`, `fechaInicio`,
 `fechaFin`. Se conservan null y cadenas UTC, sin DTO ni estados inventados.
 La propiedad `.consulta` corresponde a la implementación publicada de Rodrigo.
@@ -44,16 +43,15 @@ La página escucha `consulta-seleccionada` en su raíz. Requiere
 DOM. El Control comprueba que el ID pertenece a la página visible y obtiene
 el detalle con `findById(idConsulta, { query: { idClinica }, signal })`.
 
-Las tarjetas reales existen en `origin/cortez`, pero todavía no están en `main`.
-Su `src/js/app/main.js` importa `tarjeta_consulta.js`; este módulo registra
+La entrega consolidada incluye las tarjetas reales. `src/js/app/main.js`
+importa `tarjeta_consulta.js`; este módulo registra
 `tarjeta-consulta` e importa `tarjeta_simple.js`. Ambos reciben datos por DOM y
-propiedades, sin Fetch. La rama también comparte el formato UTC entre tarjetas
+propiedades, sin Fetch. La aplicación comparte el formato UTC entre tarjetas
 y detalle mediante `src/js/boundary/format-utc-date.js`.
 
-Mientras no se incorporen esos módulos, la selección usa la tabla nativa del
-dashboard. La página reacciona también si el componente se registra después de
-su inicialización. La incorporación de `cortez` requiere revisión del equipo;
-esta validación no hace merge ni modifica los componentes de Rodrigo.
+La aplicación muestra las tarjetas registradas al iniciar. La tabla nativa
+permanece como respaldo de la página, pero las pruebas finales exigen tarjetas
+reales con `GALENO_DASHBOARD_EXPECT_CARDS=1`.
 
 ## Investigación de los fallos y correcciones
 
@@ -136,7 +134,7 @@ Estos resultados corresponden a la validación del 23 de octubre, anterior a la
 publicación de las tarjetas reales. El merge directo autorizado entonces no
 se aplica a la continuación actual: los cambios nuevos se revisan mediante PR.
 
-## Continuación del 28 de octubre de 2026
+## Validación previa a la consolidación — 28 de octubre de 2026
 
 Se actualizaron las referencias antes de auditar: `origin/main` está en
 `32bb6c2` y `origin/cortez` en `93d9554`. El backend oficial se obtuvo en una
@@ -217,16 +215,16 @@ PLAYWRIGHT_BROWSERS_PATH=/ruta/a/browsers \
 
 `GALENO_DASHBOARD_EXPECT_CARDS=1` hace fallar el inicio si no se registró
 `tarjeta-consulta`; así la tabla no puede aprobar una integración incompleta.
-Sin esa opción, el caso exclusivo de tarjetas se omite cuando no están
-disponibles y el reporte lo indica. Playwright 1.55.0 y Chromium son herramientas
+En la versión previa, sin esa opción el caso exclusivo de tarjetas se omitía
+cuando no estaban disponibles. Playwright 1.55.0 y Chromium son herramientas
 externas; no se agregaron al package.json ni al lockfile.
 
-### Safari y dependencias de entrega
+### Estado anterior de Safari y dependencias
 
 Con la demo iniciada y `environment.local.js` configurado, ejecutar
 `npm run dev` y abrir `http://127.0.0.1:3000/index.html` en Safari. Seleccionar una
-clínica, filtrar, cambiar página y activar “Ver detalle”. Para ver las tarjetas,
-servir el checkout de `cortez`; el checkout basado en `main` todavía usa la tabla.
+clínica, filtrar, cambiar página y activar “Ver detalle”. Antes de la
+consolidación, las tarjetas solo estaban disponibles al servir `cortez`.
 La prueba automatizada usa Chromium; no acredita una ejecución en Safari.
 Durante esta validación quedaron activos la tabla en
 `http://127.0.0.1:3000/index.html` y el checkout temporal con tarjetas en
@@ -234,12 +232,50 @@ Durante esta validación quedaron activos la tabla en
 backend está en `/tmp/galenos-demo-itzep-final-20261028`; allí `./demo stop`
 detiene únicamente esa demo y conserva su volumen.
 
-No se detectaron correcciones pendientes en las tarjetas de Rodrigo. Falta la
-revisión e incorporación de `cortez` a `main` para entregarlas en esa rama.
-Comunicar al equipo que debe conservar el import de `tarjeta_consulta.js`, los
-estilos y el formateador UTC compartido de esa entrega, y repetir la suite con
-`GALENO_DASHBOARD_EXPECT_CARDS=1` tras integrarla.
+No se detectaron correcciones pendientes en las tarjetas de Rodrigo. En ese
+momento faltaba incorporar `cortez`; esa dependencia se resuelve en la
+consolidación descrita a continuación.
 
 Fernando mantiene pendientes los contratos de los otros 17 recursos, además
 de escrituras, autenticación y permisos reales. Los 17 DAO siguen rechazando
 `CONTRACT_PENDING` sin HTTP; no bloquean el dashboard de lectura de API 0.2.
+
+## Consolidación del equipo — API 0.2
+
+El PR #2 se fusionó conservando `509dda3`; el merge resultante fue `90781ae`.
+La integración de `cortez` conserva `93d9554`, los Web Components originales,
+sus estilos y slots, el import de registro y el formateador UTC compartido.
+No se modifican Control, DAO, Entity, contratos REST ni dependencias npm.
+
+El único conflicto estaba en `test/browser/dashboard.py`. Se conservaron los
+18 casos de Itzep y los dos casos adicionales de Rodrigo: actualización de la
+propiedad/evento de tarjeta y slots/reconexión de TarjetaSimple. Los casos
+compartidos usan los selectores de Itzep, manteniendo la comprobación UTC de
+Rodrigo y las verificaciones de REST, CORS, cancelación, teclado y responsividad.
+La combinación pasó 401 pruebas unitarias, sintaxis en 57 archivos y 20 casos
+Chromium con tarjetas obligatorias, sin fallos, errores ni omisiones, antes de
+publicarse. La evidencia está en `teamIntegration` dentro de
+[dashboard-navegador.json](../test/evidence/dashboard-navegador.json).
+
+Para reproducir desde la versión consolidada:
+
+```sh
+npm ci
+npm test
+npm run check
+npm run test
+npm run test
+npm run test:transport
+npm run test:integration
+```
+
+Con el backend demo y BrowserSync activos, ejecutar el verificador de este
+mismo checkout con `GALENO_DASHBOARD_EXPECT_CARDS=1`, como en el ejemplo anterior,
+apuntando a `http://127.0.0.1:3000`. El runner independiente de Rodrigo sigue en
+`/test/browser/componentes.html`: usa fixtures y DAO sintéticos, no acredita REST.
+
+Para Safari, configurar `environment.local.js` con la URL de `./demo info`,
+ejecutar `npm run dev` y abrir `http://127.0.0.1:3000/index.html`. Ya se muestran
+las tarjetas reales desde el checkout consolidado. Seleccionar una clínica y
+activar “Ver detalle”; fechas y null se presentan igual que en la tarjeta.
+La automatización se ejecutó en Chromium, sin atribuirla a Safari.

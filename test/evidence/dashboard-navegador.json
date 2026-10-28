@@ -409,5 +409,173 @@
       "Las pruebas synthetic interceptan errores o emiten eventos sintéticos; no equivalen a integración REST.",
       "Los otros 17 DAO mantienen CONTRACT_PENDING."
     ]
+  },
+  "teamIntegration": {
+    "date": "2026-10-28",
+    "timezone": "America/El_Salvador",
+    "apiContract": "0.2",
+    "pr2Commit": "509dda38f2c1396c62221bbfd33735e79a67b80b",
+    "pr2Merge": "90781ae4c89465a25cccdfa979dd0aad40a39c9e",
+    "rodrigoRevision": "93d9554da902c967961b2d795aa379ffd25e30b6",
+    "backendRevision": "d7ff967",
+    "originalComponentsUnmodified": true,
+    "daoControlEntityUnmodified": true,
+    "browserCasesPreserved": {
+      "itzep": 18,
+      "rodrigoAdditional": 2,
+      "combined": 20
+    },
+    "verificationBeforePublication": {
+      "npm test -- --reporter dot": {
+        "passed": 401,
+        "failed": 0,
+        "exitCode": 0
+      },
+      "npm run check": {
+        "files": 57,
+        "exitCode": 0
+      },
+      "python3 -m py_compile test/browser/dashboard.py": {
+        "exitCode": 0
+      },
+      "chromium": {
+        "syntheticDemoOnly": true,
+        "frontendOrigin": "http://127.0.0.1:3000",
+        "testsRun": 20,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "browser": "140.0.7339.16",
+        "expectsRealCards": true,
+        "notes": "Los tests synthetic interceptan respuestas o emiten eventos sintéticos. El caso real_card_contract exige las tarjetas del checkout; los retardos usan cuerpos REST reales.",
+        "observations": {
+          "presentation": "tarjeta-consulta",
+          "cancelledRequests": {
+            "clinic": true,
+            "filters": true,
+            "realRestBodies": true
+          },
+          "consoleErrors": {
+            "test_delayed_real_responses_are_cancelled_on_clinic_and_filter_changes": [],
+            "test_generic_card_slots_and_reconnection": [],
+            "test_initial_state": [],
+            "test_missing_configuration_is_visible_without_backend_fallback": [],
+            "test_mobile_layout_and_accessible_controls": [],
+            "test_real_card_contract": [],
+            "test_real_card_model_event_and_update": [],
+            "test_real_clinic_change_clears_detail_and_filters": [],
+            "test_real_filters_and_empty": [],
+            "test_real_keyboard_selection_keeps_clinic_scope": [],
+            "test_real_list_and_detail": [],
+            "test_real_pagination": [],
+            "test_real_persona_rol_filter": [],
+            "test_real_rest_runner_with_browser_cors": [
+              "Failed to load resource: the server responded with a status of 404 (Not Found)",
+              "Failed to load resource: the server responded with a status of 422 (Undefined)",
+              "Failed to load resource: the server responded with a status of 422 (Undefined)",
+              "Failed to load resource: the server responded with a status of 404 (Not Found)",
+              "Failed to load resource: the server responded with a status of 422 (Undefined)",
+              "Failed to load resource: the server responded with a status of 404 (Not Found)"
+            ],
+            "test_synthetic_connection_error_and_real_retry": [
+              "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+            ],
+            "test_synthetic_http_error_and_real_retry": [
+              "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+            ],
+            "test_synthetic_shadow_emitter_with_real_detail": [],
+            "test_synthetic_shadow_event_without_composed_stays_inside_shadow": [],
+            "test_synthetic_untrusted_text_uses_dom_text": [],
+            "test_validation_is_visible": []
+          },
+          "layouts": [
+            {
+              "viewport": 320,
+              "document": 320,
+              "tableContainer": 0,
+              "tableContent": 0,
+              "cardsInsideResults": true,
+              "fieldsInsideForm": true
+            },
+            {
+              "viewport": 360,
+              "document": 360,
+              "tableContainer": 0,
+              "tableContent": 0,
+              "cardsInsideResults": true,
+              "fieldsInsideForm": true
+            },
+            {
+              "viewport": 390,
+              "document": 390,
+              "tableContainer": 0,
+              "tableContent": 0,
+              "cardsInsideResults": true,
+              "fieldsInsideForm": true
+            },
+            {
+              "viewport": 700,
+              "document": 700,
+              "tableContainer": 0,
+              "tableContent": 0,
+              "cardsInsideResults": true,
+              "fieldsInsideForm": true
+            },
+            {
+              "viewport": 1024,
+              "document": 1024,
+              "tableContainer": 0,
+              "tableContent": 0,
+              "cardsInsideResults": true,
+              "fieldsInsideForm": true
+            },
+            {
+              "viewport": 1440,
+              "document": 1440,
+              "tableContainer": 0,
+              "tableContent": 0,
+              "cardsInsideResults": true,
+              "fieldsInsideForm": true
+            }
+          ],
+          "realCard": {
+            "sixFields": true,
+            "nullPreserved": true,
+            "composedEvent": true,
+            "datesMatchDetail": true
+          },
+          "keyboardDetail": {
+            "keys": [
+              "Tab",
+              "Enter"
+            ],
+            "clinicContextPreserved": true
+          },
+          "restRunner": {
+            "passed": 20,
+            "failed": 0,
+            "browserCors": true
+          },
+          "shadowEvent": {
+            "bubbles": true,
+            "composed": true,
+            "retargeted": "emisor-sintetico-consulta",
+            "idConsulta": "00000000-0000-4000-8000-000000001001",
+            "syntheticEmitter": true,
+            "realRodrigoCard": false
+          },
+          "nonComposedEvent": {
+            "reachesDashboard": false,
+            "detailRequests": 0
+          }
+        }
+      }
+    },
+    "limits": [
+      "Los casos synthetic y el runner componentes.html usan interceptaciones, eventos o DAO sintéticos declarados.",
+      "Las verificaciones REST del dashboard y del runner de integración usan exclusivamente el demo oficial sintético.",
+      "Safari se documenta para uso manual; la automatización usa Chromium.",
+      "Los otros 17 DAO conservan CONTRACT_PENDING."
+    ]
   }
 }

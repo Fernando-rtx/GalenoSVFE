@@ -23,7 +23,7 @@ fija en `package.json` y `package-lock.json`. Requiere Node >=22 para pruebas
 y herramientas; no añade dependencias de producción ni frameworks.
 El contrato indica las rutas implementadas y los pendientes. Consulta y Clínica
 requieren modo demo explícito y una base con datos exclusivamente ficticios;
-todavía no hay integración del dashboard.
+el dashboard ya consume sus lecturas a través de los DAO.
 
 ## Backend local para integrar
 
@@ -102,9 +102,8 @@ El dashboard está en `src/index.html`: selección de clínica, filtros, paginac
 con total real y detalle mediante los DAO. Configurar environment.local.js y
 abrir `/index.html` desde BrowserSync en el origen CORS del demo. Véase
 [dashboard-itzep.md](docs/dashboard-itzep.md) para arquitectura, configuración,
-contrato de tarjetas y estado de validación. Las tarjetas de Rodrigo aún no
-están implementadas; la selección actual utiliza la tabla de la página.
-Los fallos iniciales de validación se investigaron y corrigieron: 13 pruebas
-de navegador aprobadas, con layout comprobado de 320 a 1440 px y evento Shadow
-DOM validado mediante emisor sintético. La integración con tarjetas reales
-permanece pendiente de la entrega de Rodrigo.
+contrato de tarjetas y estado de validación. Rodrigo publicó TarjetaSimple y
+TarjetaConsulta en `cortez` (`93d9554`), junto con su registro en la aplicación.
+Hasta incorporar esa rama mediante revisión, este checkout utiliza la tabla
+de la página. El dashboard consume automáticamente las tarjetas cuando están
+registradas y conserva la clínica al solicitar el detalle.

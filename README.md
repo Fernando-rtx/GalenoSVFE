@@ -102,8 +102,9 @@ El dashboard está en `src/index.html`: selección de clínica, filtros, paginac
 con total real y detalle mediante los DAO. Configurar environment.local.js y
 abrir `/index.html` desde BrowserSync en el origen CORS del demo. Véase
 [dashboard-itzep.md](docs/dashboard-itzep.md) para arquitectura, configuración,
-contrato de tarjetas y estado de validación. Rodrigo publicó TarjetaSimple y
-TarjetaConsulta en `cortez` (`93d9554`), junto con su registro en la aplicación.
-Hasta incorporar esa rama mediante revisión, este checkout utiliza la tabla
-de la página. El dashboard consume automáticamente las tarjetas cuando están
-registradas y conserva la clínica al solicitar el detalle.
+contrato de tarjetas y estado de validación. La entrega consolidada incorpora
+TarjetaSimple y TarjetaConsulta originales de Rodrigo (`93d9554`), su registro
+en la aplicación y el formateador UTC compartido. El dashboard muestra las
+tarjetas reales y conserva la clínica al solicitar el detalle mediante ConsultaDAO.
+Las pruebas de navegador reúnen los 20 casos de ambas entregas; se ejecutan con
+`GALENO_DASHBOARD_EXPECT_CARDS=1` para exigir los componentes registrados.

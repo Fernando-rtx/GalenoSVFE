@@ -1,10 +1,5 @@
-// Decisiones de presentación de la página; no cambian el DTO ni la política del backend.
-export function formatDate(value) {
-  if (value === null) return 'Sin especificar';
-  return new Intl.DateTimeFormat('es-SV', {
-    dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC'
-  }).format(new Date(value)) + ' UTC';
-}
+// La tabla, el detalle y las tarjetas comparten el mismo formato UTC.
+export { formatUtcDate as formatDate } from '../format-utc-date.js';
 
 export function consultaCardModel(consulta) {
   const { idConsulta, personaNombre, rolNombre, clinicaNombre, fechaInicio, fechaFin } = consulta;

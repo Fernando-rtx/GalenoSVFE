@@ -2,7 +2,7 @@
 
 Playwright Python es una herramienta externa opcional; no es dependencia npm.
 Los casos con respuestas interceptadas NO acreditan REST real. Los emisores
-Shadow DOM son sintéticos, no tarjetas de Rodrigo; su detalle sí usa el demo real.
+Shadow DOM son sintéticos; las tarjetas originales de Rodrigo se validan con el demo real.
 """
 import json
 import os
@@ -87,6 +87,8 @@ class DashboardBrowser(unittest.TestCase):
     def test_real_list_and_detail(self):
         self.choose_clinic()
         expect(self.consultation_rows()).to_have_count(5)
+        if self.using_cards:
+            expect(self.consultation_rows().first).to_contain_text('UTC')
         self.consultation_button().click()
         expect(self.page.locator('[data-ui="detailData"]')).to_be_visible()
         expect(self.page.locator('[data-ui="detailData"]')).to_contain_text('Sin especificar')
@@ -192,6 +194,54 @@ class DashboardBrowser(unittest.TestCase):
         self.assertEqual(card_dates, detail_dates, 'Tarjeta y detalle deben mostrar las mismas fechas UTC/null.')
         self.observations['realCard'] = {'sixFields': True, 'nullPreserved': True,
             'composedEvent': True, 'datesMatchDetail': True}
+
+    def test_real_card_model_event_and_update(self):
+        self.choose_clinic()
+        expect(self.consultation_rows()).to_have_count(5)
+        model = self.consultation_rows().first.evaluate('(card) => card.consulta')
+        self.assertEqual(set(model), {
+            'idConsulta', 'personaNombre', 'rolNombre', 'clinicaNombre',
+            'fechaInicio', 'fechaFin'
+        })
+        self.page.evaluate('''() => {
+            window.realCardEvent = null;
+            document.querySelector('[data-dashboard]').addEventListener('consulta-seleccionada', event => {
+                window.realCardEvent = { idConsulta: event.detail.idConsulta,
+                    bubbles: event.bubbles, composed: event.composed };
+            }, { once: true });
+        }''')
+        self.consultation_rows().first.evaluate('''card => {
+            card.consulta = { ...card.consulta, personaNombre: null, fechaInicio: null };
+        }''')
+        expect(self.consultation_rows().first).to_contain_text('Persona sin nombre')
+        expect(self.consultation_rows().first).to_contain_text('Sin especificar')
+        self.consultation_button().click()
+        self.assertEqual(self.page.evaluate('window.realCardEvent'), {
+            'idConsulta': model['idConsulta'], 'bubbles': True, 'composed': True
+        })
+        expect(self.page.locator('[data-ui="detailData"]')).to_contain_text(model['idConsulta'])
+
+    def test_generic_card_slots_and_reconnection(self):
+        observed = self.page.evaluate('''() => {
+            const card = document.createElement('tarjeta-simple');
+            document.body.append(card);
+            const slots = card.shadowRoot.querySelectorAll('slot');
+            const fallback = [...slots].map(item => item.textContent);
+            const title = document.createElement('span');
+            title.slot = 'titulo';
+            title.textContent = 'Título sintético';
+            card.append(title);
+            const assigned = card.shadowRoot.querySelector('slot[name="titulo"]').assignedElements().length;
+            card.remove();
+            document.body.append(card);
+            const articles = card.shadowRoot.querySelectorAll('article').length;
+            card.remove();
+            return { fallback, assigned, articles };
+        }''')
+        self.assertEqual(observed['fallback'], ['Sin título', 'Sin contenido', 'Sin contenido adicional'])
+        self.assertEqual(observed['assigned'], 1)
+        self.assertEqual(observed['articles'], 1)
+
 
     def test_validation_is_visible(self):
         self.choose_clinic()

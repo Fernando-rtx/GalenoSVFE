@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prueba de tarjetas GalenoSVFE</title>
+  <link rel="stylesheet" href="/resources/estilos/dashboard.css">
+</head>
+<body>
+  <output id="resultado">EJECUTANDO</output>
+  <script type="module">
+    import '/js/boundary/components/tarjeta_consulta.js';
+    import { mountDashboard } from '/js/app/dashboard.js';
+    import DefaultResponse from '/js/entity/DefaultResponse.js';
+
+    const assert = (condition, message) => {
+      if (!condition) throw new Error(message);
+    };
+    const until = async (condition, message) => {
+      for (let count = 0; count < 100; count += 1) {
+        if (condition()) return;
+        await new Promise(resolve => setTimeout(resolve, 20));
+      }
+      throw new Error(message);
+    };
+
+    async function run() {
+      const simple = document.createElement('tarjeta-simple');
+      document.body.append(simple);
+      assert(simple.shadowRoot.querySelector('slot[name="titulo"]').textContent === 'Sin título', 'Falta el título alternativo');
+      assert(simple.shadowRoot.querySelector('slot[name="contenido"]').textContent === 'Sin contenido', 'Falta el contenido alternativo');
+      assert(simple.shadowRoot.querySelector('slot[name="pie"]').textContent === 'Sin contenido adicional', 'Falta el pie alternativo');
+      const title = document.createElement('span');
+      title.slot = 'titulo';
+      title.textContent = 'Título sintético';
+      simple.append(title);
+      assert(simple.shadowRoot.querySelector('slot[name="titulo"]').assignedElements().length === 1, 'No se asignó el slot');
+      simple.remove();
+      document.body.append(simple);
+      assert(simple.shadowRoot.querySelectorAll('article').length === 1, 'La reconexión duplicó la estructura');
+      simple.remove();
+
+      const [clinicas, consultas, html] = await Promise.all([
+        fetch('/test/fixtures/clinicas-demo.json').then(response => response.json()),
+        fetch('/test/fixtures/consulta-demo.json').then(response => response.json()),
+        fetch('/index.html').then(response => response.text())
+      ]);
+      const root = new DOMParser().parseFromString(html, 'text/html').querySelector('[data-dashboard]');
+      document.body.append(root);
+      const clinicaDAO = {
+        findRange: async (first, max) => new DefaultResponse({ datos: clinicas.slice(first, first + max), totalDatos: clinicas.length, status: 200 })
+      };
+      const consultaDAO = {
+        findRange: async (first, max, options) => {
+          const rows = consultas.filter(row => row.idClinica === options.query.idClinica);
+          return new DefaultResponse({ datos: rows.slice(first, first + max), totalDatos: rows.length, status: 200 });
+        },
+        findById: async (id, options) => new DefaultResponse({
+          datos: consultas.find(row => row.idConsulta === id && row.idClinica === options.query.idClinica), status: 200
+        })
+      };
+      const dashboard = mountDashboard({ root, clinicaDAO, consultaDAO });
+      await dashboard.ready;
+      const select = root.querySelector('#clinica');
+      select.value = clinicas[0].idClinica;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      await until(() => root.querySelectorAll('tarjeta-consulta').length === 5, 'El dashboard no creó cinco tarjetas');
+      const card = root.querySelector('tarjeta-consulta');
+      assert(card.consulta.idConsulta === consultas[0].idConsulta, 'La tarjeta no recibió el modelo');
+      assert(card.shadowRoot.textContent.includes('UTC'), 'La fecha de la tarjeta no indica UTC');
+      assert(!card.shadowRoot.textContent.includes(consultas[0].idConsulta), 'La tarjeta mostró el UUID como título');
+      assert(root.querySelectorAll('tarjeta-consulta')[3].shadowRoot.textContent.includes('Persona sin nombre'), 'No se mostró el dato ausente');
+      let selection;
+      root.addEventListener('consulta-seleccionada', event => { selection = event; }, { once: true });
+      card.shadowRoot.querySelector('button').click();
+      await until(() => !root.querySelector('[data-ui="detailData"]').hidden, 'La selección no abrió el detalle');
+      assert(selection?.detail.idConsulta === consultas[0].idConsulta, 'El evento no entregó el ID correcto');
+      assert(selection.bubbles && selection.composed, 'El evento no atravesó Shadow DOM');
+      assert(root.querySelector('[data-ui="detailData"]').textContent.includes(consultas[0].idConsulta), 'Se abrió otro detalle');
+      card.consulta = { ...card.consulta, personaNombre: '<img src=x onerror=alert(1)>', fechaInicio: null };
+      assert(card.shadowRoot.textContent.includes('<img src=x'), 'La actualización no se reflejó');
+      assert(!card.shadowRoot.querySelector('img'), 'Los datos se interpretaron como HTML');
+      assert(card.shadowRoot.textContent.includes('Sin especificar'), 'No se mostró la fecha ausente');
+      dashboard.destroy();
+    }
+
+    run().then(() => {
+      document.querySelector('#resultado').textContent = 'PASS: tarjetas, slots, UTC, datos nulos y selección del dashboard';
+    }).catch(error => {
+      document.querySelector('#resultado').textContent = `FAIL: ${error.message}`;
+      console.error(error);
+    });
+  </script>
+</body>
+</html>

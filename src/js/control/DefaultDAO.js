@@ -3,7 +3,7 @@ import DefaultResponse from '../entity/DefaultResponse.js';
 import { createApiConfig } from '../config/api-config.js';
 import { appendQuery } from './query-parameters.js';
 
-const METHODS = Object.freeze({ findRange: 'GET', findById: 'GET', create: 'POST', update: 'PUT', deleteById: 'DELETE' });
+const METHODS = Object.freeze({ get: 'GET', findRange: 'GET', findById: 'GET', create: 'POST', update: 'PUT', deleteById: 'DELETE' });
 const hasOwn = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
 
 function snapshot(headers) {
@@ -102,6 +102,8 @@ export default class DefaultDAO {
     this.config = createApiConfig(config);
     this.fetchImpl = fetchImpl;
   }
+
+  get(options = {}) { return this._run('get', {}, options); }
 
   findRange(first, max, options = {}) { return this._run('findRange', { first, max }, options); }
   findById(id, options = {}) { return this._run('findById', { id }, options); }

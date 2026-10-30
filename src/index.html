@@ -7,6 +7,7 @@
   <meta name="description" content="Dashboard académico de consultas de GalenosSV.">
   <title>Consultas · GalenosSV</title>
   <link rel="stylesheet" href="/resources/estilos/dashboard.css">
+  <link rel="stylesheet" href="/resources/estilos/gestion.css">
   <script type="module" src="/js/app/main.js"></script>
 </head>
 <body>
@@ -15,7 +16,12 @@
   <aside class="sidebar">
     <a class="brand" href="/" aria-label="GalenosSV, inicio"><span class="brand-mark" aria-hidden="true">✚</span><span>Galenos<span class="brand-sv">SV</span><small>Gestión de consultas</small></span></a>
     <p class="nav-label">ESPACIO DE TRABAJO</p>
-    <nav aria-label="Principal"><a class="nav-current" href="#main" aria-current="page"><span aria-hidden="true">▦</span> Consultas <span class="nav-dot" aria-hidden="true"></span></a></nav>
+    <nav aria-label="Principal" data-navigation><a class="nav-current" href="#main" aria-current="page"><span aria-hidden="true">▦</span> Consultas <span class="nav-dot" aria-hidden="true"></span></a><p class="nav-label">ADMINISTRACIÓN</p>
+<a href="#tipoDocumento" data-module="tipoDocumento">Tipos de documento</a>
+<a href="#tipoMedioContacto" data-module="tipoMedioContacto">Tipos de contacto</a>
+<a href="#tipoExamen" data-module="tipoExamen">Tipos de examen</a>
+<a href="#clinica" data-module="clinica">Clínicas</a>
+<a href="#rol" data-module="rol">Roles</a></nav>
     <div class="sidebar-note"><span class="note-icon" aria-hidden="true">✧</span><strong>Entorno académico</strong><p>Consulta únicamente información sintética del demo.</p><span class="demo-tag">DEMOSTRACIÓN</span></div>
     <p class="sidebar-footer">Programación para Internet<br>Universidad de El Salvador</p>
   </aside>
@@ -33,6 +39,7 @@
       </div>
       <footer class="page-footer"><span>GalenosSV <span aria-hidden="true">·</span> Demostración académica</span><span>Información sintética. Sin datos clínicos reales.</span></footer>
     </main>
+    <section id="gestion" class="gestion" tabindex="-1" aria-label="Gestión" hidden></section>
   </div>
 </div>
 <noscript>Activa JavaScript para utilizar el dashboard de consultas.</noscript>

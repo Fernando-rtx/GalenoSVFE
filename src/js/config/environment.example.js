@@ -4,3 +4,6 @@ import { createApiConfig } from './api-config.js';
 // baseUrl debe incluir /GalenosSV/resources/; el host/puerto los define el entorno.
 // Una URL null permite importar el módulo, pero impide enviar solicitudes.
 export const config = createApiConfig({ baseUrl: null });
+
+// Gestión autenticada solo en el entorno sintético habilitado. No contiene credenciales.
+export const gestionConfig = null;

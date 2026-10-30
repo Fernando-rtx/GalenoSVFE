@@ -1,0 +1,15 @@
+.gestion { padding: 2rem; max-width: 1400px; }
+.gestion[hidden], #main[hidden] { display: none; }
+.gestion h1 { margin: 0 0 1.5rem; }
+.gestion-login { max-width: 28rem; padding: 1.5rem; display: grid; gap: .8rem; }
+.gestion-login[hidden] { display: none; }
+.gestion-tools { display: flex; gap: .8rem; align-items: center; flex-wrap: wrap; margin: 1rem 0; }
+.gestion-tools form { display: flex; gap: .5rem; flex-wrap: wrap; }
+.gestion input, .gestion textarea { font: inherit; padding: .7rem; border: 1px solid #cbd5e1; border-radius: .6rem; max-width: 100%; }
+.gestion .table-scroll { padding: 1rem; }
+.gestion-dialog { border: 1px solid #dbe5e7; border-radius: 1rem; padding: 1.5rem; width: min(92vw, 38rem); max-height: 90vh; color: #183b41; }
+.gestion-dialog::backdrop { background: #152d3a80; }
+.gestion-fields { display: grid; gap: .7rem; }
+.gestion-fields label { font-weight: 600; }
+.gestion-fields input[type=checkbox] { justify-self: start; width: 1.25rem; height: 1.25rem; }
+@media(max-width: 700px) { .gestion { padding: 1rem; } .gestion-tools > form { width: 100%; } }

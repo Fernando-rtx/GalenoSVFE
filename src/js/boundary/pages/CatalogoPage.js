@@ -1,6 +1,6 @@
-import { errorMessage } from './dashboard-presentation.js';
+import { gestionError } from './dashboard-presentation.js';
 
-const names = { clinica: 'Clínicas', rol: 'Roles', tipoDocumento: 'Tipos de documento', tipoMedioContacto: 'Tipos de medio de contacto', tipoExamen: 'Tipos de examen' };
+const names = { persona: 'Personas', clinica: 'Clínicas', rol: 'Roles', tipoDocumento: 'Tipos de documento', tipoMedioContacto: 'Tipos de medio de contacto', tipoExamen: 'Tipos de examen' };
 const fields = {
   clinica: ['nombre', 'tipo', 'comentarios', 'activo'], rol: ['nombre', 'observaciones', 'activo'],
   tipoDocumento: ['nombre', 'expresionRegular', 'indicaciones', 'activo'],
@@ -9,12 +9,6 @@ const fields = {
 const labels = { nombre: 'Nombre', tipo: 'Tipo de clínica', comentarios: 'Comentarios', observaciones: 'Observaciones', activo: 'Activo', indicaciones: 'Indicaciones', expresionRegular: 'Expresión regular Java' };
 function element(tag, text, className) {
   const node = document.createElement(tag);if (text !== undefined) node.textContent = text;if (className) node.className = className;return node;
-}
-function publicError(error) {
-  if (error?.status === 401) return 'Usuario o contraseña no válidos. Inicia sesión nuevamente.';
-  if (error?.status === 403) return 'La sesión no tiene permiso para esta operación.';
-  if ([409, 422].includes(error?.status) && typeof error.details?.mensaje === 'string') return error.details.mensaje;
-  return errorMessage(error);
 }
 
 /** Vista de los cinco catálogos, integrada en el shell del dashboard. No llama a la API. */
@@ -80,7 +74,7 @@ export default class CatalogoPage {
     this.unsubscribe?.();this.control = null;this.login.hidden = false;this.content.hidden = true;
     if (this.dialog.open) this.dialog.close();
   }
-  error(error) { this.notice.textContent = publicError(error);this.notice.hidden = false; }
+  error(error) { this.notice.textContent = gestionError(error);this.notice.hidden = false; }
   open(module) {
     this.module = module;this.title.textContent = names[module];
     this.query.value = '';
@@ -95,7 +89,7 @@ export default class CatalogoPage {
     this.next.disabled = state.writing || state.status !== 'ready' || state.first + state.max >= state.total;
     this.total.textContent = state.status === 'loading' ? 'Cargando…' : `${state.total} registros`;
     this.notice.hidden = !state.error && !state.message;
-    this.notice.textContent = state.error ? publicError(state.error) : state.message;
+    this.notice.textContent = state.error ? gestionError(state.error) : state.message;
     if (state.status === 'loading') this.results.setAttribute('aria-busy', 'true');else this.results.removeAttribute('aria-busy');
     this.results.replaceChildren();
     const table = element('table');const head = element('tr');
@@ -126,7 +120,7 @@ export default class CatalogoPage {
     this.form.querySelectorAll('input, textarea').forEach(node => { node.disabled = state.writing || !state.contexto.puedeEscribir; });
     this.save.disabled = state.writing || !state.contexto.puedeEscribir;this.cancel.disabled = state.writing;
     this.remove.hidden = !['clinica', 'rol'].includes(state.module) || state.editor !== 'edit' || !state.contexto.puedeEscribir;
-    this.remove.disabled = state.writing;this.formError.textContent = state.error ? publicError(state.error) : '';
+    this.remove.disabled = state.writing;this.formError.textContent = state.error ? gestionError(state.error) : '';
     if (!state.editor && this.dialog.open) this.dialog.close();
   }
 }

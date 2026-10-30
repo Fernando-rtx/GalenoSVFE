@@ -36,3 +36,39 @@ Clínica y Rol permiten eliminación según sus Models, con rechazo de referenci
 CORS exacto del origen configurado; v2 permite Authorization y GET/HEAD/POST/PUT/DELETE/OPTIONS.
 401 del contenedor también publica CORS para permitir mensajes visibles. Cache-Control no-store.
 No hay Access-Control-Allow-Credentials: el frontend usa credentials:omit y Basic en memoria.
+
+## Consulta y ejecución de procedimientos
+
+Todas estas operaciones requieren idClinica UUID en query y un alcance permitido para la identidad BASIC.
+GET clinica_disponible pagina solo clínicas activas autorizadas (idClinica,nombre).
+GET persona_rol/pacientes?idClinica=UUID&buscar=texto reutiliza búsqueda de pacientes JSF por nombre/DUI, máximo15.
+GET procedimiento lista paginada de procedimientos activos para asociación (idProcedimiento,nombre,observaciones,activo).
+
+| Ruta | Operaciones | DTO / campos de entrada |
+| --- | --- | --- |
+| consulta | GET lista/ID, POST, PUT | idConsulta,idPersonaRol,idClinica,personaNombre,rolNombre,clinicaNombre,fechaInicio,fechaFin,referenciaExterna,observaciones. Entrada: idPersonaRol,fechas,referenciaExterna,observaciones |
+| consulta_procedimiento | GET lista/ID, POST, PUT | idConsultaProcedimiento,idConsulta,idProcedimiento,fechaInicio,fechaFin,observaciones. Entrada sin ID propio |
+| consulta_procedimiento_paso | GET lista/ID, PUT | idConsultaProcedimientoPaso,idConsultaProcedimiento,idPersonaRol,fechaInicio,fechaFin,estado. Entrada sin ID propio |
+
+Listas de asociaciones/pasos requieren idConsulta además de idClinica; first/max y Total-registros como catálogos.
+Fechas de entrada ISO8601 con zona, salida UTC; fechas nulas se publican como null. Inicio obligatorio y fin>=inicio.
+Paciente/asociaciones/responsable inmutables al editar; los estados válidos del paso son PENDIENTE/EN_CURSO/COMPLETADO.
+Asociar un procedimiento crea su primer paso en la misma transacción EJB; no existe POST de paso manual ni DELETE de consulta.
+Reglas idénticas al servicio JSF ConsultaFlujoService. Otra clínica403; ID inexistente404; relación modificada409; regla inválida422.
+El frontend conserva el dashboard y las tarjetas, añade formularios y relaciones anidadas y recupera el registro guardado por UUID.
+Cambiar identidad refresca clínicas autorizadas; conserva clínica/filtros si la identidad sigue teniendo acceso.
+
+## Personas y asociaciones
+
+GET/POST persona y GET/PUT persona/{id}. Entrada: nombres,apellidos,fechaNacimiento (ISO8601 con zona).
+DTO añade idPersona y fechaCreacion asignada por servidor, que se conserva al editar. No existe DELETE de Persona como en JSF.
+Filtros nombres/apellidos (contiene), listas first/max, Total-registros, UUID ascendente.
+GET lista/ID,POST,PUT,DELETE documento,medio_contacto,persona_rol; listas requieren idPersona UUID.
+DTO Documento: idDocumento,idPersona,idTipoDocumento,valor,rutaFisica. Entrada sin idDocumento.
+DTO MedioContacto: idMedioContacto,idPersona,idTipoMedioContacto,valor,fechaCreacion. Entrada sin ID propio ni fechaCreacion.
+DTO PersonaRol: idPersonaRol,idPersona,idRol,idClinica,fechaCreacion. Entrada sin ID propio ni fechaCreacion.
+Persona y tipos/rol/clínica de asociaciones son inmutables al editar. Asignar o eliminar PersonaRol exige clínica autorizada;
+las asignaciones referenciadas por Consulta/Paso responden409. Documentos/contactos permiten eliminar su asociación, no Persona.
+Reglas de nombres, nacimiento, DUI/edad, regex, tipos activos y duplicados compartidas con JSF en PersonaFlujoService.
+Los registros de Persona y sus documentos/contactos se administran globalmente como en JSF, únicamente en la base sintética autenticada.
+Esto NO define permisos sobre personas reales: la correspondencia actor/PersonaRol y autorización de producción sigue pendiente del equipo.

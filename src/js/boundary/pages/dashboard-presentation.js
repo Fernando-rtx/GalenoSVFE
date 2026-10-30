@@ -18,3 +18,11 @@ export function errorMessage(error) {
   if (error.status === 422) return 'El servidor rechazó los parámetros. Revisa los filtros y el tamaño de página.';
   return 'No se pudieron cargar los datos. Intenta nuevamente.';
 }
+
+/** Mensajes seguros de la frontera REST de gestión. */
+export function gestionError(error) {
+  if (error?.status === 401) return 'Usuario o contraseña no válidos. Inicia sesión nuevamente.';
+  if (error?.status === 403) return 'La sesión no tiene permiso para esta operación.';
+  if ([409, 422].includes(error?.status) && typeof error.details?.mensaje === 'string') return error.details.mensaje;
+  return errorMessage(error);
+}

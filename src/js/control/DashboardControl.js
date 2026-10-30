@@ -66,6 +66,19 @@ export default class DashboardControl {
     }
   }
 
+  /** Cambio explícito de identidad/transporte, sin sustituir el dashboard ni sus componentes. */
+  async connect({ clinicaDAO, consultaDAO }) {
+    ['clinicas', 'consultas', 'detalle'].forEach(key => this._cancel(key));
+    this.clinicaDAO = clinicaDAO;this.consultaDAO = consultaDAO;
+    const previous = { idClinica: this.state.idClinica, first: this.state.first, filtros: this.state.filtros };
+    await this.loadClinicas();
+    if (this.state.clinicasStatus !== 'ready') {
+      await this._loadConsultas({ idClinica: null, first: 0, filtros: Object.freeze({}) });return;
+    }
+    const available = this.state.clinicas.some(row => row.idClinica === previous.idClinica);
+    await this._loadConsultas(available ? previous : { idClinica: null, first: 0, filtros: Object.freeze({}) });
+  }
+
   async loadClinicas() {
     const request = this._begin('clinicas');
     this._set({ clinicasStatus: 'loading', clinicasError: null });
@@ -138,6 +151,12 @@ export default class DashboardControl {
     if (this.state.consultasStatus !== 'ready' || !this.state.consultas.some(row => row.idConsulta === idConsulta)) {
       throw DefaultError.validation('Selecciona una consulta de la página actual.');
     }
+    return this.openConsulta(idConsulta);
+  }
+
+  /** Recupera por UUID una consulta recién guardada aunque quede fuera de la página filtrada. */
+  async openConsulta(idConsulta) {
+    if (!this.state.idClinica || !isUuid(idConsulta)) throw DefaultError.validation('Consulta o clínica inválidas.');
     const request = this._begin('detalle');
     this._set({ idConsulta, detalle: null, detalleStatus: 'loading', detalleError: null });
     try {

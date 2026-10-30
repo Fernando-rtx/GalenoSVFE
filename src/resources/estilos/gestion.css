@@ -13,3 +13,12 @@
 .gestion-fields label { font-weight: 600; }
 .gestion-fields input[type=checkbox] { justify-self: start; width: 1.25rem; height: 1.25rem; }
 @media(max-width: 700px) { .gestion { padding: 1rem; } .gestion-tools > form { width: 100%; } }
+
+.consulta-gestion { padding: 0; }
+.consulta-gestion[hidden] { display: none; }
+.consulta-relaciones { padding: 1.2rem; margin-bottom: 1rem; }
+.consulta-relaciones .gestion-tools span { overflow-wrap: anywhere; }
+.gestion select { font: inherit; padding: .7rem; border: 1px solid #cbd5e1; border-radius: .6rem; min-width: 0; max-width: 100%; }
+
+.persona-relaciones { padding: 1.2rem; margin-top: 1.2rem; }
+.persona-relaciones .gestion-tools span { overflow-wrap: anywhere; min-width: 0; }

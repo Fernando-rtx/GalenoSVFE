@@ -23,7 +23,7 @@ async function start() {
   if (closed) return;
   try {
     dashboard = mountDashboard({ root, config });
-    gestion = mountGestion({ config: gestionConfig });
+    gestion = mountGestion({ config: gestionConfig, dashboard, defaultConfig: config });
     await dashboard.ready;
   } catch (error) {
     document.querySelector('[data-ui="startupStatus"]').textContent = 'No se pudo iniciar el dashboard. Revisa la configuración de conexión.';

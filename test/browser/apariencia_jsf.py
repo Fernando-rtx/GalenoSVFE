@@ -69,11 +69,17 @@ class AparienciaJSF(unittest.TestCase):
     page.screenshot(path=str(OUTPUT/(module+'-dialog-dark.png')),full_page=True)
     page.keyboard.press('Escape');expect(dialog).not_to_be_visible()
     page.locator('#themeToggle').click()
+    row=page.locator('[data-catalogos] tbody tr').first
+    if row.count():
+     row.dblclick();expect(dialog).to_be_visible();page.keyboard.press('Escape')
+     row.focus();page.keyboard.press('Enter');expect(dialog).to_be_visible();page.keyboard.press('Escape')
    page.locator('[data-module=persona]').click();page.get_by_role('button',name='Nueva persona',exact=True).click()
    expect(page.locator('[data-personas] dialog')).to_be_visible();page.keyboard.press('Escape')
    page.locator('.brand').click();expect(page.locator('#fechaDesde')).to_have_value('1900-01-01');expect(page.locator('#clinica')).to_have_value(clinic)
    # Nested existing flows keep the same actions, themed dialogs and real GET requests.
    page.locator('[data-module=persona]').click()
+   person=page.locator('[data-personas] tbody tr').first
+   person.dblclick();expect(page.locator('[data-personas] dialog')).to_be_visible();page.keyboard.press('Escape')
    page.locator('[data-personas] tbody tr').first.get_by_role('button',name='Abrir',exact=True).click()
    for label in ['Documentos','Contactos','Roles y clínicas']:
     page.locator('.persona-relaciones').get_by_role('button',name=label,exact=True).click()
@@ -88,6 +94,8 @@ class AparienciaJSF(unittest.TestCase):
    expect(page.get_by_role('button',name='Nuevo paso',exact=True)).to_be_visible()
    page.get_by_role('button',name='Nuevo paso',exact=True).click()
    expect(page.locator('#gestion dialog:visible')).to_be_visible();page.keyboard.press('Escape')
+   step=page.locator('#gestion .editable-record:visible').first
+   step.dblclick();expect(page.locator('#gestion dialog:visible')).to_be_visible();page.keyboard.press('Escape')
    for label in ['Exámenes asociados','Secuencias']:
     page.get_by_role('button',name=label,exact=True).first.click()
     expect(page.get_by_role('button',name='Nueva asociación',exact=True)).to_be_visible()
@@ -101,10 +109,18 @@ class AparienciaJSF(unittest.TestCase):
    page.get_by_role('button',name='Volver',exact=True).click()
    page.locator('.brand').click()
    page.locator('tarjeta-consulta').first.locator('button').click()
+   page.locator('tarjeta-consulta').first.dblclick(position={'x':25,'y':25})
+   expect(page.locator('[data-consulta-gestion] dialog')).to_be_visible();page.keyboard.press('Escape')
+   page.locator('[data-ui=detail]').focus();page.keyboard.press('Enter')
+   expect(page.locator('[data-consulta-gestion] dialog')).to_be_visible();page.keyboard.press('Escape')
+   clinical=page.locator('.consulta-relaciones .editable-record').last
+   clinical.dblclick();expect(page.locator('[data-consulta-gestion] dialog')).to_be_visible();page.keyboard.press('Escape')
    page.get_by_role('button',name='Órdenes',exact=True).first.click()
    orders=page.locator('[data-ordenes]');expect(orders).to_be_visible()
    page.screenshot(path=str(OUTPUT/'ordenes-fe-light.png'),full_page=True)
+   orders.locator('.editable-record').first.dblclick();expect(orders.locator('dialog')).to_be_visible();page.keyboard.press('Escape')
    orders.get_by_role('button',name='Resultados',exact=True).first.click()
+   orders.locator('.editable-record').first.dblclick();expect(orders.locator('dialog')).to_be_visible();page.keyboard.press('Escape')
    page.screenshot(path=str(OUTPUT/'resultados-fe-light.png'),full_page=True)
    # Menu remains usable at all sizes and tables scroll inside their container.
    for width in [1920,1280,768,390,360]:
@@ -116,6 +132,7 @@ class AparienciaJSF(unittest.TestCase):
      page.screenshot(path=str(OUTPUT/('responsive-'+str(width)+'-'+theme+'.png')),full_page=True)
    page.locator('[data-session]').click();page.get_by_role('button',name='Cerrar sesión',exact=True).click()
    expect(page.locator('[data-session-name]')).to_have_text('Iniciar sesión');expect(page.locator('#clinica')).to_be_disabled()
+   expect(page.get_by_role('button',name='Editar',exact=True)).to_have_count(0)
    self.assertEqual(writes,[]);self.assertEqual(errors,[])
    browser.close()
 

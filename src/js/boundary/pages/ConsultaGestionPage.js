@@ -1,3 +1,4 @@
+import { editableRecord } from '../editable-record.js';
 import { gestionError } from './dashboard-presentation.js';
 const node = (tag, text, className) => { const n = document.createElement(tag);if (text !== undefined) n.textContent = text;if (className) n.className = className;return n; };
 const localDate = iso => { if (!iso) return '';const d = new Date(iso);d.setMinutes(d.getMinutes() - d.getTimezoneOffset());return d.toISOString().slice(0, 16); };
@@ -10,15 +11,18 @@ export default class ConsultaGestionPage {
     this.root = root;this.control = control;this.editor = null;
     this.notice = node('p');this.notice.setAttribute('role','status');
     this.actions = node('div',undefined,'gestion-tools');
-    this.create = node('button','Nueva consulta','primary-button');this.edit = node('button','Editar consulta','secondary-button');this.add = node('button','Asociar procedimiento','secondary-button');
-    this.create.onclick = () => control.editConsulta(true);this.edit.onclick = () => control.editConsulta(false);this.add.onclick = () => control.newProcedure();
-    this.actions.append(this.create,this.edit,this.add);
+    this.create = node('button','Nueva consulta','primary-button');this.add = node('button','Asociar procedimiento','secondary-button');
+    this.create.onclick = () => control.editConsulta(true);this.add.onclick = () => control.newProcedure();
+    this.actions.append(this.create,this.add);
     this.children = node('section',undefined,'panel consulta-relaciones');this.children.setAttribute('aria-label','Procedimientos y pasos de la consulta');
     this.dialog = node('dialog',undefined,'gestion-dialog');this.form = node('form');this.fields = node('div',undefined,'gestion-fields');this.error = node('p',undefined,'action-error');this.error.setAttribute('role','alert');
     this.save = node('button','Guardar','primary-button');this.save.type='submit';this.cancel = node('button','Cancelar','secondary-button');this.cancel.type='button';this.cancel.onclick = () => control.cancel();
     this.dialog.oncancel = event => { event.preventDefault();control.cancel(); };
     const actions = node('div',undefined,'gestion-tools');actions.append(this.cancel,this.save);this.form.append(this.fields,this.error,actions);this.dialog.append(this.form);root.append(this.notice,this.actions,this.children,this.dialog);
     this.form.onsubmit = event => { event.preventDefault();control.save(this.data(control.state)); };
+    this.cards = document.querySelector('[data-ui=cards]');
+    this.openCard = event => { const card=event.target.closest('tarjeta-consulta');if(card&&!event.composedPath().some(n=>n.matches?.('button')))control.openConsulta(card.consulta.idConsulta); };
+    this.cards.addEventListener('dblclick',this.openCard);
     this.unsubscribe = control.subscribe(state => this.render(state));
   }
   field(name,label,type='text',value='',required=false) {
@@ -65,7 +69,8 @@ export default class ConsultaGestionPage {
   render(state) {
     this.notice.textContent=state.error?gestionError(state.error):state.message;
     this.create.disabled=state.writing||!state.clinic||!this.control.contexto.puedeEscribir;
-    this.edit.disabled=this.add.disabled=state.writing||!state.consulta||!this.control.contexto.puedeEscribir;
+    this.add.disabled=state.writing||!state.consulta||!this.control.contexto.puedeEscribir;
+    editableRecord(document.querySelector('[data-ui=detail]'),()=>this.control.editConsulta(false),Boolean(state.consulta)&&!state.writing&&this.control.contexto.puedeEscribir);
     this.children.hidden=!state.consulta;this.children.replaceChildren();
     if(state.consulta) for(const [name,rows,total,first,key,id,label] of [
       ['Procedimientos asociados',state.asociaciones,state.totalAsociaciones,state.firstAsociaciones,'firstAsociaciones','idConsultaProcedimiento','idProcedimiento'],
@@ -73,8 +78,7 @@ export default class ConsultaGestionPage {
       this.children.append(node('h3',`${name} · ${total}`));
       for(const row of rows) {
         const line=node('div',undefined,'gestion-tools');line.append(node('span',`${row[label]} · ${row.fechaInicio??'Sin fecha'}`));
-        const edit=node('button','Editar','text-button');edit.type='button';edit.disabled=state.writing||!this.control.contexto.puedeEscribir;
-        edit.onclick=()=>key==='firstPasos'?this.control.editStep(row):this.control.editProcedure(row);line.append(edit);if(key === "firstPasos" && this.onOrders){const orders=node("button","Órdenes","secondary-button");orders.type="button";orders.disabled=state.writing;orders.onclick=()=>this.onOrders(row);line.append(orders);}this.children.append(line);
+        editableRecord(line,()=>key==='firstPasos'?this.control.editStep(row):this.control.editProcedure(row),!state.writing&&this.control.contexto.puedeEscribir);if(key === "firstPasos" && this.onOrders){const orders=node("button","Órdenes","secondary-button");orders.type="button";orders.disabled=state.writing;orders.onclick=()=>this.onOrders(row);line.append(orders);}this.children.append(line);
       }
       if(!rows.length)this.children.append(node('p','Sin registros asociados.'));
       const pager=node('div',undefined,'gestion-tools');const prev=node('button','Anterior','pagination-button');const next=node('button','Siguiente','pagination-button');
@@ -98,5 +102,5 @@ export default class ConsultaGestionPage {
     if(this.catalogPrev){this.catalogPrev.disabled=state.writing||state.firstProcedimientos===0;this.catalogNext.disabled=state.writing||state.firstProcedimientos+20>=state.totalProcedimientos;}
     this.error.textContent=state.error?gestionError(state.error):'';
   }
-  destroy(){this.unsubscribe();if(this.dialog.open)this.dialog.close();this.root.replaceChildren();}
+  destroy(){editableRecord(document.querySelector('[data-ui=detail]'),()=>{},false);this.cards.removeEventListener('dblclick',this.openCard);this.unsubscribe();if(this.dialog.open)this.dialog.close();this.root.replaceChildren();}
 }

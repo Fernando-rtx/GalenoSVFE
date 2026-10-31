@@ -16,6 +16,7 @@ import CatalogoPage from '../boundary/pages/CatalogoPage.js';
 /** Composición adicional dentro del dashboard; las credenciales viven solo en memoria. */
 export function mountGestion({ config, dashboard: dashboardApp, defaultConfig, onSessionChange = () => {} }) {
   const root = document.querySelector('#gestion');
+  const hint = document.createElement('p');hint.className='record-hint';hint.textContent='Doble clic en un registro para abrirlo. Con teclado, utiliza Enter o la barra espaciadora.';root.append(hint);
   const dashboard = document.querySelector('#main');
   const nav = document.querySelector('[data-navigation]');
   let control;

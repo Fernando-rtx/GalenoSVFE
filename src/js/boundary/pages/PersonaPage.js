@@ -1,3 +1,4 @@
+import { editableRecord } from '../editable-record.js';
 import {gestionError} from './dashboard-presentation.js';
 const node=(tag,text,className)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(className)n.className=className;return n;};
 const names={persona:'Persona',documento:'Documento',medioContacto:'Medio de contacto',personaRol:'Asignación de rol'};
@@ -48,14 +49,15 @@ export default class PersonaPage {
  render(state){
   this.notice.textContent=state.status==='loading'?'Cargando…':state.message;this.error.textContent=state.error?gestionError(state.error):'';this.newButton.disabled=state.writing||!this.control.contexto.puedeEscribir;
   this.list.replaceChildren();const table=node('table');const head=node('tr');head.append(node('th','Persona'),node('th','Nacimiento'),node('th','Acciones'));const thead=node('thead');thead.append(head);table.append(thead);const body=node('tbody');
-  for(const p of state.rows){const tr=node('tr');tr.append(node('td',`${p.nombres??''} ${p.apellidos??''}`.trim()||'Sin nombre'),node('td',p.fechaNacimiento?.slice(0,10)??'Sin fecha'));const cell=node('td');cell.append(this.button('Abrir',()=>this.control.select(p.idPersona),state.writing));tr.append(cell);body.append(tr);}table.append(body);this.list.append(table);
+  for(const p of state.rows){const tr=node('tr');tr.append(node('td',`${p.nombres??''} ${p.apellidos??''}`.trim()||'Sin nombre'),node('td',p.fechaNacimiento?.slice(0,10)??'Sin fecha'));const cell=node('td');cell.append(this.button('Abrir',()=>this.control.select(p.idPersona),state.writing));editableRecord(tr,()=>this.control.edit('persona',p),!state.writing&&this.control.contexto.puedeEscribir);tr.append(cell);body.append(tr);}table.append(body);this.list.append(table);
   this.page(this.pager,state.first,state.total,first=>this.control.load({first}));this.detail.hidden=!state.person;this.detail.replaceChildren();
   if(state.person){
-   this.detail.append(node('h2',`${state.person.nombres??''} ${state.person.apellidos??''}`),this.button('Editar persona',()=>this.control.edit('persona',state.person),state.writing||!this.control.contexto.puedeEscribir));
+   this.detail.append(node('h2',`${state.person.nombres??''} ${state.person.apellidos??''}`));
+   editableRecord(this.detail.firstChild,()=>this.control.edit('persona',state.person),!state.writing&&this.control.contexto.puedeEscribir);
    const tabs=node('div',undefined,'gestion-tools');for(const [key,label]of [['documento','Documentos'],['medioContacto','Contactos'],['personaRol','Roles y clínicas']]){const b=this.button(label,()=>this.control.tab(key),state.writing);b.setAttribute('aria-pressed',String(state.tab===key));tabs.append(b);}this.detail.append(tabs);
    this.detail.append(this.button('Agregar '+names[state.tab].toLowerCase(),()=>this.control.edit(state.tab),state.writing||!this.control.contexto.puedeEscribir));
    for(const row of state.children){const line=node('div',undefined,'gestion-tools');
-    line.append(node('span',row.valor??`Rol ${row.idRol} · Clínica ${row.idClinica}`),this.button(state.tab==='personaRol'?'Ver asignación':'Editar',()=>this.control.edit(state.tab,row),state.writing||!this.control.contexto.puedeEscribir),this.button('Eliminar',()=>{if(confirm('¿Eliminar este registro asociado?'))this.control.remove(row);},state.writing||!this.control.contexto.puedeEscribir));this.detail.append(line);
+    line.append(node('span',row.valor??`Rol ${row.idRol} · Clínica ${row.idClinica}`),this.button('Eliminar',()=>{if(confirm('¿Eliminar este registro asociado?'))this.control.remove(row);},state.writing||!this.control.contexto.puedeEscribir));editableRecord(line,()=>this.control.edit(state.tab,row),!state.writing&&this.control.contexto.puedeEscribir);this.detail.append(line);
    }
    const pager=node('div',undefined,'pagination');this.page(pager,state.childFirst,state.childTotal,childFirst=>this.control.loadChildren({childFirst}));this.detail.append(pager);
   }

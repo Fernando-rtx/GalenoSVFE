@@ -177,3 +177,7 @@ dt { font-size:.8rem; } dd { font-size:.85rem; }
 @media(max-width:720px) { .catalogo-header { align-items:flex-start; flex-direction:column; } .layout-header { min-height:0; } }
 /* Override the dashboard's original focus selector with the same specificity. */
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible { outline:2px solid var(--gs-accent); outline-offset:2px; }
+.editable-record[aria-disabled="false"] { cursor:pointer; }
+.editable-record[aria-disabled="false"]:hover { background:var(--gs-hover); }
+.editable-record:focus-visible { outline:2px solid var(--gs-accent); outline-offset:-2px; }
+.record-hint { color:var(--gs-muted); font-size:.8rem; margin:0 0 14px; }

@@ -1,3 +1,4 @@
+import { editableRecord } from '../editable-record.js';
 import {gestionError} from './dashboard-presentation.js';
 const node=(tag,text,css)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(css)n.className=css;return n;};
 const local=iso=>{const d=new Date(iso);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16);};
@@ -15,7 +16,7 @@ export default class OrdenPage {
   this.save.textContent=s.writing?'Guardando…':'Guardar';this.form.setAttribute('aria-busy',String(s.writing));
   this.root.hidden=!s.paso;this.title.textContent=s.orden?'Resultados de la orden':'Órdenes del paso';this.status.textContent=s.error?gestionError(s.error):s.message;
   this.tools.replaceChildren(this.button(s.orden?'Nuevo resultado':'Nueva orden',()=>this.control.edit(),s.writing||!this.control.contexto.puedeEscribir));if(s.orden)this.tools.append(this.button('Volver a órdenes',()=>this.control.back(),s.writing));
-  this.list.replaceChildren();for(const row of s.rows){const line=node('div',undefined,'gestion-tools');line.append(node('span',(row.fechaCreacion??'Sin fecha')+' · '+(row.indicaciones??row.resultado??'Sin especificar')),this.button('Editar',()=>this.control.edit(row),s.writing||!this.control.contexto.puedeEscribir));if(!s.orden)line.append(this.button('Resultados',()=>this.control.results(row),s.writing));this.list.append(line);}
+  this.list.replaceChildren();for(const row of s.rows){const line=node('div',undefined,'gestion-tools');line.append(node('span',(row.fechaCreacion??'Sin fecha')+' · '+(row.indicaciones??row.resultado??'Sin especificar')));if(!s.orden)line.append(this.button('Resultados',()=>this.control.results(row),s.writing));editableRecord(line,()=>this.control.edit(row),!s.writing&&this.control.contexto.puedeEscribir);this.list.append(line);}
   this.list.append(node('p',s.total+' registros'),this.button('Anterior',()=>this.control.load(Math.max(0,s.first-10)),s.writing||s.first===0),this.button('Siguiente',()=>this.control.load(s.first+10),s.writing||s.first+10>=s.total));
   if(s.editor&&!this.dialog.open){this.fields.replaceChildren(node('h2',s.orden?'Resultado de examen':'Orden de examen'));const labels={fechaCreacion:'Fecha de creación · hora local',indicaciones:'Indicaciones',resultado:'Resultado',interpretacion:'Interpretación',rutaAtestado:'Ruta de atestado'};
    for(const key of ['fechaCreacion',...(s.orden?['resultado','interpretacion','rutaAtestado']:['indicaciones'])]){const input=node(key==='fechaCreacion'||key==='rutaAtestado'?'input':'textarea');input.name=key;input.id='orden-'+key;const label=node('label',labels[key]);label.htmlFor=input.id;

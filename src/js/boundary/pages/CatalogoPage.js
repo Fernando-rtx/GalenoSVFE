@@ -1,3 +1,4 @@
+import { editableRecord } from '../editable-record.js';
 import { gestionError } from './dashboard-presentation.js';
 
 // Sugerencias de presentación del enum JSF FormatoRegexSugerido; Java valida el formato.
@@ -109,14 +110,14 @@ export default class CatalogoPage {
     this.results.replaceChildren();
     const table = element('table');const head = element('tr');
     const extra = fields[state.module].filter(key => !['nombre', 'activo'].includes(key));
-    head.append(element('th', 'Nombre'), element('th', 'Estado'));for (const key of extra) head.append(element('th', labels[key]));head.append(element('th', 'Acciones'));const thead = element('thead');thead.append(head);table.append(thead);
+    head.append(element('th', 'Nombre'), element('th', 'Estado'));for (const key of extra) head.append(element('th', labels[key]));if (['procedimiento','examen'].includes(state.module)) head.append(element('th', 'Acciones'));const thead = element('thead');thead.append(head);table.append(thead);
     head.firstChild.append(this.search);
     const body = element('tbody');
     const idKey = 'id' + state.module[0].toUpperCase() + state.module.slice(1);
     for (const row of state.rows) {
       const tr = element('tr');tr.append(element('td', row.nombre ?? 'Sin nombre'), element('td', row.activo ? 'Activo' : 'Inactivo'));for (const key of extra) tr.append(element('td', row[key] || 'Sin dato'));
-      const cell = element('td');const edit = element('button', state.contexto.puedeEscribir ? 'Editar' : 'Ver detalle', 'text-button');
-      edit.type = 'button';edit.disabled = state.writing;edit.onclick = () => this.control.edit(row[idKey]);cell.append(edit);if(["procedimiento","examen"].includes(state.module) && this.onRelations){const flow=element("button",state.module === "procedimiento" ? "Gestionar pasos" : "Tipos de examen","text-button");flow.type="button";flow.disabled=state.writing;flow.onclick=()=>this.onRelations(row,state.module);cell.append(flow);}tr.append(cell);body.append(tr);
+      editableRecord(tr, () => this.control.edit(row[idKey]), !state.writing);
+      const cell = element('td');if(["procedimiento","examen"].includes(state.module) && this.onRelations){const flow=element("button",state.module === "procedimiento" ? "Gestionar pasos" : "Tipos de examen","text-button");flow.type="button";flow.disabled=state.writing;flow.onclick=()=>this.onRelations(row,state.module);cell.append(flow);}if (cell.childElementCount) tr.append(cell);body.append(tr);
     }
     table.append(body);this.results.append(table);
     if (!state.rows.length && state.status === 'ready') this.results.append(element('p', 'No hay registros para esta búsqueda.'));

@@ -30,6 +30,11 @@ export default class ConsultaGestionControl {
     const clinic = this.state.clinic;
     await this.read('pacientes', signal => this.pacienteDAO.get({ signal, query: { idClinica: clinic, buscar } }), result => this.set({ pacientes: result.datos }));
   }
+  async openConsulta(idConsulta) {
+    if (this.state.writing || !this.contexto.puedeEscribir) return;
+    await this.dashboard.selectConsulta(idConsulta);
+    if (!this.closed && this.state.consulta?.idConsulta === idConsulta) this.editConsulta(false);
+  }
   async editConsulta(create = false) {
     if (this.state.writing || !this.contexto.puedeEscribir) return;
     if (!this.state.clinic) { this.set({ error: DefaultError.validation('Selecciona una clínica autorizada.') });return; }

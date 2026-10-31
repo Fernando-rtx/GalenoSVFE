@@ -88,3 +88,20 @@ El acceso y los comandos de integración están en `docs/desarrollo-local.md`.
   recursos originales reutilizados.
 - `test/browser/apariencia_jsf.py`: comparación/regresión de solo lectura.
 - Este informe.
+
+
+## Edición mediante doble clic
+
+Los registros de catálogos, personas, documentos/contactos/roles, pasos, asociaciones,
+órdenes y resultados abren su editor con doble clic, Enter o espacio, sin botones
+Editar. Las tarjetas de consulta permiten doble clic; el panel de detalle permite
+además apertura con teclado. Se conservan los controles de creación, eliminación,
+navegación a asociaciones y el evento original Ver detalle de las tarjetas.
+Las acciones y campos anidados no activan el editor y se mantienen los permisos y
+el bloqueo durante guardado. La tabla de catálogos omite Acciones cuando no hay
+acciones relacionadas que mostrar.
+
+Verificación del cambio: 420 pruebas unitarias aprobadas, sintaxis válida de 79
+archivos y recorrido Chromium `apariencia_jsf.py` aprobado con doble clic/teclado
+real y todas las escrituras REST bloqueadas. Los scripts de escritura existentes
+se actualizaron al nuevo gesto, pero no se ejecutaron para este cambio de interfaz.

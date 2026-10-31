@@ -47,7 +47,7 @@ describe('Integración HTTP autenticada contra clinica — lectura real, sin fix
   const r=await instance.findRange(0,1,{query:queries[name]||{}});assert.equal(r.status,200);assert(Array.isArray(r.datos));assert(r.datos.length<=1);assert(Number.isSafeInteger(r.totalDatos));assert(r.totalDatos>=r.datos.length);
  });
  it('sin identidad devuelve401',async()=>{const anonymous=new api.DefaultDAO({resource:'contexto',config:api.createApiConfig({baseUrl,routes:API_V2_ROUTES})});await assert.rejects(anonymous.get(),e=>e.status===401);});
- it('lector no puede consultar datos personales',async()=>{await assert.rejects(new api.PersonaDAO({config:reader}).findRange(0,1),e=>e.status===403);});
+ it('lector no accede al catálogo global de personas',async()=>{await assert.rejects(new api.PersonaDAO({config:reader}).findRange(0,1),e=>e.status===403);});
  it('clínica no asignada devuelve403',async()=>{await assert.rejects(dao.Consulta.findRange(0,1,{query:{idClinica:'00000000-0000-4000-8000-000000000001'}}),e=>e.status===403);});
  it('contexto lector no concede escritura',async()=>{const r=await new api.DefaultDAO({resource:'contexto',config:reader}).get();assert.equal(r.datos.puedeEscribir,false);});
 });

@@ -1,5 +1,16 @@
 import { gestionError } from './dashboard-presentation.js';
 
+// Sugerencias de presentación del enum JSF FormatoRegexSugerido; Java valida el formato.
+const formatosSugeridos = [
+  ['Personalizado', null],
+  ['DUI de El Salvador', '^[0-9]{8}-[0-9]$'],
+  ['Teléfono de El Salvador', '^(2|6|7)[0-9]{7}$'],
+  ['Correo electrónico', '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'],
+  ['Solo números', '^[0-9]+$'],
+  ['Alfanumérico', '^[A-Za-z0-9]+$'],
+  ['Teléfono residencial', '^2[0-9]{7}$']
+];
+
 const names = { examen: 'Exámenes', procedimiento: 'Procedimientos', persona: 'Personas', clinica: 'Clínicas', rol: 'Roles', tipoDocumento: 'Tipos de documento', tipoMedioContacto: 'Tipos de medio de contacto', tipoExamen: 'Tipos de examen' };
 const fields = { examen: ['nombre','observaciones','activo'], procedimiento: ['nombre','observaciones','activo'],
   clinica: ['nombre', 'tipo', 'comentarios', 'activo'], rol: ['nombre', 'observaciones', 'activo'],
@@ -116,10 +127,23 @@ export default class CatalogoPage {
         if (key === 'tipo' && state.module === 'clinica') { input.required = true;input.maxLength = 20; }
         if (key === 'indicaciones' && state.module === 'tipoMedioContacto') input.required = true;
         const label = element('label', labels[key]);label.htmlFor = input.id;this.formFields.append(label, input);
+        if (key === 'expresionRegular') {
+          const formatos = element('select');formatos.id = 'catalogo-formato';
+          const title = element('label', 'Formato sugerido');title.htmlFor = formatos.id;
+          formatosSugeridos.forEach(([nombre, regex], index) => {
+            const option = element('option', nombre);option.value = String(index);formatos.append(option);
+            if (regex !== null && regex === input.value) formatos.value = String(index);
+          });
+          formatos.onchange = () => { const regex = formatosSugeridos[Number(formatos.value)][1];if (regex !== null) input.value = regex; };
+          input.oninput = () => { formatos.value = '0'; };
+          this.formFields.append(title, formatos);
+        }
       }
       this.dialog.showModal();
     }
-    this.form.querySelectorAll('input, textarea').forEach(node => { node.disabled = state.writing || !state.contexto.puedeEscribir; });
+    this.form.querySelectorAll('input, textarea, select').forEach(node => { node.disabled = state.writing || !state.contexto.puedeEscribir; });
+    this.save.textContent=state.writing?'Guardando…':'Guardar';
+    this.form.setAttribute('aria-busy',String(state.writing));
     this.save.disabled = state.writing || !state.contexto.puedeEscribir;this.cancel.disabled = state.writing;
     this.remove.hidden = !['clinica', 'rol', 'procedimiento'].includes(state.module) || state.editor !== 'edit' || !state.contexto.puedeEscribir;
     this.remove.disabled = state.writing;this.formError.textContent = state.error ? gestionError(state.error) : '';

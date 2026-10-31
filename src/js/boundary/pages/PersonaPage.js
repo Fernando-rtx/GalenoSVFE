@@ -34,7 +34,7 @@ export default class PersonaPage {
   const title=node('label',label);title.htmlFor=input.id;this.fields.append(title,input);return input;
  }
  build(state){
-  const {kind,data}=state.editor;this.fields.replaceChildren(node('h2',(data?'Editar ':'Crear ')+names[kind]));this.selects={};
+  const {kind,data}=state.editor;this.fields.replaceChildren(node('h2',(kind==='personaRol'&&data?'':data?'Editar ':'Crear ')+names[kind]));this.selects={};
   if(kind==='persona'){
    for(const [key,title]of [['nombres','Nombres'],['apellidos','Apellidos']]){const input=this.field(key,title,'text',data?.[key]);input.maxLength=255;}
    const birth=this.field('fechaNacimiento','Fecha de nacimiento','date',data?.fechaNacimiento?.slice(0,10));birth.min='1900-01-01';birth.max=new Date().toLocaleDateString('en-CA',{timeZone:'America/El_Salvador'});
@@ -55,7 +55,7 @@ export default class PersonaPage {
    const tabs=node('div',undefined,'gestion-tools');for(const [key,label]of [['documento','Documentos'],['medioContacto','Contactos'],['personaRol','Roles y clínicas']]){const b=this.button(label,()=>this.control.tab(key),state.writing);b.setAttribute('aria-pressed',String(state.tab===key));tabs.append(b);}this.detail.append(tabs);
    this.detail.append(this.button('Agregar '+names[state.tab].toLowerCase(),()=>this.control.edit(state.tab),state.writing||!this.control.contexto.puedeEscribir));
    for(const row of state.children){const line=node('div',undefined,'gestion-tools');
-    line.append(node('span',row.valor??`Rol ${row.idRol} · Clínica ${row.idClinica}`),this.button('Editar',()=>this.control.edit(state.tab,row),state.writing||!this.control.contexto.puedeEscribir),this.button('Eliminar',()=>{if(confirm('¿Eliminar este registro asociado?'))this.control.remove(row);},state.writing||!this.control.contexto.puedeEscribir));this.detail.append(line);
+    line.append(node('span',row.valor??`Rol ${row.idRol} · Clínica ${row.idClinica}`),this.button(state.tab==='personaRol'?'Ver asignación':'Editar',()=>this.control.edit(state.tab,row),state.writing||!this.control.contexto.puedeEscribir),this.button('Eliminar',()=>{if(confirm('¿Eliminar este registro asociado?'))this.control.remove(row);},state.writing||!this.control.contexto.puedeEscribir));this.detail.append(line);
    }
    const pager=node('div',undefined,'pagination');this.page(pager,state.childFirst,state.childTotal,childFirst=>this.control.loadChildren({childFirst}));this.detail.append(pager);
   }
@@ -67,6 +67,8 @@ export default class PersonaPage {
     const option=node('option',row.nombre??id);option.value=id;select.append(option);}
    select.value=current;select.disabled=Boolean(state.editor.data)||state.writing;
   }
+  this.save.textContent=state.writing?'Guardando…':'Guardar';this.form.setAttribute('aria-busy',String(state.writing));
+  this.save.hidden=state.editor?.kind==='personaRol'&&Boolean(state.editor.data);
   this.form.querySelectorAll('input,button').forEach(input=>{input.disabled=state.writing;});
   this.formError.textContent=state.error?gestionError(state.error):'';
  }

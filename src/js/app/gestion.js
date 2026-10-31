@@ -96,12 +96,14 @@ export function mountGestion({ config, dashboard: dashboardApp, defaultConfig })
     if (location.hash !== anchor.getAttribute('href')) history.replaceState(null,'',anchor.getAttribute('href'));
     const isDashboard = !anchor.dataset.module;
     dashboard.hidden = !isDashboard;root.hidden = isDashboard;
-    nav.querySelectorAll('a').forEach(link => { link.classList.toggle('nav-current', link === anchor);if (link === anchor) link.setAttribute('aria-current', 'page');else link.removeAttribute('aria-current'); });
+    nav.querySelectorAll('a').forEach(link => { link.classList.toggle('nav-current', link.getAttribute('href') === anchor.getAttribute('href'));if (link.getAttribute('href') === anchor.getAttribute('href')) link.setAttribute('aria-current', 'page');else link.removeAttribute('aria-current'); });
     if (!isDashboard) { module = anchor.dataset.module;showModule(module); }
     (isDashboard ? dashboard : root).focus();
   }
+  const brand = document.querySelector('.brand');
+  brand?.addEventListener('click',navigate);
   nav.addEventListener('click', navigate);
   function openHash() { const anchor=Array.from(nav.querySelectorAll('a')).find(a=>a.getAttribute('href')===location.hash);if(anchor)anchor.click(); }
   window.addEventListener('hashchange',openHash);openHash();
-  return { destroy() { nav.removeEventListener('click', navigate);window.removeEventListener('hashchange',openHash);control?.destroy();clinicalPage?.destroy();clinical?.destroy();personaPage?.destroy();personaControl?.destroy();ordersPage?.destroy();orders?.destroy();flowPage?.destroy();flow?.destroy();relationsPage?.destroy();relations?.destroy();page.signedOut();root.replaceChildren(); } };
+  return { destroy() { brand?.removeEventListener('click',navigate);nav.removeEventListener('click', navigate);window.removeEventListener('hashchange',openHash);control?.destroy();clinicalPage?.destroy();clinical?.destroy();personaPage?.destroy();personaControl?.destroy();ordersPage?.destroy();orders?.destroy();flowPage?.destroy();flow?.destroy();relationsPage?.destroy();relations?.destroy();page.signedOut();root.replaceChildren(); } };
 }

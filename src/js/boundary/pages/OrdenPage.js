@@ -12,6 +12,7 @@ export default class OrdenPage {
  }
  button(text,action,disabled=false){const b=node('button',text,'secondary-button');b.type='button';b.disabled=disabled;b.onclick=action;return b;}
  render(s){
+  this.save.textContent=s.writing?'Guardando…':'Guardar';this.form.setAttribute('aria-busy',String(s.writing));
   this.root.hidden=!s.paso;this.title.textContent=s.orden?'Resultados de la orden':'Órdenes del paso';this.status.textContent=s.error?gestionError(s.error):s.message;
   this.tools.replaceChildren(this.button(s.orden?'Nuevo resultado':'Nueva orden',()=>this.control.edit(),s.writing||!this.control.contexto.puedeEscribir));if(s.orden)this.tools.append(this.button('Volver a órdenes',()=>this.control.back(),s.writing));
   this.list.replaceChildren();for(const row of s.rows){const line=node('div',undefined,'gestion-tools');line.append(node('span',(row.fechaCreacion??'Sin fecha')+' · '+(row.indicaciones??row.resultado??'Sin especificar')),this.button('Editar',()=>this.control.edit(row),s.writing||!this.control.contexto.puedeEscribir));if(!s.orden)line.append(this.button('Resultados',()=>this.control.results(row),s.writing));this.list.append(line);}

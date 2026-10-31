@@ -1,82 +1,95 @@
-# Equivalencia JSF → JavaScript: progreso verificable
+# Correspondencia del primer entregable
 
-El dashboard, DashboardControl, DashboardPage y las tarjetas originales se conservan.
-Gestión se monta dentro del mismo shell y menú; navegar no destruye filtros ni clínica.
-API0.2 sigue disponible. APIv2 autenticada solo se habilita en galenos_demo_crud sintética.
-Estado de esta matriz: implementación en curso, no equivalencia total.
+El dashboard original sigue siendo el centro de la aplicación. DashboardControl, DashboardPage,
+TarjetaSimple y TarjetaConsulta conservan sus contratos. Los formularios y relaciones se montan
+junto a ellos dentro del mismo menú. JSF y REST utilizan el WAR y datasource de clinica.
 
-| XHTML inspeccionado (Model homónimo) | Equivalente JavaScript | Estado |
+## Las 19 páginas
+
+| XHTML | Acceso JavaScript / coordinación | Operaciones publicadas |
 | --- | --- | --- |
-| Clinica | Menú Clínicas, CatalogoControl/CatalogoPage + ClinicaDAO v2 | Crear, listar/filtrar/paginar, detalle, editar/desactivar y eliminar con referencias verificadas |
-| Rol | Menú Roles + RolDAO v2 | Crear, listar/filtrar/paginar, detalle, editar/desactivar y eliminar con referencias verificadas |
-| TipoDocumento | Menú Tipos de documento + TipoDocumentoDAO v2 | Crear, listar/filtrar/paginar, detalle, editar/desactivar; sin DELETE como JSF |
-| TipoMedioContacto | Menú Tipos de contacto + TipoMedioContactoDAO v2 | Crear, listar/filtrar/paginar, detalle, editar/desactivar; sin DELETE como JSF |
-| TipoExamen | Menú Tipos de examen + TipoExamenDAO v2 | Crear, listar/filtrar/paginar, detalle, editar/desactivar; sin DELETE como JSF |
-| CambiarRol | Contexto autenticado técnico de demo | Pendiente equivalencia funcional; selector JSF no autentica |
-| Persona | Menú Personas, PersonaControl/PersonaPage | Crear, buscar/paginar, GET/editar y asociaciones anidadas verificados por HTTP, PostgreSQL y navegador |
-| Documento | Persona → Documentos | Crear/GET/editar/eliminar; tipo/persona inmutables, regex, DUI/edad y duplicados verificados |
-| MedioContacto | Persona → Contactos | Crear/GET/editar/eliminar; tipo/persona inmutables, regex y duplicados verificados |
-| PersonaRol | Persona → Roles y clínicas | Crear/GET/editar/eliminar; clínica autorizada, relaciones inmutables, duplicados/referencias409 verificados |
-| Consulta | Dashboard y ConsultaGestionControl/ConsultaGestionPage | Crear/GET/editar, buscar paciente, asociar/editar procedimiento, paso automático y edición de estado/fechas verificados HTTP+navegador; órdenes/resultados pendientes |
-| Procedimiento | Pendiente | Catálogo y pasos relacionados |
-| ProcedimientoPaso | Pendiente, anidado Procedimiento | Rol activo y paso inicial |
-| ProcedimientoPasoExamen | Pendiente, anidado Paso | Relaciones y duplicados |
-| ProcedimientoPasoSecuencia | Pendiente, anidado Paso | Secuencias, referencias y ciclos según servicio |
-| Examen | Pendiente | Catálogo y tipos relacionados |
-| ExamenTipoExamen | Pendiente, anidado Examen | Asociación existente |
-| OrdenExamen | Pendiente | ConsultaProcedimientoPaso y Examen |
-| ExamenResultado | Pendiente, relacionado Orden | Persistencia según Model |
+| CambiarRol | Login Liberty + selector de clínica del dashboard | Identidad autenticada y clínicas autorizadas; no permite suplantar otra identidad eligiendo PersonaRol |
+| Clinica | Menú Clínicas; CatalogoControl/CatalogoPage | Lista/filtro/página, detalle, crear, editar/desactivar, eliminar sin referencias |
+| Rol | Menú Roles; CatalogoControl/CatalogoPage | Lista/filtro/página, detalle, crear, editar/desactivar, eliminar sin referencias |
+| TipoDocumento | Menú Tipos de documento | Lista/filtro/página, detalle, crear y editar/desactivar |
+| TipoMedioContacto | Menú Tipos de contacto | Lista/filtro/página, detalle, crear y editar/desactivar |
+| TipoExamen | Menú Tipos de examen | Lista/filtro/página, detalle, crear y editar/desactivar |
+| Persona | Menú Personas; PersonaControl/PersonaPage | Buscar nombres/apellidos, paginar, crear, abrir y editar |
+| Documento | Persona → Documentos | Crear, recuperar, editar y eliminar asociación propia; tipo/persona inmutables |
+| MedioContacto | Persona → Contactos | Crear, recuperar, editar y eliminar; tipo/persona inmutables |
+| PersonaRol | Persona → Roles y clínicas | Crear, recuperar, editar y eliminar si no tiene referencias; clínica autorizada |
+| Consulta | Dashboard; ConsultaGestionControl/ConsultaGestionPage | Buscar paciente, crear/recuperar/editar consulta, filtros, tarjetas, detalle, procedimientos y pasos |
+| Procedimiento | Menú Procedimientos; CatalogoControl/CatalogoPage | Crear, filtrar/paginar, editar/desactivar, eliminar sin referencias y gestionar flujo |
+| ProcedimientoPaso | Procedimiento → Gestionar pasos; ProcedimientoControl/ProcedimientoPage | Paso inicial y continuaciones, rol, exámenes, editar nombre/fin y eliminar paso terminal |
+| ProcedimientoPasoExamen | Paso → Exámenes asociados; RelacionControl/RelacionPage | Crear, recuperar, editar observaciones/activo y quitar asociación |
+| ProcedimientoPasoSecuencia | Paso → Secuencias; RelacionControl/RelacionPage | Crear, recuperar, editar tipo y quitar enlace; impide ciclos y duplicados |
+| Examen | Menú Exámenes | Crear, filtrar/paginar, recuperar, editar/desactivar |
+| ExamenTipoExamen | Examen → Tipos de examen; RelacionControl/RelacionPage | Crear, recuperar, editar observaciones y quitar asociación |
+| OrdenExamen | Consulta → paso → Órdenes; OrdenControl/OrdenPage | Paginar, crear, recuperar y editar orden del paso |
+| ExamenResultado | Orden → Resultados; OrdenControl/OrdenPage | Paginar, crear, recuperar y editar resultado |
 
-## Inventario de los veinte DAO
+No se agregaron DELETE de Persona, Consulta, Orden ni Resultado: sus pantallas no los ofrecen.
+El modelo de OrdenExamen tiene FK a ConsultaProcedimientoPaso; no tiene FK a Examen.
+Los pasos ejecutados de Consulta se crean automáticamente al asociar un procedimiento;
+no se inventó una relación inexistente entre ConsultaProcedimientoPaso y la plantilla de paso.
 
-| DAO | Operaciones confirmadas en la aplicación |
-| --- | --- |
-| Clinica | GET0.2 selector antes del acceso; CRUDv2 catálogo y selector autorizado |
-| Consulta | GET0.2 antes del acceso; GET/POST/PUTv2 tras autenticar |
-| ConsultaProcedimiento | GET/POST/PUTv2 |
-| ConsultaProcedimientoPaso | GET/PUTv2, sin creación manual |
-| Documento | GET/POST/PUT/DELETEv2 |
-| MedioContacto | GET/POST/PUT/DELETEv2 |
-| Persona | GET/POST/PUTv2, sin DELETE |
-| PersonaRol | GET/POST/PUT/DELETEv2 y búsqueda GET de pacientes |
-| Rol | GET/POST/PUT/DELETEv2 |
-| TipoDocumento | GET0.2 y GET/POST/PUTv2 |
-| TipoExamen | GET/POST/PUTv2 |
-| TipoMedioContacto | GET/POST/PUTv2 |
-| Procedimiento | GETv2 de activos para asociación; CRUD pendiente |
-| ProcedimientoPaso | CONTRACT_PENDING |
-| ProcedimientoPasoExamen | CONTRACT_PENDING |
-| ProcedimientoPasoSecuencia | CONTRACT_PENDING |
-| Examen | CONTRACT_PENDING |
-| ExamenTipoExamen | CONTRACT_PENDING |
-| OrdenExamen | CONTRACT_PENDING |
-| ExamenResultado | CONTRACT_PENDING |
+CambiarRol tiene una adaptación de seguridad, no una copia literal: el actor REST es la identidad
+verificada por Liberty. El selector visual JSF no concede identidad ni permisos de aplicación.
+Una política clínica de producción que vincule cuentas a PersonaRol y permisos profesionales
+requiere decisión del equipo. El perfil implementado es de desarrollo local, con administrador
+y lector explícitos y alcance por UUID de clínica; no se presenta como autenticación de producción.
 
-El registro API_ROUTES0.2 permanece compatible: operaciones nuevas se seleccionan explícitamente mediante API_V2_ROUTES tras autenticar.
-No se habilitan operaciones pendientes en el contrato original ni se simula su resultado.
+## Los veinte DAO y REST v2
 
-## Comprobaciones de los catálogos
+Todas las listas usan first/max y Total-registros; todas las operaciones por ID utilizan UUID.
+Las columnas de entrada/salida están documentadas en api-gestion-v2.md.
 
-JUnit (Model + servicio compartido) y pruebas unitarias JS separadas de integración.
-HTTP real: autenticación401, lector403,422,404,405,409,201/Location,200,204,
-creación/consulta/edición/desactivación de los cinco catálogos y SELECT independiente a PostgreSQL.
-Navegador Chromium real: mismos cinco formularios, editar/desactivar, eliminar Clínica/Rol,
-lector sin escritura, credenciales erróneas visibles, móvil y regreso al dashboard con filtros/tarjetas intactos.
-Sin mocks de Fetch en estas pruebas de navegador ni en las pruebas HTTP/PostgreSQL.
+| DAO / ruta después de /resources/v2/ | Lista/ID | POST | PUT | DELETE |
+| --- | --- | --- | --- | --- |
+| ClinicaDAO / clinica | Sí | Sí | Sí | Sin referencias |
+| RolDAO / rol | Sí | Sí | Sí | Sin referencias |
+| TipoDocumentoDAO / tipo_documento | Sí | Sí | Sí | No |
+| TipoMedioContactoDAO / tipo_medio_contacto | Sí | Sí | Sí | No |
+| TipoExamenDAO / tipo_examen | Sí | Sí | Sí | No |
+| PersonaDAO / persona | Sí | Sí | Sí | No |
+| DocumentoDAO / documento | Sí | Sí | Sí | Sí |
+| MedioContactoDAO / medio_contacto | Sí | Sí | Sí | Sí |
+| PersonaRolDAO / persona_rol | Sí | Sí | Sí | Sin consultas/pasos que lo referencien |
+| ConsultaDAO / consulta | Sí | Sí | Sí | No |
+| ConsultaProcedimientoDAO / consulta_procedimiento | Sí | Sí | Sí | No |
+| ConsultaProcedimientoPasoDAO / consulta_procedimiento_paso | Sí | Automático | Sí | No |
+| ProcedimientoDAO / procedimiento | Sí | Sí | Sí | Sin referencias |
+| ProcedimientoPasoDAO / procedimiento_paso | Sí | Sí, flujo | Sí | Terminal |
+| ProcedimientoPasoExamenDAO / procedimiento_paso_examen | Sí | Sí | Sí | Sí |
+| ProcedimientoPasoSecuenciaDAO / procedimiento_paso_secuencia | Sí | Sí | Sí | Sí |
+| ExamenDAO / examen | Sí | Sí | Sí | No |
+| ExamenTipoExamenDAO / examen_tipo_examen | Sí | Sí | Sí | Sí |
+| OrdenExamenDAO / orden_examen | Sí | Sí | Sí | No |
+| ExamenResultadoDAO / examen_resultado | Sí | Sí | Sí | No |
 
-## Dependencia para datos reales
+API_ROUTES0.2 permanece compatible con sus operaciones anteriores. Las nuevas operaciones
+se seleccionan explícitamente mediante API_V2_ROUTES después de autenticar. Ningún DAO
+pendiente se habilita mediante respuestas simuladas. Contexto y búsqueda acotada de pacientes
+usan DefaultDAO.get/PersonaRolDAO.get con contratos publicados.
 
-Falta acordar con Fernando el proveedor real de identidad, correspondencia actor↔PersonaRol,
-y permisos por clínica/acción. Los usuarios técnicos BASIC del demo no habilitan datos reales.
-No se modificó clinica ni el backend habitual. No se publican credenciales ni fixtures reales.
+## Evidencia verificada en esta implementación
 
-## Evidencia adicional de Consulta y Persona
+- Maven package/JUnit: 774 pruebas, 0 fallos, 0 errores, 0 omitidas; informe JaCoCo generado.
+- npm test: 416 pruebas unitarias con dobles, 0 fallos.
+- Transporte sintético: 9 pruebas; no acreditan PostgreSQL.
+- Integración v2: 24 pruebas HTTP reales, incluyendo los veinte DAO, 401 y 403. Solo lectura.
+- Chromium: ocho pruebas de flujo con registros DESARROLLO en clinica: persona/consulta,
+  catálogos Examen/Procedimiento, flujo/pasos/orden/resultado, tres asociaciones,
+  documentos/contactos, CRUD limitado de Clínica/Rol, ediciones de pasos/órdenes/resultados y navegación/cierre de sesión/móvil.
+- Los flujos comprueban recuperación HTTP y SELECT independiente cuando corresponde.
+  No interceptan Fetch ni simulan respuestas REST.
+- Las 19 páginas JSF responden HTTP200; no equivale a probar manualmente cada formulario JSF.
+- Se comprobó el rechazo de un ciclo sin crear el enlace y permisos antes de escribir datos.
+- No se provocó una caída de PostgreSQL ni se afirma rollback real por observar un mock.
 
-HTTP real de Consulta:3 pruebas con creación/GET/edición, asociación, paso automático/estado, alcance por clínica y errores de relaciones/fechas.
-Navegador real de Consulta:1 flujo completo, conserva tarjetas y filtros al navegar.
-HTTP real de Persona:3 pruebas con CRUD de asociaciones, SELECT independiente, duplicados409, relaciones422,
-clínica403, DUI/edad422 y conservación del valor persistido tras rechazo.
-Navegador real de Persona:1 flujo de crear/editar persona, documento/contacto/rol y eliminación de asignación.
-Las suites JUnit existentes ejecutan las reglas ahora compartidas; no se eliminaron pruebas.
-DuiMayoriaEdadModelTest conserva sus aserciones y adapta el doble a DocumentoDAO.poseeDui,
-que reemplaza la carga ilimitada de documentos por COUNT case-insensitive de tipos DUI.
+Las únicas eliminaciones en clinica afectan filas de desarrollo creadas expresamente por estas
+pruebas. No se modificó la clínica original, no hubo limpieza masiva, migraciones ni respaldos.
+No se eliminaron pruebas útiles. Los tests de Examen completan nombres válidos para comprobar
+persistencia: sus aserciones originales se conservan. Los tests JSF ejecutan las reglas extraídas
+a CatalogoService y ProcedimientoFlujoService. Las suites sintéticas antiguas se conservan
+identificadas y no se ejecutan contra clinica.

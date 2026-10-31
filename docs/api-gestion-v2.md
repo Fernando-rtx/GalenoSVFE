@@ -1,9 +1,10 @@
-# Gestión sintética autenticada (v2)
+# Gestión autenticada (v2)
 
 Extensión compatible de API 0.2: `/resources/v1` conserva sus rutas y contrato.
 `/resources/v2` requiere BASIC validado por Liberty y cabecera Authorization explícita.
-Solo está disponible con GALENOS_CRUD_DEMO=true, GALENOS_DEMO_MODE=true y base **galenos_demo_crud**.
-No habilitar en clinica. No constituye autenticación clínica de producción.
+Dos perfiles explícitos: development sobre **clinica** con ambos flags demo desactivados,
+o el perfil académico compatible GALENOS_CRUD_DEMO=true sobre **galenos_demo_crud**.
+Ningún perfil se presenta como autenticación clínica de producción. Ver los permisos de desarrollo al final.
 
 Roles técnicos de prueba: galenos-demo-read permite lectura; galenos-demo-write permite escritura.
 Las credenciales privadas del launcher permanecen fuera de Git; no se guardan en el navegador.
@@ -42,7 +43,7 @@ No hay Access-Control-Allow-Credentials: el frontend usa credentials:omit y Basi
 Todas estas operaciones requieren idClinica UUID en query y un alcance permitido para la identidad BASIC.
 GET clinica_disponible pagina solo clínicas activas autorizadas (idClinica,nombre).
 GET persona_rol/pacientes?idClinica=UUID&buscar=texto reutiliza búsqueda de pacientes JSF por nombre/DUI, máximo15.
-GET procedimiento lista paginada de procedimientos activos para asociación (idProcedimiento,nombre,observaciones,activo).
+GET procedimiento lista paginada de procedimientos (activo=true para asociación) (idProcedimiento,nombre,observaciones,activo).
 
 | Ruta | Operaciones | DTO / campos de entrada |
 | --- | --- | --- |
@@ -72,3 +73,45 @@ las asignaciones referenciadas por Consulta/Paso responden409. Documentos/contac
 Reglas de nombres, nacimiento, DUI/edad, regex, tipos activos y duplicados compartidas con JSF en PersonaFlujoService.
 Los registros de Persona y sus documentos/contactos se administran globalmente como en JSF, únicamente en la base sintética autenticada.
 Esto NO define permisos sobre personas reales: la correspondencia actor/PersonaRol y autorización de producción sigue pendiente del equipo.
+
+## Modo autenticado de desarrollo sobre clinica
+
+GALENOS_API_MODE=development habilita v2 exclusivamente con POSTGRESQL_DB_NAME=clinica y ambos flags demo desactivados.
+Los usuarios se autentican con BASIC de Liberty. Para uso local, limitar httpEndpoint a loopback; fuera del equipo se requiere TLS.
+No reutilizar cuentas PostgreSQL. Registry y contraseñas permanecen en configuración privada de Liberty.
+Roles de aplicación: galenos-api-read (lectura), galenos-api-write (escritura), galenos-api-admin (administración global).
+Personas/documentos/contactos/asignaciones requieren administrador; escritura de catálogos también. El selector PersonaRol no autentica.
+Consultas y ejecución de procedimientos exigen además el UUID autorizado en GALENOS_API_ACTOR_CLINICS (usuario=uuid;usuario2=uuid).
+Una identidad sin alcance no obtiene clínicas ni puede ejecutar operaciones clínicas. Las asignaciones de negocio no conceden roles del contenedor.
+El modo sintético anterior se conserva como perfil distinto; sus roles de escritura no conceden permisos de desarrollo.
+El dashboard no realiza lecturas anónimas si environment.local.js declara authenticatedOnly=true; después del login utiliza solamente v2.
+
+## Procedimientos, exámenes, órdenes y asociaciones
+
+Las listas siguientes usan first/max, Total-registros y orden UUID ascendente. POST201+Location,
+GET/PUT200 y DELETE204. Argumentos422, inexistente404, conflicto409 cuando se identifica como tal,
+fallo inesperado500 seguro. Los cuerpos admiten solo los campos publicados.
+
+| Ruta | Campos DTO (todos explícitos, null publicado) | Entrada |
+| --- | --- | --- |
+| examen | idExamen,nombre,observaciones,activo | Sin ID |
+| procedimiento | idProcedimiento,nombre,observaciones,activo | Sin ID |
+| procedimiento_paso | idProcedimientoPaso,idProcedimiento,idRol,nombre,indicaFin | POST: idProcedimiento,idPasoOrigen nullable,nombre,idRol,indicaFin,tipoSecuencia,idsExamenes UUID[]; PUT: nombre,idRol,indicaFin |
+| examen_tipo_examen | idExamenTipoExamen,idExamen,idTipoExamen,fechaCreacion,observaciones | Sin ID propio ni fechaCreacion |
+| procedimiento_paso_examen | idProcedimientoPasoExamen,idProcedimientoPaso,idExamen,fechaCreacion,observaciones,activo | Sin ID propio ni fechaCreacion |
+| procedimiento_paso_secuencia | idProcedimientoPasoSecuencia,idProcedimientoPaso,idProcedimientoPasoReferencia,tipoSecuencia | Sin ID propio |
+| orden_examen | idOrdenExamen,idConsultaProcedimientoPaso,fechaCreacion,indicaciones | Sin ID propio |
+| examen_resultado | idExamenResultado,idOrdenExamen,fechaCreacion,resultado,interpretacion,rutaAtestado | Sin ID propio |
+
+GET procedimiento admite nombre y activo=true/false opcionales; el selector de asociación
+solicita activo=true. Las listas de pasos requieren idProcedimiento; examen_tipo_examen requiere
+idExamen; relaciones de paso requieren idProcedimientoPaso; órdenes requieren idPaso y resultados
+idOrden. Órdenes/resultados exigen además idClinica y comprueban toda su cadena de pertenencia.
+
+POST de paso reutiliza ProcedimientoFlujoService: crea el paso, enlace desde el origen si existe
+y asociaciones de exámenes en una transacción. PUT conserva procedimiento, rol y exámenes.
+DELETE solo elimina pasos terminales y sus asociaciones según el servicio original.
+Las relaciones mantienen sus padres y destino/tipo/examen inmutables al editar; se modifican
+solo sus campos permitidos. Las secuencias rechazan ciclos y duplicados. El editor conserva
+los tipos de secuencia ya admitidos por el Model; la creación del flujo usa SIGUIENTE/ALTERNATIVA.
+Órdenes y resultados no publican DELETE, igual que sus pantallas JSF.

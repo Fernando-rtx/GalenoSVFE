@@ -93,6 +93,7 @@ export default class ConsultaGestionPage {
       for(const p of state.procedimientos){const option=node('option',p.nombre??p.idProcedimiento);option.value=p.idProcedimiento;this.procedures.append(option);}
       this.procedures.value=previous;this.catalogPrev.disabled=state.firstProcedimientos===0;this.catalogNext.disabled=state.firstProcedimientos+20>=state.totalProcedimientos;
     }
+    this.save.textContent=state.writing?'Guardando…':'Guardar';this.form.setAttribute('aria-busy',String(state.writing));
     this.form.querySelectorAll('input,textarea,select,button').forEach(input=>{input.disabled=state.writing;});
     if(this.catalogPrev){this.catalogPrev.disabled=state.writing||state.firstProcedimientos===0;this.catalogNext.disabled=state.writing||state.firstProcedimientos+20>=state.totalProcedimientos;}
     this.error.textContent=state.error?gestionError(state.error):'';

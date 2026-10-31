@@ -12,6 +12,7 @@ const formatosSugeridos = [
 ];
 
 const names = { examen: 'Exámenes', procedimiento: 'Procedimientos', persona: 'Personas', clinica: 'Clínicas', rol: 'Roles', tipoDocumento: 'Tipos de documento', tipoMedioContacto: 'Tipos de medio de contacto', tipoExamen: 'Tipos de examen' };
+const descriptions = { clinica: 'Administra las clínicas registradas en el sistema.', rol: 'Administra los roles disponibles en el sistema.', tipoDocumento: 'Administra el catálogo de tipos de documento disponibles en el sistema.', tipoMedioContacto: 'Administra los tipos de medio de contacto y sus formatos.', tipoExamen: 'Administra los tipos de examen disponibles.', examen: 'Administra los exámenes y sus tipos asociados.', procedimiento: 'Administra los procedimientos y sus pasos relacionados.' };
 const fields = { examen: ['nombre','observaciones','activo'], procedimiento: ['nombre','observaciones','activo'],
   clinica: ['nombre', 'tipo', 'comentarios', 'activo'], rol: ['nombre', 'observaciones', 'activo'],
   tipoDocumento: ['nombre', 'expresionRegular', 'indicaciones', 'activo'],
@@ -34,13 +35,14 @@ export default class CatalogoPage {
     }
     this.enter = element('button', 'Iniciar sesión', 'primary-button');this.enter.type = 'submit';this.login.append(this.enter);
     this.notice = element('p', undefined, 'action-error');this.notice.setAttribute('role', 'alert');this.notice.hidden = true;
-    this.title = element('h1', names[this.module]);this.identity = element('p');
+    this.title = element('h1', names[this.module]);this.subtitle = element('p', descriptions[this.module], 'subtitle');this.identity = element('p');
     this.logout = element('button', 'Cerrar sesión', 'secondary-button');this.logout.type = 'button';this.logout.onclick = () => onLogout();
     this.tools = element('div', undefined, 'gestion-tools');this.search = element('form');
     this.query = element('input');this.query.type = 'search';this.query.placeholder = 'Buscar por nombre';this.query.setAttribute('aria-label', 'Buscar catálogo por nombre');
     const search = element('button', 'Buscar', 'secondary-button');search.type = 'submit';
     this.search.append(this.query, search);this.newButton = element('button', 'Nuevo registro', 'primary-button');this.newButton.type = 'button';
-    this.tools.append(this.search, this.newButton, this.logout);
+    this.tools.append(this.logout);
+    this.heading = element('div');this.heading.append(this.title, this.subtitle);this.header = element('div', undefined, 'catalogo-header');this.header.append(this.heading, this.newButton);this.newButton.hidden = true;
     this.results = element('div', undefined, 'panel table-scroll');this.total = element('p');
     this.previous = element('button', 'Anterior', 'pagination-button');this.next = element('button', 'Siguiente', 'pagination-button');
     this.previous.type = this.next.type = 'button';const pager = element('div', undefined, 'pagination');pager.append(this.total, this.previous, this.next);
@@ -52,7 +54,7 @@ export default class CatalogoPage {
     this.formError = element('p', undefined, 'action-error');this.formError.setAttribute('role', 'alert');
     const actions = element('div', undefined, 'gestion-tools');actions.append(this.cancel, this.remove, this.save);
     this.form.append(this.formFields, this.formError, actions);this.dialog.append(this.form);
-    root.append(this.title, this.notice, this.login, this.content, this.dialog);
+    root.append(this.header, this.notice, this.login, this.content, this.dialog);
     this.login.onsubmit = async event => {
       event.preventDefault();this.enter.disabled = true;this.notice.hidden = true;
       try { await onLogin(this.login.elements.usuario.value, this.login.elements.clave.value);this.login.elements.clave.value = ''; }
@@ -78,21 +80,21 @@ export default class CatalogoPage {
   }
   connect(control) {
     this.unsubscribe?.();this.control = control;
-    this.login.hidden = true;this.content.hidden = false;
+    this.login.hidden = true;this.content.hidden = false;this.newButton.hidden = false;
     this.unsubscribe = control.subscribe(state => this.render(state));
   }
   signedOut() {
-    this.unsubscribe?.();this.control = null;this.login.hidden = false;this.content.hidden = true;
+    this.unsubscribe?.();this.control = null;this.login.hidden = false;this.content.hidden = true;this.newButton.hidden = true;
     if (this.dialog.open) this.dialog.close();
   }
   error(error) { this.notice.className='action-error';this.notice.setAttribute('role','alert');this.notice.textContent = gestionError(error);this.notice.hidden = false; }
   open(module) {
-    this.module = module;this.title.textContent = names[module];
+    this.module = module;this.title.textContent = names[module];this.subtitle.textContent = descriptions[module];
     this.query.value = '';
     if (this.control) this.control.open(module).catch(error => this.error(error));
   }
   render(state) {
-    this.module = state.module;this.title.textContent = names[state.module];
+    this.module = state.module;this.title.textContent = names[state.module];this.subtitle.textContent = descriptions[state.module];
     this.identity.textContent = `${state.contexto.actor} · ${state.contexto.puedeEscribir ? 'Edición autorizada' : 'Solo lectura'}`;
     this.newButton.disabled = !state.contexto.puedeEscribir || state.writing;
     this.logout.disabled = state.writing;this.query.disabled = state.writing;
@@ -106,11 +108,13 @@ export default class CatalogoPage {
     if (state.status === 'loading') this.results.setAttribute('aria-busy', 'true');else this.results.removeAttribute('aria-busy');
     this.results.replaceChildren();
     const table = element('table');const head = element('tr');
-    head.append(element('th', 'Nombre'), element('th', 'Estado'), element('th', 'Acciones'));const thead = element('thead');thead.append(head);table.append(thead);
+    const extra = fields[state.module].filter(key => !['nombre', 'activo'].includes(key));
+    head.append(element('th', 'Nombre'), element('th', 'Estado'));for (const key of extra) head.append(element('th', labels[key]));head.append(element('th', 'Acciones'));const thead = element('thead');thead.append(head);table.append(thead);
+    head.firstChild.append(this.search);
     const body = element('tbody');
     const idKey = 'id' + state.module[0].toUpperCase() + state.module.slice(1);
     for (const row of state.rows) {
-      const tr = element('tr');tr.append(element('td', row.nombre ?? 'Sin nombre'), element('td', row.activo ? 'Activo' : 'Inactivo'));
+      const tr = element('tr');tr.append(element('td', row.nombre ?? 'Sin nombre'), element('td', row.activo ? 'Activo' : 'Inactivo'));for (const key of extra) tr.append(element('td', row[key] || 'Sin dato'));
       const cell = element('td');const edit = element('button', state.contexto.puedeEscribir ? 'Editar' : 'Ver detalle', 'text-button');
       edit.type = 'button';edit.disabled = state.writing;edit.onclick = () => this.control.edit(row[idKey]);cell.append(edit);if(["procedimiento","examen"].includes(state.module) && this.onRelations){const flow=element("button",state.module === "procedimiento" ? "Gestionar pasos" : "Tipos de examen","text-button");flow.type="button";flow.disabled=state.writing;flow.onclick=()=>this.onRelations(row,state.module);cell.append(flow);}tr.append(cell);body.append(tr);
     }

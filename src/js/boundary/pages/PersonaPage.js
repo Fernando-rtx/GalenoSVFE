@@ -7,7 +7,7 @@ const idField=kind=>'id'+kind[0].toUpperCase()+kind.slice(1);
 export default class PersonaPage {
  constructor(root,control){
   this.root=root;this.control=control;
-  root.replaceChildren(node('h1','Personas'));
+  root.replaceChildren(node('h1','Personas'),node('p','Administra personas y sus documentos, medios de contacto y asignaciones de rol.','subtitle'));
   this.notice=node('p');this.notice.setAttribute('role','status');this.error=node('p',undefined,'action-error');this.error.setAttribute('role','alert');
   const tools=node('div',undefined,'gestion-tools');this.search=node('form');
   this.nombres=node('input');this.nombres.placeholder='Nombres';this.nombres.setAttribute('aria-label','Filtrar nombres');this.apellidos=node('input');this.apellidos.placeholder='Apellidos';this.apellidos.setAttribute('aria-label','Filtrar apellidos');

@@ -246,3 +246,19 @@ dt { font-size:.8rem; } dd { font-size:.85rem; }
 @media(max-width:1000px) { .layout-header { grid-template-columns:232px minmax(0,1fr); } .layout-tools { grid-column:1/-1; } .app-shell { gap:14px; padding:0 14px 14px; grid-template-columns:200px minmax(0,1fr); } .layout-header { margin-inline:-14px; } }
 @media(max-width:720px) { .app-shell,.app-shell.menu-closed { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; padding:0 12px 12px; } .layout-header { grid-template-columns:minmax(0,1fr); gap:8px; margin-inline:-12px; padding:8px 12px; } .layout-tools { grid-column:auto; justify-self:stretch; justify-content:flex-end; } .layout-logo-image { width:148px; } .layout-clinic { width:100%; } .sidebar { display:block; padding:8px; } .sidebar nav { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:2px; margin:0; } .sidebar .nav-label { grid-column:1/-1; margin:4px 8px; } .sidebar nav a { font-size:.85rem; padding:9px; } .sidebar-footer { display:none; } #main,#gestion { padding:16px; } h1,.gestion h1 { font-size:1.3rem; } .filter-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .metric { padding-inline:10px; } .metric>span { min-height:0; } .pagination { gap:8px; } .gestion-tools form { width:100%; } table { min-width:510px; } }
 @media(max-width:380px) { .sidebar nav,.filter-grid { grid-template-columns:minmax(0,1fr); } .layout-session { max-width:170px; } }
+
+.context-navigation { text-align:left; color:var(--gs-muted); font-size:.85rem; font-weight:500; padding:9px 10px; border:0; border-left:3px solid transparent; border-radius:4px; background:transparent; }
+.context-navigation:hover { background:var(--gs-raised); color:var(--gs-text); }
+.gestion>.subtitle,[data-catalogos]>.subtitle,[data-personas]>.subtitle { padding-bottom:18px; border-bottom:1px solid var(--gs-border); }
+.gestion-tools:has(>form) { justify-content:flex-end; }
+.gestion td { max-width:360px; overflow-wrap:anywhere; }
+.gestion td:first-child { min-width:160px; }
+
+.layout-header { min-height:102px; }
+.catalogo-header { display:flex; justify-content:space-between; align-items:center; gap:16px; padding-bottom:18px; border-bottom:1px solid var(--gs-border); margin-bottom:14px; }
+.catalogo-header .subtitle { margin-bottom:0; }
+.catalogo-header .primary-button { white-space:nowrap; }
+.gestion th form { display:flex; align-items:center; gap:6px; margin-top:6px; font-weight:400; }
+.gestion th form input { width:100%; min-width:80px; height:32px; padding:6px 8px; }
+.gestion th form button { font-size:.8rem; min-height:32px; padding:4px 8px; }
+@media(max-width:720px) { .catalogo-header { align-items:flex-start; flex-direction:column; } .layout-header { min-height:0; } }

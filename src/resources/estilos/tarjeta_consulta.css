@@ -4,7 +4,7 @@
 
 h3 {
   margin: 0;
-  color: var(--ink, #172d31);
+  color: var(--ink, #243746);
   font-size: 1rem;
   line-height: 1.35;
   overflow-wrap: anywhere;
@@ -19,12 +19,12 @@ dl > div {
   min-width: 0;
 }
 
-dt { color: var(--muted, #63787b); }
+dt { color: var(--muted, #50677a); }
 dd {
   margin: 0;
   max-width: 65%;
   text-align: right;
-  color: var(--ink, #172d31);
+  color: var(--ink, #243746);
   overflow-wrap: anywhere;
 }
 
@@ -32,15 +32,15 @@ button {
   border: 0;
   border-radius: 8px;
   padding: 8px 12px;
-  background: var(--teal, #136b60);
+  background: var(--gs-blue, #126b9b);
   color: #fff;
   font: inherit;
   font-weight: 650;
   cursor: pointer;
 }
 
-button:hover { background: #0d564e; }
-button:focus-visible { outline: 3px solid #3e9d8b; outline-offset: 3px; }
+button:hover { background: var(--gs-button-hover, #11628c); }
+button:focus-visible { outline: 3px solid var(--gs-accent, #126b9b); outline-offset: 3px; }
 button:disabled { cursor: default; opacity: .5; }
 
 @media (max-width: 420px) {

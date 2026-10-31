@@ -1,0 +1,38 @@
+.gestion { padding: 2rem; max-width: 1400px; }
+.gestion[hidden], #main[hidden] { display: none; }
+.gestion h1 { margin: 0 0 1.5rem; }
+.gestion-login { max-width: 28rem; padding: 1.5rem; display: grid; gap: .8rem; }
+.gestion-login[hidden] { display: none; }
+.gestion-tools { display: flex; gap: .8rem; align-items: center; flex-wrap: wrap; margin: 1rem 0; }
+.gestion-tools form { display: flex; gap: .5rem; flex-wrap: wrap; }
+.gestion input, .gestion textarea { font: inherit; padding: .7rem; border: 1px solid #cbd5e1; border-radius: .6rem; max-width: 100%; }
+.gestion .table-scroll { padding: 1rem; }
+.gestion-dialog { border: 1px solid #dbe5e7; border-radius: 1rem; padding: 1.5rem; width: min(92vw, 38rem); max-height: 90vh; color: #183b41; }
+.gestion-dialog::backdrop { background: #152d3a80; }
+.gestion-fields { display: grid; gap: .7rem; }
+.gestion-fields label { font-weight: 600; }
+.gestion-fields input[type=checkbox] { justify-self: start; width: 1.25rem; height: 1.25rem; }
+@media(max-width: 700px) { .gestion { padding: 1rem; } .gestion-tools > form { width: 100%; } }
+
+.consulta-gestion { padding: 0; }
+.consulta-gestion[hidden] { display: none; }
+.consulta-relaciones { padding: 1.2rem; margin-bottom: 1rem; }
+.consulta-relaciones .gestion-tools span { overflow-wrap: anywhere; }
+.gestion select { font: inherit; padding: .7rem; border: 1px solid #cbd5e1; border-radius: .6rem; min-width: 0; max-width: 100%; }
+
+.persona-relaciones { padding: 1.2rem; margin-top: 1.2rem; }
+.persona-relaciones .gestion-tools span { overflow-wrap: anywhere; min-width: 0; }
+
+.sidebar nav { display: flex; flex-direction: column; gap: .35rem; }
+.sidebar nav a { display: flex; align-items: center; gap: .65rem; padding: .75rem 1rem; border-radius: .7rem; color: inherit; text-decoration: none; line-height: 1.35; }
+.sidebar nav a:hover, .sidebar nav a:focus-visible { background: #e9f3f1; outline: 2px solid #318578; }
+.sidebar nav a.nav-current { color: #fff; background: #21786c; }
+.sidebar { overflow-y: auto; }
+.sidebar > * { flex-shrink: 0; }
+@media (max-width: 700px) {
+  .sidebar { display: block; height: auto; }
+  .sidebar nav { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); margin-top: 1rem; }
+  .sidebar nav a { padding: .6rem; font-size: .85rem; }
+}
+
+.gestion-success { color: #216c4c; font-weight: 600; }

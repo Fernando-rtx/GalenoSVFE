@@ -1,7 +1,7 @@
 :host {
   display: block;
   min-width: 0;
-  color: var(--ink, #172d31);
+  color: var(--ink, #243746);
   font-family: inherit;
 }
 
@@ -11,17 +11,17 @@
   min-width: 0;
   overflow: hidden;
   background: var(--surface, #fff);
-  border: 1px solid var(--line, #dde7e3);
-  border-radius: var(--radius, 16px);
+  border: 1px solid var(--line, #bccbd8);
+  border-radius: var(--radius, 6px);
   box-shadow: 0 5px 18px rgb(23 45 49 / 5%);
 }
 
 header, .card-content, footer { padding: 16px 18px; }
-header { border-bottom: 1px solid var(--line, #dde7e3); }
+header { border-bottom: 1px solid var(--line, #bccbd8); }
 .card-content { line-height: 1.5; }
 footer {
-  border-top: 1px solid var(--line, #dde7e3);
-  background: var(--canvas, #f5f8f6);
+  border-top: 1px solid var(--line, #bccbd8);
+  background: var(--canvas, #f1f5f8);
 }
 
 ::slotted(*) { margin: 0; }

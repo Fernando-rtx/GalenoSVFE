@@ -195,31 +195,14 @@ class DashboardBrowser(unittest.TestCase):
         self.observations['realCard'] = {'sixFields': True, 'nullPreserved': True,
             'composedEvent': True, 'datesMatchDetail': True}
 
-    def test_real_card_model_event_and_update(self):
-        self.choose_clinic()
-        expect(self.consultation_rows()).to_have_count(5)
-        model = self.consultation_rows().first.evaluate('(card) => card.consulta')
-        self.assertEqual(set(model), {
-            'idConsulta', 'personaNombre', 'rolNombre', 'clinicaNombre',
-            'fechaInicio', 'fechaFin'
-        })
-        self.page.evaluate('''() => {
-            window.realCardEvent = null;
-            document.querySelector('[data-dashboard]').addEventListener('consulta-seleccionada', event => {
-                window.realCardEvent = { idConsulta: event.detail.idConsulta,
-                    bubbles: event.bubbles, composed: event.composed };
-            }, { once: true });
-        }''')
+        # Conserva el caso único del antiguo test duplicado: actualización del modelo.
         self.consultation_rows().first.evaluate('''card => {
             card.consulta = { ...card.consulta, personaNombre: null, fechaInicio: null };
         }''')
         expect(self.consultation_rows().first).to_contain_text('Persona sin nombre')
         expect(self.consultation_rows().first).to_contain_text('Sin especificar')
         self.consultation_button().click()
-        self.assertEqual(self.page.evaluate('window.realCardEvent'), {
-            'idConsulta': model['idConsulta'], 'bubbles': True, 'composed': True
-        })
-        expect(self.page.locator('[data-ui="detailData"]')).to_contain_text(model['idConsulta'])
+        expect(self.page.locator('[data-ui="detailData"]')).to_contain_text(models[0]['idConsulta'])
 
     def test_generic_card_slots_and_reconnection(self):
         observed = self.page.evaluate('''() => {

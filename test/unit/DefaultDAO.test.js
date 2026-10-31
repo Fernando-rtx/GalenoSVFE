@@ -366,4 +366,20 @@ describe('DefaultDAO con Fetch simulado', () => {
     expect(await pending).to.include({ code: 'TIMEOUT', type: 'connection', status: 500 });
     expect((await pending).headers['x-fixture']).to.equal('trace');
   });
+
+  it('conserva estado y cabeceras si el usuario cancela después de recibir HTTP', async () => {
+    const clock = sandbox.useFakeTimers();
+    const controller = new AbortController();
+    fetchStub.resolves(new Response(new ReadableStream({ start() {} }), {
+      status: 422, headers: { 'X-Fixture': 'respuesta-sintetica' }
+    }));
+    const pending = rejection(dao.findById('fixture', { signal: controller.signal }));
+    await clock.tickAsync(0);
+    controller.abort();
+    const error = await pending;
+    expect(error).to.include({ type: 'connection', code: 'CANCELLED', status: 422 });
+    expect(error.headers['x-fixture']).to.equal('respuesta-sintetica');
+    expect(fetchStub.firstCall.args[1].signal.aborted).to.equal(true);
+    expect(clock.countTimers()).to.equal(0);
+  });
 });

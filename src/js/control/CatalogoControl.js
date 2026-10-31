@@ -19,7 +19,7 @@ export default class CatalogoControl {
   async open(module) {
     if (this.state.writing) throw DefaultError.validation('Espera a que termine el guardado.');
     if (!Object.hasOwn(this.daos, module)) throw DefaultError.validation('Módulo no disponible.');
-    this.set({ module, first: 0, nombre: '', selected: null, editor: null, message: '' });
+    this.set({ module, first: 0, nombre: '', rows: [], total: 0, selected: null, editor: null, message: '' });
     await this.load();
   }
   async load(changes = {}) {

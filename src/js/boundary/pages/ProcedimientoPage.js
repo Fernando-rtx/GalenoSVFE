@@ -1,0 +1,27 @@
+import {gestionError} from './dashboard-presentation.js';
+const n=(tag,text)=>{const x=document.createElement(tag);if(text!==undefined)x.textContent=text;return x;};
+/** Editor del flujo anidado; utiliza el servicio de procedimientos mediante el Control. */
+export default class ProcedimientoPage {
+ constructor(root,control,onBack,onRelations){this.onRelations=onRelations;this.root=root;this.control=control;this.title=n('h1');this.status=n('p');this.status.setAttribute('role','status');this.list=n('div');this.tools=n('div');this.tools.className='gestion-tools';
+  this.tools.append(this.button('Volver a procedimientos',onBack),this.button('Nuevo paso',()=>control.edit()));
+  this.dialog=n('dialog');this.dialog.className='gestion-dialog';this.form=n('form');this.fields=n('div');this.fields.className='gestion-fields';this.error=n('p');this.error.setAttribute('role','alert');const actions=n('div');actions.className='gestion-tools';this.save=n('button','Guardar');this.save.type='submit';actions.append(this.button('Cancelar',()=>control.cancel()),this.save);this.form.append(this.fields,this.error,actions);this.dialog.append(this.form);root.append(this.title,this.status,this.tools,this.list,this.dialog);
+  this.dialog.oncancel=e=>{e.preventDefault();control.cancel();};this.form.onsubmit=e=>{e.preventDefault();const f=this.form.elements;const selected=control.state.editor.data;const data={nombre:f.nombre.value,idRol:selected?.idRol??f.idRol.value,indicaFin:f.indicaFin.checked};if(!selected)Object.assign(data,{idPasoOrigen:f.idPasoOrigen.value||null,tipoSecuencia:f.tipoSecuencia.value,idsExamenes:Array.from(f.idsExamenes.selectedOptions,o=>o.value)});control.save(data);};this.unsubscribe=control.subscribe(s=>this.render(s));
+ }
+ button(text,action,disabled=false){const b=n('button',text);b.type='button';b.className='secondary-button';b.onclick=action;b.disabled=disabled;return b;}
+ field(key,title,tag='input'){const label=n('label',title);label.htmlFor='flujo-'+key;const input=n(tag);input.name=key;input.id=label.htmlFor;this.fields.append(label,input);return input;}
+ options(select,rows,key,current){select.replaceChildren(n('option','Selecciona una opción'));select.firstChild.value='';for(const row of rows){const option=n('option',row.nombre??row[key]);option.value=row[key];select.append(option);}select.value=current??'';}
+ render(s){
+  this.title.textContent='Pasos · '+(s.parent?.nombre??'Procedimiento');this.status.textContent=s.error?gestionError(s.error):s.message;this.tools.querySelectorAll('button').forEach(b=>b.disabled=s.writing);this.tools.lastChild.disabled=s.writing||!this.control.contexto.puedeEscribir;
+  this.list.replaceChildren();for(const row of s.rows){const line=n('div');line.className='gestion-tools';line.append(n('span',row.nombre+(row.indicaFin?' · Final':'')),this.button('Editar',()=>this.control.edit(row),s.writing||!this.control.contexto.puedeEscribir),this.button('Eliminar paso terminal',()=>{if(confirm('¿Eliminar el paso terminal y sus asociaciones?'))this.control.remove(row);},s.writing||!this.control.contexto.puedeEscribir));if(this.onRelations)line.append(this.button('Exámenes asociados',()=>this.onRelations('procedimientoPasoExamen',row),s.writing),this.button('Secuencias',()=>this.onRelations('procedimientoPasoSecuencia',row),s.writing));this.list.append(line);}this.list.append(n('p',s.total+' pasos'),this.button('Anterior',()=>this.control.load(Math.max(0,s.first-10)),s.writing||s.first===0),this.button('Siguiente',()=>this.control.load(s.first+10),s.writing||s.first+10>=s.total));
+  if(s.editor&&!this.dialog.open){this.fields.replaceChildren(n('h2',s.editor.data?'Editar paso':'Nuevo paso'));const selected=s.editor.data;const name=this.field('nombre','Nombre');name.required=true;name.maxLength=155;name.value=selected?.nombre??'';this.role=this.field('idRol','Rol responsable','select');this.role.required=true;
+   const final=this.field('indicaFin','Indica fin');final.type='checkbox';final.checked=Boolean(selected?.indicaFin);
+   if(!selected){this.origin=this.field('idPasoOrigen','Paso origen (vacío para paso inicial)','select');this.type=this.field('tipoSecuencia','Tipo de secuencia','select');for(const text of ['SIGUIENTE','ALTERNATIVA']){const option=n('option',text);option.value=text;this.type.append(option);}this.exams=this.field('idsExamenes','Exámenes asociados (opcional)','select');this.exams.multiple=true;}
+   this.dialog.showModal();
+  }
+  if(s.editor){const roleValue=s.editor.data?.idRol??this.role.value;this.options(this.role,s.roles.filter(r=>(r.activo&&r.nombre?.trim().toLowerCase()!=='paciente')||r.idRol===roleValue),'idRol',roleValue);this.role.disabled=s.writing||Boolean(s.editor.data);
+   if(!s.editor.data){const origin=this.origin.value;this.options(this.origin,s.origins,'idProcedimientoPaso',origin);this.origin.firstChild.textContent='Paso inicial';const selected=Array.from(this.exams.selectedOptions,o=>o.value);this.exams.replaceChildren();for(const e of s.examenes.filter(e=>e.activo)){const option=n('option',e.nombre);option.value=e.idExamen;option.selected=selected.includes(e.idExamen);this.exams.append(option);}}
+  }
+  if(!s.editor&&this.dialog.open)this.dialog.close();this.form.querySelectorAll('input,button').forEach(x=>x.disabled=s.writing);if(s.editor&&!s.editor.data)[this.origin,this.type,this.exams].forEach(x=>{if(x)x.disabled=s.writing;});this.error.textContent=s.error?gestionError(s.error):'';
+ }
+ destroy(){this.unsubscribe();if(this.dialog.open)this.dialog.close();this.root.replaceChildren();}
+}

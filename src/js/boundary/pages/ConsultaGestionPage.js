@@ -5,7 +5,8 @@ const instant = value => value ? new Date(value).toISOString() : null;
 
 /** Formularios anidados en el dashboard; conserva los componentes originales. */
 export default class ConsultaGestionPage {
-  constructor(root, control) {
+  constructor(root, control, { onOrders } = {}) {
+    this.onOrders = onOrders;
     this.root = root;this.control = control;this.editor = null;
     this.notice = node('p');this.notice.setAttribute('role','status');
     this.actions = node('div',undefined,'gestion-tools');
@@ -73,7 +74,7 @@ export default class ConsultaGestionPage {
       for(const row of rows) {
         const line=node('div',undefined,'gestion-tools');line.append(node('span',`${row[label]} · ${row.fechaInicio??'Sin fecha'}`));
         const edit=node('button','Editar','text-button');edit.type='button';edit.disabled=state.writing||!this.control.contexto.puedeEscribir;
-        edit.onclick=()=>key==='firstPasos'?this.control.editStep(row):this.control.editProcedure(row);line.append(edit);this.children.append(line);
+        edit.onclick=()=>key==='firstPasos'?this.control.editStep(row):this.control.editProcedure(row);line.append(edit);if(key === "firstPasos" && this.onOrders){const orders=node("button","Órdenes","secondary-button");orders.type="button";orders.disabled=state.writing;orders.onclick=()=>this.onOrders(row);line.append(orders);}this.children.append(line);
       }
       if(!rows.length)this.children.append(node('p','Sin registros asociados.'));
       const pager=node('div',undefined,'gestion-tools');const prev=node('button','Anterior','pagination-button');const next=node('button','Siguiente','pagination-button');

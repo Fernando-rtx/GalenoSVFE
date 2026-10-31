@@ -3,13 +3,15 @@ import { isUuid, restRange, arrayOf } from '../control/rest-validators.js';
 
 const source = 'docs/api-gestion-v2.md';
 const schemas = {
+  examen: ['idExamen','nombre','observaciones','activo'],
+  procedimiento: ['idProcedimiento','nombre','observaciones','activo'],
   clinica: ['idClinica', 'nombre', 'tipo', 'comentarios', 'activo'],
   rol: ['idRol', 'nombre', 'observaciones', 'activo'],
   tipoDocumento: ['idTipoDocumento', 'nombre', 'indicaciones', 'expresionRegular', 'activo'],
   tipoMedioContacto: ['idTipoMedioContacto', 'nombre', 'indicaciones', 'expresionRegular', 'activo'],
   tipoExamen: ['idTipoExamen', 'nombre', 'observaciones', 'activo']
 };
-const paths = { clinica: 'clinica', rol: 'rol', tipoDocumento: 'tipo_documento', tipoMedioContacto: 'tipo_medio_contacto', tipoExamen: 'tipo_examen' };
+const paths = { examen: 'examen', procedimiento: 'procedimiento', clinica: 'clinica', rol: 'rol', tipoDocumento: 'tipo_documento', tipoMedioContacto: 'tipo_medio_contacto', tipoExamen: 'tipo_examen' };
 function object(value) { return value !== null && typeof value === 'object' && !Array.isArray(value); }
 function dto(fields) {
   return value => object(value) && Object.keys(value).length === fields.length && fields.every((key, index) =>
@@ -29,7 +31,7 @@ for (const [resource, fields] of Object.entries(schemas)) {
     create: { method: 'POST', path, body: 'json', response: 'json', successStatuses: [201], validateData, validateResponse },
     update: { method: 'PUT', path: `${path}/{id}`, body: 'json', response: 'json', successStatuses: [200], validateId: isUuid, validateData, validateResponse }
   };
-  if (['clinica', 'rol'].includes(resource)) operations.deleteById = {
+  if (['clinica', 'rol', 'procedimiento'].includes(resource)) operations.deleteById = {
     method: 'DELETE', path: `${path}/{id}`, response: 'none', successStatuses: [204], validateId: isUuid
   };
   routes[resource] = { status: 'verified', source, credentials: 'omit', operations };
@@ -75,11 +77,7 @@ routes.personaRol = { status: 'verified', source, credentials: 'omit', operation
   get: { method: 'GET', path: 'v2/persona_rol/pacientes', response: 'json', successStatuses: [200], query: { ...clinicQuery, buscar: { required: true, validate: v => typeof v === 'string' && Boolean(v.trim()) } },
     validateResponse: arrayOf(recordSchema({ idPersonaRol: isUuid, idPersona: isUuid, idClinica: isUuid, nombres: stringOrNull, apellidos: stringOrNull, rolNombre: stringOrNull })) }
 } };
-routes.procedimiento = { status: 'verified', source, credentials: 'omit', operations: {
-  findRange: { method: 'GET', path: 'v2/procedimiento', response: 'json', successStatuses: [200],
-    pagination: { firstParam: 'first', maxParam: 'max', totalHeader: 'Total-registros', requireTotal: true }, validateRange: restRange,
-    validateResponse: arrayOf(recordSchema({ idProcedimiento: isUuid, nombre: stringOrNull, observaciones: stringOrNull, activo: v => v === null || typeof v === 'boolean' })) }
-} };
+routes.procedimiento.operations.findRange.query = { nombre: { validate: v => typeof v === 'string' }, activo: { validate: v => typeof v === 'boolean' } };
 export const API_V2_DASHBOARD_ROUTES = { ...routes, clinica: { ...routes.clinica, operations: {
   findRange: { ...API_ROUTES.clinica.operations.findRange, path: 'v2/clinica_disponible' }
 } } };
@@ -98,3 +96,22 @@ for (const [resource,path] of [['documento','documento'],['medioContacto','medio
   routes[resource].operations.deleteById={method:'DELETE',path:`v2/${path}/{id}`,response:'none',successStatuses:[204],validateId:isUuid};
 }
 // Las rutas clínicas del dashboard no necesitan los contratos de Persona añadidos después.
+
+flowRoutes('ordenExamen','orden_examen',{idOrdenExamen:isUuid,idConsultaProcedimientoPaso:isUuid,fechaCreacion:stringOrNull,indicaciones:stringOrNull},
+ ['idConsultaProcedimientoPaso','fechaCreacion','indicaciones'],{listQuery:{idPaso:{required:true,validate:isUuid}}});
+flowRoutes('examenResultado','examen_resultado',{idExamenResultado:isUuid,idOrdenExamen:isUuid,fechaCreacion:stringOrNull,resultado:stringOrNull,interpretacion:stringOrNull,rutaAtestado:stringOrNull},
+ ['idOrdenExamen','fechaCreacion','resultado','interpretacion','rutaAtestado'],{listQuery:{idOrden:{required:true,validate:isUuid}}});
+
+flowRoutes('procedimientoPaso','procedimiento_paso',{idProcedimientoPaso:isUuid,idProcedimiento:isUuid,idRol:isUuid,nombre:stringOrNull,indicaFin:v=>v===null||typeof v==='boolean'},
+ ['nombre','idRol','indicaFin'],{query:{},listQuery:{idProcedimiento:{required:true,validate:isUuid}}});
+routes.procedimientoPaso.operations.create.validateData=v=>object(v)&&Object.keys(v).every(k=>['idProcedimiento','idPasoOrigen','nombre','idRol','indicaFin','tipoSecuencia','idsExamenes'].includes(k))&&isUuid(v.idProcedimiento)&&isUuid(v.idRol)&&typeof v.nombre==='string'&&typeof v.indicaFin==='boolean'&&(v.idPasoOrigen===null||isUuid(v.idPasoOrigen))&&Array.isArray(v.idsExamenes)&&v.idsExamenes.every(isUuid);
+routes.procedimientoPaso.operations.deleteById={method:'DELETE',path:'v2/procedimiento_paso/{id}',response:'none',successStatuses:[204],validateId:isUuid};
+
+for (const [resource,path,schema,writable,parent] of [
+ ['examenTipoExamen','examen_tipo_examen',{idExamenTipoExamen:isUuid,idExamen:isUuid,idTipoExamen:isUuid,fechaCreacion:stringOrNull,observaciones:stringOrNull},['idExamen','idTipoExamen','observaciones'],'idExamen'],
+ ['procedimientoPasoExamen','procedimiento_paso_examen',{idProcedimientoPasoExamen:isUuid,idProcedimientoPaso:isUuid,idExamen:isUuid,fechaCreacion:stringOrNull,observaciones:stringOrNull,activo:v=>v===null||typeof v==='boolean'},['idProcedimientoPaso','idExamen','observaciones','activo'],'idProcedimientoPaso'],
+ ['procedimientoPasoSecuencia','procedimiento_paso_secuencia',{idProcedimientoPasoSecuencia:isUuid,idProcedimientoPaso:isUuid,idProcedimientoPasoReferencia:isUuid,tipoSecuencia:stringOrNull},['idProcedimientoPaso','idProcedimientoPasoReferencia','tipoSecuencia'],'idProcedimientoPaso']
+]) {
+ flowRoutes(resource,path,schema,writable,{query:{},listQuery:{[parent]:{required:true,validate:isUuid}}});
+ routes[resource].operations.deleteById={method:'DELETE',path:`v2/${path}/{id}`,response:'none',successStatuses:[204],validateId:isUuid};
+}

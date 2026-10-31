@@ -41,7 +41,7 @@ export default class ConsultaGestionControl {
     await this.loadProcedures(0);
   }
   async loadProcedures(first) {
-    await this.read('catalogo', signal => this.procedimientoDAO.findRange(first, 20, { signal }), result => this.set({ procedimientos: result.datos, firstProcedimientos: first, totalProcedimientos: result.totalDatos }));
+    await this.read('catalogo', signal => this.procedimientoDAO.findRange(first, 20, { signal, query: { activo: true } }), result => this.set({ procedimientos: result.datos, firstProcedimientos: first, totalProcedimientos: result.totalDatos }));
   }
   editProcedure(row) { if (!this.state.writing && this.contexto.puedeEscribir) this.set({ editor: 'procedimiento', selected: row, error: null, message: '' }); }
   editStep(row) { if (!this.state.writing && this.contexto.puedeEscribir) this.set({ editor: 'paso', selected: row, error: null, message: '' }); }

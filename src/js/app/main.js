@@ -11,10 +11,12 @@ let closed = false;
 async function start() {
   let config = defaultConfig;
   let gestionConfig = null;
+  let authenticatedOnly = false;
   try {
     const environment = await import('../config/environment.local.js');
     config = environment.config;
     gestionConfig = environment.gestionConfig;
+    authenticatedOnly = environment.authenticatedOnly === true;
   } catch (error) {
     // Sin archivo local no se supone un backend: el DAO informa la configuración pendiente.
     // Los errores de una configuración existente también se presentan, sin URL alternativa.
@@ -22,8 +24,9 @@ async function start() {
   }
   if (closed) return;
   try {
-    dashboard = mountDashboard({ root, config });
+    dashboard = mountDashboard({ root, config, autoLoad: !authenticatedOnly });
     gestion = mountGestion({ config: gestionConfig, dashboard, defaultConfig: config });
+    if (authenticatedOnly) document.querySelector('[data-ui="startupStatus"]').textContent = 'Inicia sesión desde el menú de gestión para seleccionar tu clínica.';
     await dashboard.ready;
   } catch (error) {
     document.querySelector('[data-ui="startupStatus"]').textContent = 'No se pudo iniciar el dashboard. Revisa la configuración de conexión.';

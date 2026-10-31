@@ -1,7 +1,7 @@
 import { gestionError } from './dashboard-presentation.js';
 
-const names = { persona: 'Personas', clinica: 'Clínicas', rol: 'Roles', tipoDocumento: 'Tipos de documento', tipoMedioContacto: 'Tipos de medio de contacto', tipoExamen: 'Tipos de examen' };
-const fields = {
+const names = { examen: 'Exámenes', procedimiento: 'Procedimientos', persona: 'Personas', clinica: 'Clínicas', rol: 'Roles', tipoDocumento: 'Tipos de documento', tipoMedioContacto: 'Tipos de medio de contacto', tipoExamen: 'Tipos de examen' };
+const fields = { examen: ['nombre','observaciones','activo'], procedimiento: ['nombre','observaciones','activo'],
   clinica: ['nombre', 'tipo', 'comentarios', 'activo'], rol: ['nombre', 'observaciones', 'activo'],
   tipoDocumento: ['nombre', 'expresionRegular', 'indicaciones', 'activo'],
   tipoMedioContacto: ['nombre', 'expresionRegular', 'indicaciones', 'activo'], tipoExamen: ['nombre', 'observaciones', 'activo']
@@ -13,10 +13,10 @@ function element(tag, text, className) {
 
 /** Vista de los cinco catálogos, integrada en el shell del dashboard. No llama a la API. */
 export default class CatalogoPage {
-  constructor(root, { onLogin, onLogout }) {
-    this.root = root;this.control = null;this.module = 'tipoDocumento';
+  constructor(root, { onLogin, onLogout, onRelations }) {
+    this.onRelations=onRelations;this.root = root;this.control = null;this.module = 'tipoDocumento';
     this.login = element('form', undefined, 'panel gestion-login');
-    this.login.append(element('h2', 'Acceso a gestión'), element('p', 'Utiliza una identidad autorizada del entorno sintético.'));
+    this.login.append(element('h2', 'Acceso a gestión'), element('p', 'Utiliza tu cuenta autorizada de GalenosSV.'));
     for (const [key, label] of [['usuario', 'Usuario'], ['clave', 'Contraseña']]) {
       const input = element('input');input.name = key;input.id = `gestion-${key}`;input.required = true;input.type = key === 'clave' ? 'password' : 'text';input.autocomplete = key === 'clave' ? 'current-password' : 'username';
       const title = element('label', label);title.htmlFor = input.id;this.login.append(title, input);
@@ -74,7 +74,7 @@ export default class CatalogoPage {
     this.unsubscribe?.();this.control = null;this.login.hidden = false;this.content.hidden = true;
     if (this.dialog.open) this.dialog.close();
   }
-  error(error) { this.notice.textContent = gestionError(error);this.notice.hidden = false; }
+  error(error) { this.notice.className='action-error';this.notice.setAttribute('role','alert');this.notice.textContent = gestionError(error);this.notice.hidden = false; }
   open(module) {
     this.module = module;this.title.textContent = names[module];
     this.query.value = '';
@@ -88,6 +88,8 @@ export default class CatalogoPage {
     this.previous.disabled = state.writing || state.status !== 'ready' || state.first === 0;
     this.next.disabled = state.writing || state.status !== 'ready' || state.first + state.max >= state.total;
     this.total.textContent = state.status === 'loading' ? 'Cargando…' : `${state.total} registros`;
+    this.notice.className = state.error ? 'action-error' : 'gestion-success';
+    this.notice.setAttribute('role',state.error ? 'alert' : 'status');
     this.notice.hidden = !state.error && !state.message;
     this.notice.textContent = state.error ? gestionError(state.error) : state.message;
     if (state.status === 'loading') this.results.setAttribute('aria-busy', 'true');else this.results.removeAttribute('aria-busy');
@@ -99,7 +101,7 @@ export default class CatalogoPage {
     for (const row of state.rows) {
       const tr = element('tr');tr.append(element('td', row.nombre ?? 'Sin nombre'), element('td', row.activo ? 'Activo' : 'Inactivo'));
       const cell = element('td');const edit = element('button', state.contexto.puedeEscribir ? 'Editar' : 'Ver detalle', 'text-button');
-      edit.type = 'button';edit.disabled = state.writing;edit.onclick = () => this.control.edit(row[idKey]);cell.append(edit);tr.append(cell);body.append(tr);
+      edit.type = 'button';edit.disabled = state.writing;edit.onclick = () => this.control.edit(row[idKey]);cell.append(edit);if(["procedimiento","examen"].includes(state.module) && this.onRelations){const flow=element("button",state.module === "procedimiento" ? "Gestionar pasos" : "Tipos de examen","text-button");flow.type="button";flow.disabled=state.writing;flow.onclick=()=>this.onRelations(row,state.module);cell.append(flow);}tr.append(cell);body.append(tr);
     }
     table.append(body);this.results.append(table);
     if (!state.rows.length && state.status === 'ready') this.results.append(element('p', 'No hay registros para esta búsqueda.'));
@@ -108,9 +110,9 @@ export default class CatalogoPage {
       for (const key of fields[state.module]) {
         const input = element(['indicaciones', 'observaciones', 'comentarios'].includes(key) ? 'textarea' : 'input');
         input.name = key;input.id = `catalogo-${key}`;
-        if (key === 'activo') { input.type = 'checkbox';input.checked = state.selected ? Boolean(state.selected.activo) : ['rol', 'clinica'].includes(state.module); }
+        if (key === 'activo') { input.type = 'checkbox';input.checked = state.selected ? Boolean(state.selected.activo) : ['rol', 'clinica', 'examen', 'procedimiento'].includes(state.module); }
         else input.value = state.selected?.[key] ?? '';
-        if (key === 'nombre') { input.required = true;input.maxLength = ['clinica', 'tipoExamen'].includes(state.module) ? 255 : 155; }
+        if (key === 'nombre') { input.required = true;input.maxLength = ['clinica', 'tipoExamen', 'examen'].includes(state.module) ? 255 : 155; }
         if (key === 'tipo' && state.module === 'clinica') { input.required = true;input.maxLength = 20; }
         if (key === 'indicaciones' && state.module === 'tipoMedioContacto') input.required = true;
         const label = element('label', labels[key]);label.htmlFor = input.id;this.formFields.append(label, input);
@@ -119,7 +121,7 @@ export default class CatalogoPage {
     }
     this.form.querySelectorAll('input, textarea').forEach(node => { node.disabled = state.writing || !state.contexto.puedeEscribir; });
     this.save.disabled = state.writing || !state.contexto.puedeEscribir;this.cancel.disabled = state.writing;
-    this.remove.hidden = !['clinica', 'rol'].includes(state.module) || state.editor !== 'edit' || !state.contexto.puedeEscribir;
+    this.remove.hidden = !['clinica', 'rol', 'procedimiento'].includes(state.module) || state.editor !== 'edit' || !state.contexto.puedeEscribir;
     this.remove.disabled = state.writing;this.formError.textContent = state.error ? gestionError(state.error) : '';
     if (!state.editor && this.dialog.open) this.dialog.close();
   }

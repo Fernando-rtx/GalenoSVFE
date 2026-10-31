@@ -67,10 +67,11 @@ export default class DashboardControl {
   }
 
   /** Cambio explícito de identidad/transporte, sin sustituir el dashboard ni sus componentes. */
-  async connect({ clinicaDAO, consultaDAO }) {
+  async connect({ clinicaDAO, consultaDAO, autoLoad = true }) {
     ['clinicas', 'consultas', 'detalle'].forEach(key => this._cancel(key));
     this.clinicaDAO = clinicaDAO;this.consultaDAO = consultaDAO;
     const previous = { idClinica: this.state.idClinica, first: this.state.first, filtros: this.state.filtros };
+    if (!autoLoad) { this._set({ clinicas: emptyRows(), clinicasStatus: 'idle', clinicasError: null });await this._loadConsultas({idClinica:null, first:0,filtros:Object.freeze({})});return; }
     await this.loadClinicas();
     if (this.state.clinicasStatus !== 'ready') {
       await this._loadConsultas({ idClinica: null, first: 0, filtros: Object.freeze({}) });return;

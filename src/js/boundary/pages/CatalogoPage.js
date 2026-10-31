@@ -52,9 +52,8 @@ export default class CatalogoPage {
     this.save = element('button', 'Guardar', 'primary-button');this.save.type = 'submit';
     this.cancel = element('button', 'Cancelar', 'secondary-button');this.cancel.type = 'button';
     this.remove = element('button', 'Eliminar registro', 'secondary-button');this.remove.type = 'button';
-    this.formError = element('p', undefined, 'action-error');this.formError.setAttribute('role', 'alert');
     const actions = element('div', undefined, 'gestion-tools');actions.append(this.cancel, this.remove, this.save);
-    this.form.append(this.formFields, this.formError, actions);this.dialog.append(this.form);
+    this.form.append(this.formFields, actions);this.dialog.append(this.form);
     root.append(this.header, this.notice, this.login, this.content, this.dialog);
     this.login.onsubmit = async event => {
       event.preventDefault();this.enter.disabled = true;this.notice.hidden = true;
@@ -151,7 +150,7 @@ export default class CatalogoPage {
     this.form.setAttribute('aria-busy',String(state.writing));
     this.save.disabled = state.writing || !state.contexto.puedeEscribir;this.cancel.disabled = state.writing;
     this.remove.hidden = !['clinica', 'rol', 'procedimiento'].includes(state.module) || state.editor !== 'edit' || !state.contexto.puedeEscribir;
-    this.remove.disabled = state.writing;this.formError.textContent = state.error ? gestionError(state.error) : '';
+    this.remove.disabled = state.writing;
     if (!state.editor && this.dialog.open) this.dialog.close();
   }
 }

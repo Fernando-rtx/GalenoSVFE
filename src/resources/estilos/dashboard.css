@@ -1,17 +1,4 @@
-:root {
-  --ink:#172d31;
-  --muted:#63787b;
-  --teal:#136b60;
-  --teal-light:#e9f5f0;
-  --line:#dde7e3;
-  --surface:#fff;
-  --canvas:#f5f8f6;
-  --radius:16px;
-  font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  color:var(--ink);
-  background:var(--canvas);
-  font-synthesis:none
-}
+:root { font-synthesis:none; color:var(--ink); background:var(--canvas); }
 * {
   box-sizing:border-box
 }

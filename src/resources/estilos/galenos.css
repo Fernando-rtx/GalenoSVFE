@@ -15,71 +15,19 @@
     --gs-selected: #203e55;
     --gs-error: #ffb7be;
     --gs-error-bg: #38232c;
-    --gs-selection-text: #fff;
-    --gs-control-thumb: #e5edf5;
-    --gs-scrollbar: #53677c;
-    --gs-selection: #2b5473;
-    --gs-hover: #2c4055;
-    --gs-header-hover: #26384b;
     --gs-row-even: #1c2836;
-    --gs-row-selected-hover: #294e68;
     --gs-soft-border: #2b3b4c;
     --gs-placeholder: #93a7ba;
-    --gs-border-hover: #617e98;
-    --gs-date-today: #293e50;
-    --gs-error-border: #ed8797;
-    --gs-control-border: #71869d;
-    --gs-switch-off: #4b5c70;
-    --gs-slider: #405268;
-    --gs-chip-text: #c8e5fa;
     --gs-button-border: #258bbd;
     --gs-button-hover: #177daf;
-    --gs-danger-bg: #7c3444;
-    --gs-danger-border: #b35d70;
-    --gs-danger-hover: #944154;
-    --gs-button-pressed: #135b82;
     --gs-error-message-border: #91505f;
-    --gs-warn-bg: #362e20;
-    --gs-warn-border: #8d7545;
-    --gs-warn-text: #f3d493;
-    --gs-info-bg: #1c3346;
-    --gs-info-border: #476c8b;
-    --gs-info-text: #b7dffc;
-    --gs-success-bg: #1d352e;
-    --gs-success-border: #467a62;
     --gs-success-text: #abe0c0;
-    --gs-status-success-bg: #214b3a;
-    --gs-status-success-text: #b6e4ca;
-    --gs-status-danger-bg: #542b37;
-    --gs-status-danger-text: #ffd0d6;
-    --gs-status-warn-bg: #493b22;
-    --gs-status-warn-text: #f4d89d;
-    --gs-status-info-bg: #25435d;
-    --gs-status-info-text: #c0e3ff;
     --gs-overlay: #050b13;
-    --gs-shadow-dropdown: #0004;
     --gs-shadow-dialog: #0005;
     --gs-on-blue: #fff;
-    /* Variables que usan los componentes del tema PrimeFaces existente. */
-    --surface-a: var(--gs-surface);
-    --surface-b: var(--gs-page);
-    --surface-c: var(--gs-raised);
-    --surface-d: var(--gs-border);
-    --surface-e: var(--gs-raised);
-    --surface-f: var(--gs-surface);
-    --surface-ground: var(--gs-page);
-    --surface-section: var(--gs-surface);
-    --surface-card: var(--gs-surface);
-    --surface-overlay: var(--gs-raised);
-    --surface-border: var(--gs-border);
-    --surface-hover: var(--gs-raised);
-    --text-color: var(--gs-text);
-    --text-color-secondary: var(--gs-muted);
-    --primary-color: var(--gs-accent);
-    --primary-color-text: var(--gs-on-blue);
 }
 
-/* Sin preferencia guardada, :root conserva el modo oscuro. */
+/* Mismos valores y preferencia inicial que el tema JSF original. */
 :root[data-theme="light"] {
     --gs-scheme: light;
     --gs-page: #f1f5f8;
@@ -95,49 +43,14 @@
     --gs-selected: #d8eaf5;
     --gs-error: #a32942;
     --gs-error-bg: #fbe5e9;
-    --gs-selection-text: #173b55;
-    --gs-control-thumb: #fff;
-    --gs-scrollbar: #7c91a4;
-    --gs-selection: #c8e5f6;
-    --gs-hover: #e1ebf3;
-    --gs-header-hover: #d9e8f3;
     --gs-row-even: #f3f7fa;
-    --gs-row-selected-hover: #c5deed;
     --gs-soft-border: #d9e3eb;
     --gs-placeholder: #556c7e;
-    --gs-border-hover: #718ea3;
-    --gs-date-today: #e1edf5;
-    --gs-error-border: #b84c61;
-    --gs-control-border: #6f879a;
-    --gs-switch-off: #8b9bac;
-    --gs-slider: #b4c6d4;
-    --gs-chip-text: #1a4b69;
     --gs-button-border: #126b9b;
     --gs-button-hover: #11628c;
-    --gs-danger-bg: #9d344b;
-    --gs-danger-border: #8c2940;
-    --gs-danger-hover: #842b3d;
-    --gs-button-pressed: #104f72;
     --gs-error-message-border: #cf7683;
-    --gs-warn-bg: #fff3d6;
-    --gs-warn-border: #b88725;
-    --gs-warn-text: #735010;
-    --gs-info-bg: #e1f0fb;
-    --gs-info-border: #78a4c6;
-    --gs-info-text: #174e76;
-    --gs-success-bg: #e0f2e8;
-    --gs-success-border: #71a78c;
     --gs-success-text: #20583e;
-    --gs-status-success-bg: #d9efdf;
-    --gs-status-success-text: #22543b;
-    --gs-status-danger-bg: #f9dfe4;
-    --gs-status-danger-text: #8b273e;
-    --gs-status-warn-bg: #fff0cf;
-    --gs-status-warn-text: #735010;
-    --gs-status-info-bg: #ddebfa;
-    --gs-status-info-text: #214f72;
     --gs-overlay: #1c2b38;
-    --gs-shadow-dropdown: #10203026;
     --gs-shadow-dialog: #10203033;
     --gs-on-blue: #fff;
 }
@@ -262,3 +175,5 @@ dt { font-size:.8rem; } dd { font-size:.85rem; }
 .gestion th form input { width:100%; min-width:80px; height:32px; padding:6px 8px; }
 .gestion th form button { font-size:.8rem; min-height:32px; padding:4px 8px; }
 @media(max-width:720px) { .catalogo-header { align-items:flex-start; flex-direction:column; } .layout-header { min-height:0; } }
+/* Override the dashboard's original focus selector with the same specificity. */
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible { outline:2px solid var(--gs-accent); outline-offset:2px; }

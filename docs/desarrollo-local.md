@@ -114,3 +114,10 @@ La equivalencia de CambiarRol se adapta a identidad autenticada + clínica autor
 suplantar una identidad eligiendo cualquier PersonaRol. La política clínica de producción y el vínculo
 cuenta↔profesional siguen siendo una decisión del equipo. Los formularios y flujos CRUD de desarrollo
 están publicados; la matriz de19 páginas y20 DAO está en implementacion-crud.md.
+
+Queda una decisión funcional comprobada: `ProcedimientoPasoModel.validarAntesDeGuardar()`
+rechaza repetir un rol en el mismo procedimiento mediante `tieneRolDuplicado()`, mientras
+`ProcedimientoFlujoService.crearPaso/actualizarPaso`, utilizados por el grafo JSF y REST,
+lo permiten. Los flujos verificados conservan el criterio del servicio. No se cambió esa
+regla clínica sin decidir cuál de los dos comportamientos debe prevalecer; por ello no
+se afirma equivalencia completa con la validación del formulario JSF independiente.

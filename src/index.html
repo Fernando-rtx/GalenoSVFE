@@ -3,39 +3,45 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light">
+  <meta name="color-scheme" content="dark light">
   <meta name="description" content="Dashboard académico de consultas de GalenosSV.">
   <title>Consultas · GalenosSV</title>
+  <script src="/resources/scripts/tema.js"></script>
   <link rel="stylesheet" href="/resources/estilos/dashboard.css">
   <link rel="stylesheet" href="/resources/estilos/gestion.css">
+  <link rel="stylesheet" href="/resources/estilos/galenos.css">
   <script type="module" src="/js/app/main.js"></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Saltar al contenido</a>
 <div class="app-shell" data-dashboard>
-  <aside class="sidebar">
-    <a class="brand" href="#main" aria-label="GalenosSV, inicio"><span class="brand-mark" aria-hidden="true">✚</span><span>Galenos<span class="brand-sv">SV</span><small>Gestión de consultas</small></span></a>
-    <p class="nav-label">ESPACIO DE TRABAJO</p>
-    <nav aria-label="Principal" data-navigation><a class="nav-current" href="#main" aria-current="page"><span aria-hidden="true">▦</span> Consultas <span class="nav-dot" aria-hidden="true"></span></a><p class="nav-label">PERSONAS</p>
-<a href="#persona" data-module="persona">Personas y asociaciones</a>
-<p class="nav-label">PROCEDIMIENTOS Y EXÁMENES</p>
-<a href="#procedimiento" data-module="procedimiento">Procedimientos</a>
-<a href="#examen" data-module="examen">Exámenes</a>
-<p class="nav-label">ADMINISTRACIÓN</p>
-<a href="#tipoDocumento" data-module="tipoDocumento">Tipos de documento</a>
-<a href="#tipoMedioContacto" data-module="tipoMedioContacto">Tipos de contacto</a>
-<a href="#tipoExamen" data-module="tipoExamen">Tipos de examen</a>
-<a href="#clinica" data-module="clinica">Clínicas</a>
-<a href="#rol" data-module="rol">Roles</a></nav>
-    <div class="sidebar-note"><span class="note-icon" aria-hidden="true">✧</span><strong>Entorno de desarrollo</strong><p>Acceso autenticado a las clínicas autorizadas.</p><span class="demo-tag">DESARROLLO</span></div>
+  <header class="layout-header">
+    <div class="layout-logo"><button type="button" class="layout-menu-toggle" aria-label="Menú de navegación" aria-expanded="true" aria-controls="layoutNavigation">☰</button><a class="brand" href="#main" aria-label="GalenosSV, inicio"><img src="/resources/imagenes/galenos-sv-logo.png" class="layout-logo-image" alt="Galenos SV — Clínica General" width="2048" height="768"></a></div>
+    <div class="layout-clinic" data-clinic-header><div class="clinic-select"><label for="clinica">Clínica de trabajo</label><select id="clinica" data-ui="clinica"><option value="">Selecciona una clínica</option></select><p class="field-hint" data-ui="clinicStatus" role="status"></p><button type="button" class="text-button" data-ui="retryClinicas" hidden>Reintentar conexión</button></div></div>
+    <div class="layout-tools"><label for="idioma">Idioma</label><select id="idioma" aria-describedby="language-note"><option value="es">Español</option></select><span class="sr-only" id="language-note">La interfaz JavaScript está disponible en español.</span><button type="button" id="themeToggle" class="layout-theme-toggle">Modo claro</button><button type="button" class="layout-session" data-session><span data-session-name>Iniciar sesión</span><small>Contexto autorizado</small></button></div>
+  </header>
+  <aside class="sidebar" id="layoutNavigation">
+    <p class="nav-label">NAVEGACIÓN</p>
+    <nav aria-label="Principal" data-navigation>
+      <button type="button" class="context-navigation" data-context-access>Usuario autorizado</button>
+      <a href="#clinica" data-module="clinica">Clínicas</a>
+      <a href="#rol" data-module="rol">Roles</a>
+      <a href="#tipoMedioContacto" data-module="tipoMedioContacto">Tipos de medio de contacto</a>
+      <a href="#tipoDocumento" data-module="tipoDocumento">Tipos de documento</a>
+      <a href="#tipoExamen" data-module="tipoExamen">Tipos de examen</a>
+      <a href="#examen" data-module="examen">Exámenes</a>
+      <a href="#procedimiento" data-module="procedimiento">Procedimientos</a>
+      <a href="#persona" data-module="persona">Personas y asociaciones</a>
+      <a class="nav-current" href="#main" aria-current="page">Consultas</a>
+    </nav>
     <p class="sidebar-footer">Programación para Internet<br>Universidad de El Salvador</p>
   </aside>
   <div class="workspace">
-    <header class="topbar"><span>Espacio de trabajo <span class="separator">/</span> <strong>Consultas</strong></span><span class="environment-badge"><i aria-hidden="true"></i> Desarrollo local</span></header>
+
     <main id="main" tabindex="-1">
-      <div class="page-heading"><div><p class="eyebrow">PANEL DE CONSULTAS</p><h1>Todo empieza con una clínica.</h1><p class="subtitle">Explora las consultas, ajusta tus filtros y revisa cada detalle.</p></div><span class="heading-symbol" aria-hidden="true">✚</span></div>
+      <div class="page-heading"><div><p class="eyebrow">PANEL DE CONSULTAS</p><h1>Consultas</h1><p class="subtitle">Administra las consultas de tu clínica de trabajo.</p></div><span class="heading-symbol" aria-hidden="true">✚</span></div>
       <p class="startup-status" data-ui="startupStatus" role="status"></p>
-      <section class="clinic-panel panel" aria-labelledby="clinic-heading"><div><span class="step-label">01 / CONTEXTO</span><h2 id="clinic-heading">Selecciona tu clínica</h2><p>Los resultados pertenecen a la clínica que elijas.</p></div><div class="clinic-select"><label for="clinica">Clínica disponible</label><select id="clinica" data-ui="clinica"><option value="">Selecciona una clínica</option></select><p class="field-hint" data-ui="clinicStatus" role="status"></p><button type="button" class="text-button" data-ui="retryClinicas" hidden>Reintentar conexión</button></div></section>
+
       <section class="metrics" aria-label="Resumen de consultas"><div class="metric"><span>Clínica seleccionada</span><strong class="clinic-name" data-ui="selectedClinic">Sin seleccionar</strong></div><div class="metric"><span>Total con estos filtros</span><strong data-ui="total">—</strong><small>consultas</small></div><div class="metric"><span>En esta página</span><strong data-ui="visible">—</strong><small>resultados</small></div></section>
       <section class="panel filters-panel" aria-labelledby="filters-heading"><div class="section-heading"><div><span class="step-label">02 / BÚSQUEDA</span><h2 id="filters-heading">Encuentra lo que necesitas</h2></div><span class="muted small">Filtros opcionales</span></div><form data-ui="filters"><fieldset data-ui="filtersFieldset" disabled><legend class="sr-only">Filtros de consultas</legend><div class="filter-grid"><div><label for="fechaDesde">Desde</label><input type="date" id="fechaDesde" data-ui="fechaDesde"></div><div><label for="fechaHasta">Hasta</label><input type="date" id="fechaHasta" data-ui="fechaHasta"></div><div class="role-filter"><label for="idPersonaRol">Asignación PersonaRol</label><input type="text" id="idPersonaRol" data-ui="idPersonaRol" placeholder="UUID de la asignación" autocomplete="off" spellcheck="false"><span class="field-hint">Opcional · dentro de la clínica seleccionada</span></div><button class="primary-button" type="submit">Aplicar filtros <span aria-hidden="true">→</span></button><button type="button" class="secondary-button" data-ui="clearFilters">Limpiar</button></div></fieldset></form><p class="action-error" role="alert" data-ui="actionError" hidden></p></section>
       <section class="gestion consulta-gestion" data-consulta-gestion hidden aria-label="Gestión de consultas"></section>

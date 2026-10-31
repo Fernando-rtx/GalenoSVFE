@@ -1,9 +1,11 @@
+import { mountAppearance } from './appearance.js';
 import { mountGestion } from './gestion.js';
 import { mountDashboard } from './dashboard.js';
 import { config as defaultConfig } from '../config/environment.example.js';
 import '../boundary/components/tarjeta_consulta.js';
 
 const root = document.querySelector('[data-dashboard]');
+let appearance;
 let dashboard;
 let gestion;
 let closed = false;
@@ -24,15 +26,18 @@ async function start() {
   }
   if (closed) return;
   try {
+    appearance?.destroy();
+    appearance = mountAppearance(root);
     dashboard = mountDashboard({ root, config, autoLoad: !authenticatedOnly });
-    gestion = mountGestion({ config: gestionConfig, dashboard, defaultConfig: config });
+    gestion = mountGestion({ config: gestionConfig, dashboard, defaultConfig: config, onSessionChange: identity => appearance.sessionChanged(identity) });
+    appearance.connectSession(() => gestion.openSession());
     if (authenticatedOnly) document.querySelector('[data-ui="startupStatus"]').textContent = 'Inicia sesión desde el menú de gestión para seleccionar tu clínica.';
     await dashboard.ready;
   } catch (error) {
     document.querySelector('[data-ui="startupStatus"]').textContent = 'No se pudo iniciar el dashboard. Revisa la configuración de conexión.';
   }
 }
-window.addEventListener('pagehide', () => { closed = true; if (dashboard) dashboard.destroy(); gestion?.destroy(); });
+window.addEventListener('pagehide', () => { closed = true; if (dashboard) dashboard.destroy(); gestion?.destroy(); appearance?.destroy(); });
 // Restaurar una página guardada en la caché de navegación crea solicitudes nuevas.
 window.addEventListener('pageshow', event => { if (event.persisted) { closed = false; start(); } });
 start();

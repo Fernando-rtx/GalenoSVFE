@@ -14,7 +14,7 @@ import CatalogoControl from '../control/CatalogoControl.js';
 import CatalogoPage from '../boundary/pages/CatalogoPage.js';
 
 /** Composición adicional dentro del dashboard; las credenciales viven solo en memoria. */
-export function mountGestion({ config, dashboard: dashboardApp, defaultConfig }) {
+export function mountGestion({ config, dashboard: dashboardApp, defaultConfig, onSessionChange = () => {} }) {
   const root = document.querySelector('#gestion');
   const dashboard = document.querySelector('#main');
   const nav = document.querySelector('[data-navigation]');
@@ -66,6 +66,7 @@ export function mountGestion({ config, dashboard: dashboardApp, defaultConfig })
         tipoExamen: new TipoExamenDAO({ config: api }), examen: new ExamenDAO({ config: api }), procedimiento: new ProcedimientoDAO({ config: api })
       } });
       page.connect(control);
+      onSessionChange(context.datos);
       clinicalPage?.destroy();clinical?.destroy();
       const dashboardConfig = createApiConfig({ ...api, routes: API_V2_DASHBOARD_ROUTES });
       await dashboardApp.control.connect({ clinicaDAO: new ClinicaDAO({ config: dashboardConfig }), consultaDAO: new ConsultaDAO({ config: api }) });
@@ -86,7 +87,7 @@ export function mountGestion({ config, dashboard: dashboardApp, defaultConfig })
       relationsPage?.destroy();relations?.destroy();relations=new RelacionControl({contexto:context.datos,daos:{examenTipoExamen:new ExamenTipoExamenDAO({config:api}),procedimientoPasoExamen:new ProcedimientoPasoExamenDAO({config:api}),procedimientoPasoSecuencia:new ProcedimientoPasoSecuenciaDAO({config:api}),tipoExamen:new TipoExamenDAO({config:api}),examen:new ExamenDAO({config:api}),procedimientoPaso:new ProcedimientoPasoDAO({config:api})}});relationsPage=new RelacionPage(relationsRoot,relations,()=>{relationsRoot.hidden=true;if(relations.state.kind==='examenTipoExamen')showModule('examen');else{flowRoot.hidden=false;flow.load();}});
       showModule(module);
     },
-    onLogout() { if(clinical?.state.writing || personaControl?.state.writing || orders?.state.writing || flow?.state.writing || relations?.state.writing)return; control?.destroy();control = null;personaPage?.destroy();personaControl?.destroy();personaControl = null;flowPage?.destroy();flow?.destroy();flow=null;flowRoot.hidden=true;relationsPage?.destroy();relations?.destroy();relations=null;relationsRoot.hidden=true;personaRoot.hidden = true;catalogRoot.hidden = false;page.signedOut();disconnect(); }
+    onLogout() { if(clinical?.state.writing || personaControl?.state.writing || orders?.state.writing || flow?.state.writing || relations?.state.writing)return; control?.destroy();control = null;personaPage?.destroy();personaControl?.destroy();personaControl = null;flowPage?.destroy();flow?.destroy();flow=null;flowRoot.hidden=true;relationsPage?.destroy();relations?.destroy();relations=null;relationsRoot.hidden=true;personaRoot.hidden = true;catalogRoot.hidden = false;page.signedOut();onSessionChange(null);disconnect(); }
   });
   function navigate(event) {
     const anchor = event.target.closest('a');
@@ -105,5 +106,5 @@ export function mountGestion({ config, dashboard: dashboardApp, defaultConfig })
   nav.addEventListener('click', navigate);
   function openHash() { const anchor=Array.from(nav.querySelectorAll('a')).find(a=>a.getAttribute('href')===location.hash);if(anchor)anchor.click(); }
   window.addEventListener('hashchange',openHash);openHash();
-  return { destroy() { brand?.removeEventListener('click',navigate);nav.removeEventListener('click', navigate);window.removeEventListener('hashchange',openHash);control?.destroy();clinicalPage?.destroy();clinical?.destroy();personaPage?.destroy();personaControl?.destroy();ordersPage?.destroy();orders?.destroy();flowPage?.destroy();flow?.destroy();relationsPage?.destroy();relations?.destroy();page.signedOut();root.replaceChildren(); } };
+  return { openSession() { nav.querySelector('[data-module="rol"]').click(); (control ? page.logout : page.login.elements.usuario).focus(); }, destroy() { brand?.removeEventListener('click',navigate);nav.removeEventListener('click', navigate);window.removeEventListener('hashchange',openHash);control?.destroy();clinicalPage?.destroy();clinical?.destroy();personaPage?.destroy();personaControl?.destroy();ordersPage?.destroy();orders?.destroy();flowPage?.destroy();flow?.destroy();relationsPage?.destroy();relations?.destroy();page.signedOut();root.replaceChildren(); } };
 }

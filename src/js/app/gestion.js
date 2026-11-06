@@ -92,11 +92,16 @@ export function mountGestion({ config, dashboard: dashboardApp, defaultConfig, o
   });
   function navigate(event) {
     const anchor = event.target.closest('a');
-    if (!anchor || (!anchor.dataset.module && anchor.getAttribute('href') !== '#main')) return;
+    if (!anchor || (!anchor.dataset.module && !['#main','#atencion'].includes(anchor.getAttribute('href')))) return;
     event.preventDefault();
     if (control?.state.writing || clinical?.state.writing || personaControl?.state.writing || orders?.state.writing || flow?.state.writing || relations?.state.writing) { page.error(DefaultError.validation('Espera a que termine el guardado.'));return; }
     if (location.hash !== anchor.getAttribute('href')) history.replaceState(null,'',anchor.getAttribute('href'));
     const isDashboard = !anchor.dataset.module;
+    const isClinical = anchor.getAttribute('href') === '#atencion';
+    document.querySelector('[data-workspace-title]').textContent = isClinical ? 'Atención clínica' : 'Consultas';
+    document.querySelector('[data-workspace-subtitle]').textContent = isClinical
+      ? 'Selecciona una consulta para revisar procedimientos, actividades, órdenes y resultados.'
+      : 'Consulta los registros de tu clínica de trabajo.';
     dashboard.hidden = !isDashboard;root.hidden = isDashboard;
     nav.querySelectorAll('a').forEach(link => { link.classList.toggle('nav-current', link.getAttribute('href') === anchor.getAttribute('href'));if (link.getAttribute('href') === anchor.getAttribute('href')) link.setAttribute('aria-current', 'page');else link.removeAttribute('aria-current'); });
     if (!isDashboard) { module = anchor.dataset.module;showModule(module); }

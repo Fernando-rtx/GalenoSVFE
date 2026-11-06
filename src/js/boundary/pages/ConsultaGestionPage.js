@@ -77,8 +77,21 @@ export default class ConsultaGestionPage {
       ['Pasos de la consulta',state.pasos,state.totalPasos,state.firstPasos,'firstPasos','idConsultaProcedimientoPaso','estado']]) {
       this.children.append(node('h3',`${name} · ${total}`));
       for(const row of rows) {
-        const line=node('div',undefined,'gestion-tools');line.append(node('span',`${row[label]} · ${row.fechaInicio??'Sin fecha'}`));
-        editableRecord(line,()=>key==='firstPasos'?this.control.editStep(row):this.control.editProcedure(row),!state.writing&&this.control.contexto.puedeEscribir);if(key === "firstPasos" && this.onOrders){const orders=node("button","Órdenes","secondary-button");orders.type="button";orders.disabled=state.writing;orders.onclick=()=>this.onOrders(row);line.append(orders);}this.children.append(line);
+        const line=node('div',undefined,'gestion-tools');
+        if(key==='firstPasos') {
+          line.append(node('span',`Estado: ${row.estado??'Sin estado'} · Inicio: ${row.fechaInicio??'Sin fecha'} · Responsable: ${row.idPersonaRol}`));
+          const next=row.estado==='PENDIENTE'?'EN_CURSO':row.estado==='EN_CURSO'?'COMPLETADO':null;
+          if(next && this.control.contexto.puedeEscribir) {
+            const transition=node('button',next==='EN_CURSO'?'Iniciar actividad':'Completar actividad','primary-button');
+            transition.type='button';transition.disabled=state.writing;
+            transition.onclick=()=>this.control.transitionStep(row,next);line.append(transition);
+          }
+          if(this.onOrders){const orders=node('button','Órdenes y resultados','secondary-button');orders.type='button';orders.disabled=state.writing;orders.onclick=()=>this.onOrders(row);line.append(orders);}
+        } else {
+          line.append(node('span',`${row[label]} · ${row.fechaInicio??'Sin fecha'}`));
+          editableRecord(line,()=>this.control.editProcedure(row),!state.writing&&this.control.contexto.puedeEscribir);
+        }
+        this.children.append(line);
       }
       if(!rows.length)this.children.append(node('p','Sin registros asociados.'));
       const pager=node('div',undefined,'gestion-tools');const prev=node('button','Anterior','pagination-button');const next=node('button','Siguiente','pagination-button');

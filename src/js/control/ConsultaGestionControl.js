@@ -50,6 +50,30 @@ export default class ConsultaGestionControl {
   }
   editProcedure(row) { if (!this.state.writing && this.contexto.puedeEscribir) this.set({ editor: 'procedimiento', selected: row, error: null, message: '' }); }
   editStep(row) { if (!this.state.writing && this.contexto.puedeEscribir) this.set({ editor: 'paso', selected: row, error: null, message: '' }); }
+  async transitionStep(row, estado) {
+    if (this.state.writing || !this.contexto.puedeEscribir || !this.state.clinic || !this.state.consulta) return;
+    if (!((row.estado === 'PENDIENTE' && estado === 'EN_CURSO') ||
+          (row.estado === 'EN_CURSO' && estado === 'COMPLETADO'))) return;
+    const clinic = this.state.clinic;
+    this.set({ writing: true, error: null, message: '' });
+    try {
+      await this.pasoDAO.update(row.idConsultaProcedimientoPaso, {
+        idConsultaProcedimiento: row.idConsultaProcedimiento,
+        idPersonaRol: row.idPersonaRol,
+        fechaInicio: row.fechaInicio,
+        fechaFin: estado === 'COMPLETADO' ? new Date().toISOString() : null,
+        estado
+      }, { query: { idClinica: clinic } });
+      this.set({ writing: false, message: estado === 'EN_CURSO' ? 'Actividad iniciada.' : 'Actividad completada.' });
+      if (clinic === this.state.clinic) await this.loadChildren();
+    } catch (error) {
+      this.set({ writing: false, error });
+      if (error.status === 409 && clinic === this.state.clinic) {
+        await this.loadChildren();
+        this.set({ error });
+      }
+    }
+  }
   cancel() { if (!this.state.writing) { this.requests.pacientes?.abort();this.requests.catalogo?.abort();this.set({ editor: null, error: null }); } }
   async loadChildren(changes = {}) {
     const { consulta, clinic } = this.state;if (!consulta) return;

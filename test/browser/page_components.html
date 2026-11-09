@@ -48,6 +48,12 @@
           onRelations() {},
         });
         assert(catalog.querySelector('form input[name=usuario]'), 'Catálogos: formulario ausente');
+        catalog.login.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        assert(
+          catalog.querySelector('[aria-invalid="true"]'),
+          'Falta validación accesible de campos obligatorios',
+        );
+        assert(catalog.querySelector('[aria-errormessage]'), 'Falta mensaje junto al campo');
         catalog.connect(control);
         catalog.remove();
         const consult = mount('galenos-consulta-gestion', control);

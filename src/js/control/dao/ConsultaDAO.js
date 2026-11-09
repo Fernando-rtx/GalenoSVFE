@@ -1,6 +1,2 @@
-import DefaultDAO from '../DefaultDAO.js';
-
-/** API demo 0.2. Las lecturas requieren options.query.idClinica. */
-export default class ConsultaDAO extends DefaultDAO {
-  constructor(options = {}) { super(Object.assign({}, options, { resource: 'consulta' })); }
-}
+/** Alias de compatibilidad: usar ConsultaService en código nuevo. */
+export { default } from '../../services/ConsultaService.js';

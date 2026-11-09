@@ -366,6 +366,15 @@ export default class DefaultService {
         return fetchRequest(url.href, init);
       })
       .then((response) => {
+        if (
+          !response ||
+          typeof response.text !== 'function' ||
+          !response.headers ||
+          typeof response.headers.forEach !== 'function' ||
+          typeof response.status !== 'number'
+        ) {
+          throw DefaultError.processing('La respuesta HTTP no es válida.');
+        }
         received = { status: response.status, headers: snapshot(response.headers) };
         return this._read(response, contract, operation, parameters, url.href);
       })
@@ -428,11 +437,12 @@ export default class DefaultService {
       .then((text) => {
         if (!response.ok) {
           let details = text || null;
+          let parseCause = null;
           if (text) {
             try {
               details = JSON.parse(text);
-            } catch (ignored) {
-              /* Mantener el error HTTP original. */
+            } catch (cause) {
+              parseCause = cause;
             }
           }
           throw new DefaultError({
@@ -442,6 +452,7 @@ export default class DefaultService {
             status: response.status,
             details,
             headers,
+            cause: parseCause,
           });
         }
         if (!contract.successStatuses.includes(response.status)) {

@@ -18,8 +18,7 @@ export default class DefaultError extends Error {
       code: this.code,
       message: this.message,
       status: this.status,
-      details: this.details,
-      headers: this.headers,
+      // Los detalles y cabeceras pueden contener datos privados: se conservan solo en memoria.
     };
   }
 

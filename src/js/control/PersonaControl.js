@@ -45,7 +45,7 @@ export default class PersonaControl {
       if (!this.closed && this.requests[key] === request && !request.signal.aborted)
         success(result);
     } catch (error) {
-      if (!request.signal.aborted && !this.closed)
+      if (!request.signal.aborted && !this.closed && this.requests[key] === request)
         this.set({ error, status: key === 'list' ? 'error' : this.state.status });
     }
   }

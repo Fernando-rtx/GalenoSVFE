@@ -1,3 +1,4 @@
+import { bindFormValidation } from './form-validation.js';
 import { editableRecord } from './editable-record.js';
 import { gestionError } from './dashboard-presentation.js';
 const node = (tag, text, className) => {
@@ -96,7 +97,7 @@ export default class PersonaModel extends HTMLElement {
         data = { idTipoMedioContacto: f.idTipoMedioContacto.value, valor: f.valor.value };
       if (s.editor.kind === 'personaRol')
         data = { idRol: f.idRol.value, idClinica: f.idClinica.value };
-      control.save(data);
+      return control.save(data);
     };
     root.append(this.notice, this.error, tools, this.list, this.pager, this.detail, this.dialog);
     this.unsubscribe = control.subscribe((s) => this.render(s));
@@ -305,9 +306,14 @@ export default class PersonaModel extends HTMLElement {
       const args = this._mountArgs;
       this._mountArgs = null;
       this.mount(...args);
+      this._clearFormValidation = [this.form, this.login]
+        .filter(Boolean)
+        .map((form) => bindFormValidation(form, this));
     }
   }
   disconnectedCallback() {
+    this._clearFormValidation?.forEach((clear) => clear());
+    this._clearFormValidation = null;
     this.destroy();
   }
 }

@@ -1,3 +1,4 @@
+import { bindFormValidation } from './form-validation.js';
 import { editableRecord } from './editable-record.js';
 import { gestionError } from './dashboard-presentation.js';
 const n = (tag, text) => {
@@ -63,7 +64,7 @@ export default class ProcedimientoModel extends HTMLElement {
           tipoSecuencia: f.tipoSecuencia.value,
           idsExamenes: Array.from(f.idsExamenes.selectedOptions, (o) => o.value),
         });
-      control.save(data);
+      return control.save(data);
     };
     this.unsubscribe = control.subscribe((s) => this.render(s));
   }
@@ -220,9 +221,14 @@ export default class ProcedimientoModel extends HTMLElement {
       const args = this._mountArgs;
       this._mountArgs = null;
       this.mount(...args);
+      this._clearFormValidation = [this.form, this.login]
+        .filter(Boolean)
+        .map((form) => bindFormValidation(form, this));
     }
   }
   disconnectedCallback() {
+    this._clearFormValidation?.forEach((clear) => clear());
+    this._clearFormValidation = null;
     this.destroy();
   }
 }

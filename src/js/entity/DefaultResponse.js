@@ -11,6 +11,9 @@ export default class DefaultResponse {
     url = '',
     metadata = {},
   }) {
+    if (status !== undefined && (!Number.isInteger(status) || status < 200 || status > 299)) {
+      throw DefaultError.processing('Una respuesta exitosa requiere un estado HTTP 2xx.');
+    }
     if (totalDatos !== null && (!Number.isSafeInteger(totalDatos) || totalDatos < 0)) {
       throw DefaultError.processing('El total debe ser un entero seguro no negativo o null.');
     }

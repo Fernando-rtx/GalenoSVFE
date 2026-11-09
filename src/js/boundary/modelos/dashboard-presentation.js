@@ -7,17 +7,21 @@ export function consultaCardModel(consulta) {
 }
 
 export function errorMessage(error) {
+  if (!error) return 'No se pudieron completar los cambios. Intenta nuevamente.';
   if (error.code === 'BASE_URL_REQUIRED' || error.code === 'INVALID_CONFIG')
     return 'La conexión al servidor aún no está configurada.';
   if (error.code === 'TIMEOUT') return 'El servidor tardó demasiado. Intenta nuevamente.';
-  if (error.code === 'CANCELLED')
-    return 'La solicitud se canceló. Puedes volver a cargar los datos.';
+  if (error.code === 'CANCELLED') return '';
   if (error.type === 'connection')
     return 'No se pudo conectar con el servidor. Revisa la conexión y vuelve a intentar.';
   if (error.type === 'validation')
     return 'Revisa los filtros, la clínica y la consulta seleccionada.';
   if (error.type === 'processing') return 'La respuesta del servidor no tiene el formato esperado.';
   if (error.status === 404) return 'El registro no está disponible en la clínica seleccionada.';
+  if (error.status === 401) return 'Inicia sesión nuevamente para continuar.';
+  if (error.status === 400) return 'Revisa los datos enviados.';
+  if (error.status === 409)
+    return 'Los cambios entran en conflicto con el estado actual del registro.';
   if (error.status === 403) return 'El servidor no permite esta solicitud.';
   if (error.status === 422)
     return 'El servidor rechazó los parámetros. Revisa los filtros y el tamaño de página.';
@@ -28,7 +32,6 @@ export function errorMessage(error) {
 export function gestionError(error) {
   if (error?.status === 401) return 'Usuario o contraseña no válidos. Inicia sesión nuevamente.';
   if (error?.status === 403) return 'La sesión no tiene permiso para esta operación.';
-  if ([409, 422].includes(error?.status) && typeof error.details?.mensaje === 'string')
-    return error.details.mensaje;
+  if (error?.status === 422) return 'El servidor rechazó los datos. Revisa el formulario.';
   return errorMessage(error);
 }

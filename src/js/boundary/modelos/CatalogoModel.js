@@ -1,3 +1,4 @@
+import { bindFormValidation } from './form-validation.js';
 import { editableRecord } from './editable-record.js';
 import { gestionError } from './dashboard-presentation.js';
 import { notify } from '../notifications.js';
@@ -175,7 +176,7 @@ export default class CatalogoModel extends HTMLElement {
         const input = this.form.elements[key];
         data[key] = key === 'activo' ? input.checked : input.value;
       }
-      this.control.save(data);
+      return this.control.save(data);
     };
     this.removeButton.onclick = () => {
       if (confirm('¿Eliminar este registro? Si tiene referencias la operación será rechazada.'))
@@ -340,9 +341,14 @@ export default class CatalogoModel extends HTMLElement {
       const args = this._mountArgs;
       this._mountArgs = null;
       this.mount(...args);
+      this._clearFormValidation = [this.form, this.login]
+        .filter(Boolean)
+        .map((form) => bindFormValidation(form, this));
     }
   }
   disconnectedCallback() {
+    this._clearFormValidation?.forEach((clear) => clear());
+    this._clearFormValidation = null;
     if (this._mounted) {
       this._mounted = false;
       this.signedOut();

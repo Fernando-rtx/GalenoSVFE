@@ -1,3 +1,4 @@
+import { bindFormValidation } from './form-validation.js';
 import { editableRecord } from './editable-record.js';
 import { gestionError } from './dashboard-presentation.js';
 const node = (tag, text, className) => {
@@ -57,7 +58,7 @@ export default class ConsultaGestionModel extends HTMLElement {
     root.append(this.notice, this.actions, this.relationshipSection, this.dialog);
     this.form.onsubmit = (event) => {
       event.preventDefault();
-      control.save(this.data(control.state));
+      return control.save(this.data(control.state));
     };
     this.cards = document.querySelector('[data-ui=cards]');
     this.openCard = (event) => {
@@ -316,9 +317,14 @@ export default class ConsultaGestionModel extends HTMLElement {
       const args = this._mountArgs;
       this._mountArgs = null;
       this.mount(...args);
+      this._clearFormValidation = [this.form, this.login]
+        .filter(Boolean)
+        .map((form) => bindFormValidation(form, this));
     }
   }
   disconnectedCallback() {
+    this._clearFormValidation?.forEach((clear) => clear());
+    this._clearFormValidation = null;
     this.destroy();
   }
 }

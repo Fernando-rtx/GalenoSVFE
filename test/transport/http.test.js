@@ -14,21 +14,30 @@ describe('Transporte HTTP real contra servidor sintético local', () => {
     server = createServer(async (request, response) => {
       const chunks = [];
       for await (const chunk of request) chunks.push(chunk);
-      requests.push({ method: request.method, url: request.url, body: Buffer.concat(chunks).toString(), headers: request.headers });
+      requests.push({
+        method: request.method,
+        url: request.url,
+        body: Buffer.concat(chunks).toString(),
+        headers: request.headers,
+      });
       response.setHeader('Content-Type', 'application/json');
       if (request.url.endsWith('/missing-fixture')) {
-        response.writeHead(404); response.end('{"fixtureError":"missing"}');
+        response.writeHead(404);
+        response.end('{"fixtureError":"missing"}');
       } else if (request.url.endsWith('/broken-fixture')) {
         response.end('{invalid');
       } else if (request.url.endsWith('/slow-fixture')) {
         // Se limpia al cerrar las conexiones en after().
       } else if (request.method === 'DELETE' || request.method === 'PUT') {
-        response.writeHead(204); response.end();
+        response.writeHead(204);
+        response.end();
       } else if (request.method === 'POST') {
         response.setHeader('Location', '/fixture-items/new-fixture');
-        response.writeHead(201); response.end('{"id":"new-fixture"}');
+        response.writeHead(201);
+        response.end('{"id":"new-fixture"}');
       } else if (request.url.includes('?')) {
-        response.setHeader('Total-registros', '11'); response.end('[{"id":"fixture"}]');
+        response.setHeader('Total-registros', '11');
+        response.end('[{"id":"fixture"}]');
       } else {
         response.end('{"id":"fixture"}');
       }
@@ -44,7 +53,9 @@ describe('Transporte HTTP real contra servidor sintético local', () => {
   after(async () => {
     if (server && server.listening) {
       server.closeAllConnections();
-      await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+      await new Promise((resolve, reject) =>
+        server.close((error) => (error ? reject(error) : resolve())),
+      );
     }
   });
 
@@ -57,14 +68,23 @@ describe('Transporte HTTP real contra servidor sintético local', () => {
     expect(created.getHeader('Location')).to.equal('/fixture-items/new-fixture');
     expect((await dao.update('fixture', { label: 'updated' })).datos).to.equal(null);
     expect((await dao.deleteById('fixture')).status).to.equal(204);
-    expect(requests.map(request => request.method)).to.deep.equal(['GET', 'GET', 'POST', 'PUT', 'DELETE']);
+    expect(requests.map((request) => request.method)).to.deep.equal([
+      'GET',
+      'GET',
+      'POST',
+      'PUT',
+      'DELETE',
+    ]);
     expect(JSON.parse(requests[2].body)).to.deep.equal({ label: 'synthetic' });
     expect(requests[2].headers['content-type']).to.equal('application/json');
     expect(requests[0].url).to.include('offset-fixture=0');
   });
 
   it('mantiene el estado 404 de una respuesta HTTP real', async () => {
-    expect(await rejection(dao.findById('missing-fixture'))).to.include({ type: 'http', status: 404 });
+    expect(await rejection(dao.findById('missing-fixture'))).to.include({
+      type: 'http',
+      status: 404,
+    });
   });
 
   it('detecta JSON inválido recibido por red', async () => {

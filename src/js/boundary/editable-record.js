@@ -6,8 +6,17 @@ export function editableRecord(record, open, enabled = true) {
   record.title = enabled ? 'Doble clic o Enter para abrir el registro' : '';
   function activate(event) {
     if (!enabled || event.defaultPrevented) return;
-    if (event.composedPath().some(node => node !== record && node.matches?.('button,a,input,select,textarea'))) return;
-    if (event.type === 'keydown' && (event.target !== record || !['Enter', ' '].includes(event.key) || event.repeat)) return;
+    if (
+      event
+        .composedPath()
+        .some((node) => node !== record && node.matches?.('button,a,input,select,textarea'))
+    )
+      return;
+    if (
+      event.type === 'keydown' &&
+      (event.target !== record || !['Enter', ' '].includes(event.key) || event.repeat)
+    )
+      return;
     event.preventDefault();
     open();
   }

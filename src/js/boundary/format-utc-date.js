@@ -1,5 +1,7 @@
 const formatter = new Intl.DateTimeFormat('es-SV', {
-  dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC'
+  dateStyle: 'medium',
+  timeStyle: 'short',
+  timeZone: 'UTC',
 });
 
 export function formatUtcDate(value) {

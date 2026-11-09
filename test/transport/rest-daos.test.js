@@ -27,16 +27,21 @@ describe('DAOs oficiales contra servidor HTTP sintético, sin mock de Fetch', ()
       if (request.method !== 'GET') return reply(405, { mensaje: 'Solo lectura sintética' });
       // Un límite deliberadamente distinto al valor por defecto del backend:
       // comprueba que el cliente conserva 422 y no supone un máximo fijo.
-      if (Number(url.searchParams.get('max')) > 3) return reply(422, { mensaje: 'Máximo sintético excedido' });
+      if (Number(url.searchParams.get('max')) > 3)
+        return reply(422, { mensaje: 'Máximo sintético excedido' });
       const path = url.pathname;
       if (path === '/GalenosSV/resources/v1/tipo_documento') return reply(200, TIPOS, TIPOS.length);
-      if (path === `/GalenosSV/resources/v1/tipo_documento/${TIPOS[0].idTipoDocumento}`) return reply(200, TIPOS[0]);
+      if (path === `/GalenosSV/resources/v1/tipo_documento/${TIPOS[0].idTipoDocumento}`)
+        return reply(200, TIPOS[0]);
       if (path === '/GalenosSV/resources/v1/clinica') return reply(200, CLINICAS, CLINICAS.length);
       if (path === '/GalenosSV/resources/v1/consulta') {
         if (url.searchParams.get('idClinica') !== idClinica) return reply(200, [], 0);
         return reply(200, CONSULTAS.slice(0, 2), CONSULTAS.length);
       }
-      if (path === `/GalenosSV/resources/v1/consulta/${CONSULTAS[0].idConsulta}` && url.searchParams.get('idClinica') === idClinica) {
+      if (
+        path === `/GalenosSV/resources/v1/consulta/${CONSULTAS[0].idConsulta}` &&
+        url.searchParams.get('idClinica') === idClinica
+      ) {
         return reply(200, CONSULTAS[0]);
       }
       return reply(404, { mensaje: 'Registro sintético no encontrado' });
@@ -45,7 +50,9 @@ describe('DAOs oficiales contra servidor HTTP sintético, sin mock de Fetch', ()
       server.once('error', reject);
       server.listen(0, '127.0.0.1', resolve);
     });
-    const config = createApiConfig({ baseUrl: `http://127.0.0.1:${server.address().port}/GalenosSV/resources/` });
+    const config = createApiConfig({
+      baseUrl: `http://127.0.0.1:${server.address().port}/GalenosSV/resources/`,
+    });
     tipos = new TipoDocumentoDAO({ config });
     clinicas = new ClinicaDAO({ config });
     consultas = new ConsultaDAO({ config });
@@ -54,7 +61,9 @@ describe('DAOs oficiales contra servidor HTTP sintético, sin mock de Fetch', ()
   after(async () => {
     if (server && server.listening) {
       server.closeAllConnections();
-      await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+      await new Promise((resolve, reject) =>
+        server.close((error) => (error ? reject(error) : resolve())),
+      );
     }
   });
 
@@ -67,17 +76,27 @@ describe('DAOs oficiales contra servidor HTTP sintético, sin mock de Fetch', ()
   });
 
   it('transmite todos los filtros y conserva el conteo del conjunto completo', async () => {
-    const filters = Object.assign({}, query, { fechaDesde: '2026-10-22', fechaHasta: '2026-10-23', idPersonaRol: CONSULTAS[0].idPersonaRol });
+    const filters = Object.assign({}, query, {
+      fechaDesde: '2026-10-22',
+      fechaHasta: '2026-10-23',
+      idPersonaRol: CONSULTAS[0].idPersonaRol,
+    });
     const response = await consultas.findRange(0, 2, { query: filters });
     expect(response.datos.length).to.equal(2);
     expect(response.totalDatos).to.equal(CONSULTAS.length);
     expect(lastRequest.method).to.equal('GET');
-    Object.keys(filters).forEach(key => expect(lastRequest.url.searchParams.get(key)).to.equal(filters[key]));
+    Object.keys(filters).forEach((key) =>
+      expect(lastRequest.url.searchParams.get(key)).to.equal(filters[key]),
+    );
   });
 
   it('mantiene clínica en el detalle y conserva 404 al cambiar de ámbito', async () => {
-    expect((await consultas.findById(CONSULTAS[0].idConsulta, { query })).datos).to.deep.equal(CONSULTAS[0]);
-    const error = await rejection(consultas.findById(CONSULTAS[0].idConsulta, { query: { idClinica: CLINICAS[1].idClinica } }));
+    expect((await consultas.findById(CONSULTAS[0].idConsulta, { query })).datos).to.deep.equal(
+      CONSULTAS[0],
+    );
+    const error = await rejection(
+      consultas.findById(CONSULTAS[0].idConsulta, { query: { idClinica: CLINICAS[1].idClinica } }),
+    );
     expect(error).to.include({ type: 'http', status: 404 });
   });
 
@@ -86,7 +105,9 @@ describe('DAOs oficiales contra servidor HTTP sintético, sin mock de Fetch', ()
   });
 
   it('recibe [] y total cero cuando la clínica no tiene coincidencias', async () => {
-    const response = await consultas.findRange(0, 2, { query: { idClinica: CLINICAS[1].idClinica } });
+    const response = await consultas.findRange(0, 2, {
+      query: { idClinica: CLINICAS[1].idClinica },
+    });
     expect(response.datos).to.deep.equal([]);
     expect(response.totalDatos).to.equal(0);
   });

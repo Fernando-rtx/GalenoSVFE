@@ -10,7 +10,7 @@ describe('PWA: recursos y límite de caché', () => {
     expect(manifest.start_url).to.equal('/');
     expect(manifest.scope).to.equal('/');
     for (const size of ['192x192', '512x512']) {
-      const icon = manifest.icons.find(item => item.sizes === size);
+      const icon = manifest.icons.find((item) => item.sizes === size);
       expect(icon?.type).to.equal('image/png');
       await access(new URL(icon.src.slice(1), root));
     }
@@ -20,19 +20,38 @@ describe('PWA: recursos y límite de caché', () => {
     const handlers = {};
     const self = {
       location: { origin: 'https://galenos.example' },
-      addEventListener(type, listener) { handlers[type] = listener; },
-      skipWaiting() {}, clients: { claim() {} }
+      addEventListener(type, listener) {
+        handlers[type] = listener;
+      },
+      skipWaiting() {},
+      clients: { claim() {} },
     };
     vm.runInNewContext(await readFile(new URL('service-worker.js', root), 'utf8'), {
-      self, URL, fetch() { return Promise.resolve({ ok: false, type: 'error' }); }, caches: {}
+      self,
+      URL,
+      fetch() {
+        return Promise.resolve({ ok: false, type: 'error' });
+      },
+      caches: {},
     });
     const request = (path, authorization = false) => ({
-      method: 'GET', url: `https://galenos.example${path}`, mode: 'cors',
-      headers: { has(name) { return authorization && name === 'Authorization'; } }
+      method: 'GET',
+      url: `https://galenos.example${path}`,
+      mode: 'cors',
+      headers: {
+        has(name) {
+          return authorization && name === 'Authorization';
+        },
+      },
     });
-    const caught = req => {
+    const caught = (req) => {
       let intercepted = false;
-      handlers.fetch({ request: req, respondWith() { intercepted = true; } });
+      handlers.fetch({
+        request: req,
+        respondWith() {
+          intercepted = true;
+        },
+      });
       return intercepted;
     };
     expect(caught(request('/api/consultas'))).to.equal(false);

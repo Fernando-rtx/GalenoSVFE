@@ -5,7 +5,9 @@
   font-family: inherit;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 .card {
   min-width: 0;
@@ -16,12 +18,22 @@
   box-shadow: 0 5px 18px rgb(23 45 49 / 5%);
 }
 
-header, .card-content, footer { padding: 16px 18px; }
-header { border-bottom: 1px solid var(--line, #bccbd8); }
-.card-content { line-height: 1.5; }
+header,
+.card-content,
+footer {
+  padding: 16px 18px;
+}
+header {
+  border-bottom: 1px solid var(--line, #bccbd8);
+}
+.card-content {
+  line-height: 1.5;
+}
 footer {
   border-top: 1px solid var(--line, #bccbd8);
   background: var(--canvas, #f1f5f8);
 }
 
-::slotted(*) { margin: 0; }
+::slotted(*) {
+  margin: 0;
+}

@@ -1,6 +1,11 @@
-:host { display: block; min-width: 0; }
+:host {
+  display: block;
+  min-width: 0;
+}
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 h3 {
   margin: 0;
@@ -10,7 +15,11 @@ h3 {
   overflow-wrap: anywhere;
 }
 
-dl { display: grid; gap: 9px; margin: 0; }
+dl {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+}
 
 dl > div {
   display: flex;
@@ -19,7 +28,9 @@ dl > div {
   min-width: 0;
 }
 
-dt { color: var(--muted, #50677a); }
+dt {
+  color: var(--muted, #50677a);
+}
 dd {
   margin: 0;
   max-width: 65%;
@@ -39,11 +50,24 @@ button {
   cursor: pointer;
 }
 
-button:hover { background: var(--gs-button-hover, #11628c); }
-button:focus-visible { outline: 3px solid var(--gs-accent, #126b9b); outline-offset: 3px; }
-button:disabled { cursor: default; opacity: .5; }
+button:hover {
+  background: var(--gs-button-hover, #11628c);
+}
+button:focus-visible {
+  outline: 3px solid var(--gs-accent, #126b9b);
+  outline-offset: 3px;
+}
+button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
 
 @media (max-width: 420px) {
-  dl > div { display: block; }
-  dd { max-width: none; text-align: left; }
+  dl > div {
+    display: block;
+  }
+  dd {
+    max-width: none;
+    text-align: left;
+  }
 }

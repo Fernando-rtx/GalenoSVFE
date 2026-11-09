@@ -3,14 +3,22 @@ import sinon from 'sinon';
 import DashboardControl from '../../src/js/control/DashboardControl.js';
 import { DefaultResponse, DefaultError } from '../../src/js/index.js';
 import { CLINICAS, CONSULTAS } from '../helpers/rest-fixtures.js';
-import { consultaCardModel, errorMessage, formatDate } from '../../src/js/boundary/pages/dashboard-presentation.js';
+import {
+  consultaCardModel,
+  errorMessage,
+  formatDate,
+} from '../../src/js/boundary/pages/dashboard-presentation.js';
 import { rejection } from '../helpers/http-fixture.js';
 
 // Datos exclusivamente sintéticos. Estos DAO son dobles, no integración con REST.
-const response = (datos, totalDatos = null) => new DefaultResponse({ datos, totalDatos, status: 200 });
+const response = (datos, totalDatos = null) =>
+  new DefaultResponse({ datos, totalDatos, status: 200 });
 const deferred = () => {
   let resolve, reject;
-  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });
+  const promise = new Promise((yes, no) => {
+    resolve = yes;
+    reject = no;
+  });
   return { promise, resolve, reject };
 };
 
@@ -20,7 +28,7 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     clinicaDAO = { findRange: sinon.stub().resolves(response(CLINICAS, CLINICAS.length)) };
     consultaDAO = {
       findRange: sinon.stub().resolves(response(CONSULTAS.slice(0, 2), 5)),
-      findById: sinon.stub().resolves(response(CONSULTAS[0]))
+      findById: sinon.stub().resolves(response(CONSULTAS[0])),
     };
     control = new DashboardControl({ clinicaDAO, consultaDAO, pageSize: 2 });
     await control.loadClinicas();
@@ -29,7 +37,9 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
 
   it('exige dependencias DAO y una paginación válida', () => {
     expect(() => new DashboardControl({})).to.throw(DefaultError);
-    expect(() => new DashboardControl({ clinicaDAO, consultaDAO, pageSize: 0 })).to.throw(DefaultError);
+    expect(() => new DashboardControl({ clinicaDAO, consultaDAO, pageSize: 0 })).to.throw(
+      DefaultError,
+    );
   });
 
   it('no consulta antes de seleccionar una clínica recibida por REST', async () => {
@@ -68,18 +78,30 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
   it('aplica filtros y reinicia first conservando clínica y fechas UTC originales', async () => {
     await control.selectClinica(CLINICAS[0].idClinica);
     await control.setPage(2);
-    const filtros = { fechaDesde: '2026-10-22', fechaHasta: '2026-10-23', idPersonaRol: CONSULTAS[0].idPersonaRol };
+    const filtros = {
+      fechaDesde: '2026-10-22',
+      fechaHasta: '2026-10-23',
+      idPersonaRol: CONSULTAS[0].idPersonaRol,
+    };
     await control.setFilters(filtros);
     expect(consultaDAO.findRange.lastCall.args.slice(0, 2)).to.deep.equal([0, 2]);
-    expect(consultaDAO.findRange.lastCall.args[2].query).to.deep.equal({ ...filtros, idClinica: CLINICAS[0].idClinica });
+    expect(consultaDAO.findRange.lastCall.args[2].query).to.deep.equal({
+      ...filtros,
+      idClinica: CLINICAS[0].idClinica,
+    });
     expect(control.state.consultas[0].fechaInicio).to.equal(CONSULTAS[0].fechaInicio);
     filtros.fechaDesde = '2000-01-01';
     expect(control.state.filtros.fechaDesde).to.equal('2026-10-22');
   });
 
   it('rechaza filtros ajenos, UUID y fechas inválidos antes de usar los DAO', async () => {
-    for (const filters of [{ estado: 'inventado' }, { fechaDesde: null }, { idPersonaRol: 'invalido' },
-      { fechaDesde: '2026-10-23', fechaHasta: '2026-10-22' }, { fechaDesde: '2026-02-29' }]) {
+    for (const filters of [
+      { estado: 'inventado' },
+      { fechaDesde: null },
+      { idPersonaRol: 'invalido' },
+      { fechaDesde: '2026-10-23', fechaHasta: '2026-10-22' },
+      { fechaDesde: '2026-02-29' },
+    ]) {
       expect(await rejection(control.setFilters(filters))).to.be.instanceOf(DefaultError);
     }
     sinon.assert.notCalled(consultaDAO.findRange);
@@ -116,13 +138,15 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     await control.selectClinica(CLINICAS[0].idClinica);
     await control.setFilters({ fechaDesde: '2026-10-22' });
     await control.selectConsulta(CONSULTAS[0].idConsulta);
-    expect(consultaDAO.findById.lastCall.args[1].query).to.deep.equal({ idClinica: CLINICAS[0].idClinica });
+    expect(consultaDAO.findById.lastCall.args[1].query).to.deep.equal({
+      idClinica: CLINICAS[0].idClinica,
+    });
     expect(control.state.detalle).to.deep.equal(CONSULTAS[0]);
     expect(await rejection(control.selectConsulta('ajena'))).to.be.instanceOf(DefaultError);
     sinon.assert.calledOnce(consultaDAO.findById);
   });
 
-  ['clinic', 'filters', 'page'].forEach(change => {
+  ['clinic', 'filters', 'page'].forEach((change) => {
     it(`cancela e ignora una respuesta obsoleta al cambiar ${change}, incluso si el DAO ignora AbortSignal`, async () => {
       const old = deferred();
       consultaDAO.findRange.onFirstCall().returns(old.promise);
@@ -156,9 +180,13 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     await control.selectClinica(CLINICAS[0].idClinica);
     consultaDAO.findRange.returns(new Promise(() => {}));
     const seen = [];
-    const unsubscribe = control.subscribe(state => seen.push(state));
+    const unsubscribe = control.subscribe((state) => seen.push(state));
     control.selectClinica(CLINICAS[1].idClinica);
-    expect(seen.filter(state => state.idClinica === CLINICAS[1].idClinica).every(state => state.consultas.length === 0)).to.equal(true);
+    expect(
+      seen
+        .filter((state) => state.idClinica === CLINICAS[1].idClinica)
+        .every((state) => state.consultas.length === 0),
+    ).to.equal(true);
     unsubscribe();
   });
 
@@ -187,17 +215,41 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     expect(control.state.detalle).to.deep.equal(CONSULTAS[1]);
   });
 
-  ['clinicas', 'consultas', 'detalle'].forEach(resource => {
+  ['clinicas', 'consultas', 'detalle'].forEach((resource) => {
     it(`conserva DefaultError de ${resource} y permite reintentar`, async () => {
-      const error = new DefaultError({ type: 'http', code: 'HTTP_ERROR', status: 500, message: 'Error sintético' });
+      const error = new DefaultError({
+        type: 'http',
+        code: 'HTTP_ERROR',
+        status: 500,
+        message: 'Error sintético',
+      });
       if (resource !== 'clinicas') await control.selectClinica(CLINICAS[0].idClinica);
-      const stub = resource === 'clinicas' ? clinicaDAO.findRange : resource === 'detalle' ? consultaDAO.findById : consultaDAO.findRange;
-      const action = () => resource === 'clinicas' ? control.loadClinicas() : resource === 'detalle' ? control.selectConsulta(CONSULTAS[0].idConsulta) : control.loadConsultas();
+      const stub =
+        resource === 'clinicas'
+          ? clinicaDAO.findRange
+          : resource === 'detalle'
+            ? consultaDAO.findById
+            : consultaDAO.findRange;
+      const action = () =>
+        resource === 'clinicas'
+          ? control.loadClinicas()
+          : resource === 'detalle'
+            ? control.selectConsulta(CONSULTAS[0].idConsulta)
+            : control.loadConsultas();
       stub.rejects(error);
       await action();
       expect(control.state[`${resource}Status`]).to.equal('error');
       expect(control.state[`${resource}Error`]).to.equal(error);
-      stub.resolves(response(resource === 'clinicas' ? CLINICAS : resource === 'detalle' ? CONSULTAS[0] : CONSULTAS.slice(0, 2), 2));
+      stub.resolves(
+        response(
+          resource === 'clinicas'
+            ? CLINICAS
+            : resource === 'detalle'
+              ? CONSULTAS[0]
+              : CONSULTAS.slice(0, 2),
+          2,
+        ),
+      );
       await action();
       expect(control.state[`${resource}Status`]).to.equal('ready');
     });
@@ -210,7 +262,9 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     await control.selectClinica(CLINICAS[0].idClinica);
     sinon.assert.calledOnce(listener);
     expect(Object.isFrozen(control.state.consultas[0])).to.equal(true);
-    expect(() => { control.state.idClinica = 'otra'; }).to.throw(TypeError);
+    expect(() => {
+      control.state.idClinica = 'otra';
+    }).to.throw(TypeError);
   });
 
   it('destruir la página cancela solicitudes y evita notificar respuestas posteriores', async () => {
@@ -227,7 +281,12 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
   });
 
   it('evita una paginación inválida y exige clínica antes de cargar una página', async () => {
-    for (const [first, max] of [[-1, 2], [0, 0], [2147483648, 1], [0, 1]]) {
+    for (const [first, max] of [
+      [-1, 2],
+      [0, 0],
+      [2147483648, 1],
+      [0, 1],
+    ]) {
       expect(await rejection(control.setPage(first, max))).to.be.instanceOf(DefaultError);
     }
     sinon.assert.notCalled(consultaDAO.findRange);
@@ -238,7 +297,14 @@ describe('Presentación del dashboard y modelo compartido', () => {
   it('entrega solo los seis campos aceptados, preservando null y cadenas UTC', () => {
     const consulta = { ...CONSULTAS[0], personaNombre: null, fechaFin: null };
     const model = consultaCardModel(consulta);
-    expect(Object.keys(model)).to.deep.equal(['idConsulta', 'personaNombre', 'rolNombre', 'clinicaNombre', 'fechaInicio', 'fechaFin']);
+    expect(Object.keys(model)).to.deep.equal([
+      'idConsulta',
+      'personaNombre',
+      'rolNombre',
+      'clinicaNombre',
+      'fechaInicio',
+      'fechaFin',
+    ]);
     expect(model.personaNombre).to.equal(null);
     expect(model.fechaFin).to.equal(null);
     expect(model.fechaInicio).to.equal(consulta.fechaInicio);
@@ -247,8 +313,7 @@ describe('Presentación del dashboard y modelo compartido', () => {
   });
 
   it('muestra el mismo instante en UTC aunque llegue con otra zona', () => {
-    expect(formatDate('2026-10-22T06:00:00Z'))
-      .to.equal(formatDate('2026-10-22T00:00:00-06:00'));
+    expect(formatDate('2026-10-22T06:00:00Z')).to.equal(formatDate('2026-10-22T00:00:00-06:00'));
     expect(formatDate('fecha inválida')).to.equal('Sin especificar');
   });
 
@@ -261,10 +326,12 @@ describe('Presentación del dashboard y modelo compartido', () => {
     [{ type: 'http', status: 404 }, 'clínica seleccionada'],
     [{ type: 'http', status: 403 }, 'no permite'],
     [{ type: 'http', status: 422 }, 'parámetros'],
-    [{ type: 'http', status: 500 }, 'Intenta nuevamente']
+    [{ type: 'http', status: 500 }, 'Intenta nuevamente'],
   ].forEach(([error, text]) => {
     it(`presenta un mensaje seguro para ${JSON.stringify(error)}`, () => {
-      expect(errorMessage({ ...error, message: 'SQL o contenido interno sintético' })).to.include(text);
+      expect(errorMessage({ ...error, message: 'SQL o contenido interno sintético' })).to.include(
+        text,
+      );
       expect(errorMessage(error)).not.to.include('SQL');
     });
   });

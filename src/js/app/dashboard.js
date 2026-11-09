@@ -3,10 +3,18 @@ import DashboardControl from '../control/DashboardControl.js';
 import DashboardPage from '../boundary/pages/DashboardPage.js';
 
 /** Composición de la aplicación; las dependencias pueden inyectarse en pruebas. */
-export function mountDashboard({ root, config = createApiConfig(), clinicaDAO, consultaDAO, pageSize = 10, autoLoad = true }) {
+export function mountDashboard({
+  root,
+  config = createApiConfig(),
+  clinicaDAO,
+  consultaDAO,
+  pageSize = 10,
+  autoLoad = true,
+}) {
   const control = new DashboardControl({
     clinicaDAO: clinicaDAO || new ClinicaService({ config }),
-    consultaDAO: consultaDAO || new ConsultaService({ config }), pageSize
+    consultaDAO: consultaDAO || new ConsultaService({ config }),
+    pageSize,
   });
   const page = root;
   page.mount(control);

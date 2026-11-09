@@ -31,7 +31,7 @@ export class GalenosNotifications extends HTMLElement {
     const { tipo, mensaje } = event.detail || {};
     if (!TYPES.has(tipo) || typeof mensaje !== 'string' || !mensaje.trim()) return;
     const list = this.shadowRoot.querySelector('[aria-live]');
-    if ([...list.children].some(node => node.dataset.message === `${tipo}:${mensaje}`)) return;
+    if ([...list.children].some((node) => node.dataset.message === `${tipo}:${mensaje}`)) return;
     const notice = document.createElement('div');
     notice.className = `notice ${tipo}`;
     notice.dataset.message = `${tipo}:${mensaje}`;
@@ -39,8 +39,11 @@ export class GalenosNotifications extends HTMLElement {
     const message = document.createElement('span');
     message.textContent = mensaje;
     const close = document.createElement('button');
-    close.type = 'button'; close.textContent = '×'; close.setAttribute('aria-label', 'Cerrar aviso');
-    notice.append(message, close); list.append(notice);
+    close.type = 'button';
+    close.textContent = '×';
+    close.setAttribute('aria-label', 'Cerrar aviso');
+    notice.append(message, close);
+    list.append(notice);
   }
 
   onClick(event) {
@@ -48,4 +51,5 @@ export class GalenosNotifications extends HTMLElement {
   }
 }
 
-if (!customElements.get('galenos-notifications')) customElements.define('galenos-notifications', GalenosNotifications);
+if (!customElements.get('galenos-notifications'))
+  customElements.define('galenos-notifications', GalenosNotifications);

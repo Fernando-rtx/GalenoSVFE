@@ -3,8 +3,12 @@ import { notify } from '../../app/notifications.js';
 
 /** Página Boundary. Recibe Control; no importa DAO, configuración HTTP ni Fetch. */
 export default class DashboardPage extends HTMLElement {
-  constructor() { super(); }
-  mount(control) { const root = this; this._mounted = true;
+  constructor() {
+    super();
+  }
+  mount(control) {
+    const root = this;
+    this._mounted = true;
     this.root = root;
     this.control = control;
     this._events = new AbortController();
@@ -13,41 +17,59 @@ export default class DashboardPage extends HTMLElement {
     this._consultaRows = null;
     this._usingCards = null;
     this.nodes = {};
-    root.querySelectorAll('[data-ui]').forEach(node => { this.nodes[node.dataset.ui] = node; });
-    const on = (node, event, callback) => node.addEventListener(event, callback, { signal: this._events.signal });
-    const perform = action => {
+    root.querySelectorAll('[data-ui]').forEach((node) => {
+      this.nodes[node.dataset.ui] = node;
+    });
+    const on = (node, event, callback) =>
+      node.addEventListener(event, callback, { signal: this._events.signal });
+    const perform = (action) => {
       this.nodes.actionError.hidden = true;
-      return Promise.resolve().then(action).catch(error => {
-        if (this._closed) return;
-        this.nodes.actionError.textContent = errorMessage(error);
-        this.nodes.actionError.hidden = false;
-        notify(this.root, 'error', this.nodes.actionError.textContent);
-      });
+      return Promise.resolve()
+        .then(action)
+        .catch((error) => {
+          if (this._closed) return;
+          this.nodes.actionError.textContent = errorMessage(error);
+          this.nodes.actionError.hidden = false;
+          notify(this.root, 'error', this.nodes.actionError.textContent);
+        });
     };
-    on(this.nodes.clinica, 'change', () => perform(() => control.selectClinica(this.nodes.clinica.value || null)));
-    on(this.nodes.filters, 'submit', event => {
+    on(this.nodes.clinica, 'change', () =>
+      perform(() => control.selectClinica(this.nodes.clinica.value || null)),
+    );
+    on(this.nodes.filters, 'submit', (event) => {
       event.preventDefault();
       const filters = {};
-      ['fechaDesde', 'fechaHasta', 'idPersonaRol'].forEach(key => {
+      ['fechaDesde', 'fechaHasta', 'idPersonaRol'].forEach((key) => {
         const value = this.nodes[key].value.trim();
         if (value) filters[key] = value;
       });
       perform(() => control.setFilters(filters));
     });
     on(this.nodes.clearFilters, 'click', () => perform(() => control.setFilters({})));
-    on(this.nodes.previous, 'click', () => perform(() => control.setPage(Math.max(0, control.state.first - control.state.max))));
-    on(this.nodes.next, 'click', () => perform(() => control.setPage(control.state.first + control.state.max)));
-    on(this.nodes.pageSize, 'change', () => perform(() => control.setPage(0, Number(this.nodes.pageSize.value))));
+    on(this.nodes.previous, 'click', () =>
+      perform(() => control.setPage(Math.max(0, control.state.first - control.state.max))),
+    );
+    on(this.nodes.next, 'click', () =>
+      perform(() => control.setPage(control.state.first + control.state.max)),
+    );
+    on(this.nodes.pageSize, 'change', () =>
+      perform(() => control.setPage(0, Number(this.nodes.pageSize.value))),
+    );
     on(this.nodes.retryClinicas, 'click', () => perform(() => control.loadClinicas()));
     on(this.nodes.retryConsultas, 'click', () => perform(() => control.loadConsultas()));
-    on(this.nodes.retryDetalle, 'click', () => perform(() => control.selectConsulta(control.state.idConsulta)));
+    on(this.nodes.retryDetalle, 'click', () =>
+      perform(() => control.selectConsulta(control.state.idConsulta)),
+    );
     // El evento compuesto de la tarjeta atraviesa su Shadow DOM y llega a la página.
-    on(root, 'consulta-seleccionada', event => perform(() => control.selectConsulta(event.detail && event.detail.idConsulta)));
-    on(this.nodes.rows, 'click', event => {
+    on(root, 'consulta-seleccionada', (event) =>
+      perform(() => control.selectConsulta(event.detail && event.detail.idConsulta)),
+    );
+    on(this.nodes.rows, 'click', (event) => {
       const button = event.target.closest('button[data-consulta]');
-      if (button && this.nodes.rows.contains(button)) perform(() => control.selectConsulta(button.dataset.consulta));
+      if (button && this.nodes.rows.contains(button))
+        perform(() => control.selectConsulta(button.dataset.consulta));
     });
-    this._unsubscribe = control.subscribe(state => this.render(state));
+    this._unsubscribe = control.subscribe((state) => this.render(state));
     customElements.whenDefined('tarjeta-consulta').then(() => {
       if (!this._closed) this.render(control.state);
     });
@@ -60,7 +82,7 @@ export default class DashboardPage extends HTMLElement {
       prompt.value = '';
       prompt.textContent = 'Selecciona una clínica';
       n.clinica.replaceChildren(prompt);
-      state.clinicas.forEach(clinica => {
+      state.clinicas.forEach((clinica) => {
         const option = document.createElement('option');
         option.value = clinica.idClinica;
         option.textContent = clinica.nombre ?? 'Clínica sin nombre';
@@ -70,23 +92,39 @@ export default class DashboardPage extends HTMLElement {
     }
     n.clinica.value = state.idClinica || '';
     n.clinica.disabled = state.clinicasStatus !== 'ready' || state.clinicas.length === 0;
-    n.clinicStatus.textContent = state.clinicasStatus === 'loading' ? 'Cargando clínicas…' :
-      state.clinicasStatus === 'error' ? errorMessage(state.clinicasError) :
-      state.clinicasStatus === 'ready' && !state.clinicas.length ? 'No hay clínicas disponibles.' : '';
+    n.clinicStatus.textContent =
+      state.clinicasStatus === 'loading'
+        ? 'Cargando clínicas…'
+        : state.clinicasStatus === 'error'
+          ? errorMessage(state.clinicasError)
+          : state.clinicasStatus === 'ready' && !state.clinicas.length
+            ? 'No hay clínicas disponibles.'
+            : '';
     n.retryClinicas.hidden = state.clinicasStatus !== 'error';
     n.filtersFieldset.disabled = !state.idClinica;
     if (this._filters !== state.filtros) {
-      ['fechaDesde', 'fechaHasta', 'idPersonaRol'].forEach(key => { n[key].value = state.filtros[key] || ''; });
+      ['fechaDesde', 'fechaHasta', 'idPersonaRol'].forEach((key) => {
+        n[key].value = state.filtros[key] || '';
+      });
       this._filters = state.filtros;
     }
-    const clinic = state.clinicas.find(row => row.idClinica === state.idClinica);
+    const clinic = state.clinicas.find((row) => row.idClinica === state.idClinica);
     n.selectedClinic.textContent = clinic ? (clinic.nombre ?? 'Sin nombre') : 'Sin seleccionar';
     n.total.textContent = state.consultasStatus === 'ready' ? String(state.totalDatos) : '—';
-    n.visible.textContent = state.consultasStatus === 'ready' ? String(state.consultas.length) : '—';
-    n.resultStatus.textContent = state.consultasStatus === 'loading' ? 'Cargando consultas…' :
-      state.consultasStatus === 'error' ? errorMessage(state.consultasError) :
-      state.consultasStatus === 'idle' ? 'Selecciona una clínica para consultar sus registros.' :
-      !state.consultas.length ? (state.totalDatos ? 'No hay consultas en esta página.' : 'No hay consultas para los filtros seleccionados.') : '';
+    n.visible.textContent =
+      state.consultasStatus === 'ready' ? String(state.consultas.length) : '—';
+    n.resultStatus.textContent =
+      state.consultasStatus === 'loading'
+        ? 'Cargando consultas…'
+        : state.consultasStatus === 'error'
+          ? errorMessage(state.consultasError)
+          : state.consultasStatus === 'idle'
+            ? 'Selecciona una clínica para consultar sus registros.'
+            : !state.consultas.length
+              ? state.totalDatos
+                ? 'No hay consultas en esta página.'
+                : 'No hay consultas para los filtros seleccionados.'
+              : '';
     n.resultStatus.hidden = !n.resultStatus.textContent;
     n.retryConsultas.hidden = state.consultasStatus !== 'error';
     n.results.setAttribute('aria-busy', String(state.consultasStatus === 'loading'));
@@ -96,7 +134,7 @@ export default class DashboardPage extends HTMLElement {
     if (this._consultaRows !== state.consultas || this._usingCards !== useCards) {
       n.rows.replaceChildren();
       n.cards.replaceChildren();
-      state.consultas.forEach(consulta => {
+      state.consultas.forEach((consulta) => {
         if (useCards) {
           const card = document.createElement('tarjeta-consulta');
           card.consulta = consultaCardModel(consulta);
@@ -104,7 +142,11 @@ export default class DashboardPage extends HTMLElement {
         } else {
           // Lista nativa de esta página; no simula ni registra tarjetas de Rodrigo.
           const row = document.createElement('tr');
-          [consulta.personaNombre ?? 'Persona sin nombre', consulta.rolNombre ?? 'Sin especificar', formatDate(consulta.fechaInicio)].forEach(text => {
+          [
+            consulta.personaNombre ?? 'Persona sin nombre',
+            consulta.rolNombre ?? 'Sin especificar',
+            formatDate(consulta.fechaInicio),
+          ].forEach((text) => {
             const cell = document.createElement('td');
             cell.textContent = text;
             row.append(cell);
@@ -115,7 +157,10 @@ export default class DashboardPage extends HTMLElement {
           button.className = 'text-button';
           button.dataset.consulta = consulta.idConsulta;
           button.textContent = 'Ver detalle';
-          button.setAttribute('aria-label', `Ver detalle de ${consulta.personaNombre ?? 'persona sin nombre'}`);
+          button.setAttribute(
+            'aria-label',
+            `Ver detalle de ${consulta.personaNombre ?? 'persona sin nombre'}`,
+          );
           cell.append(button);
           row.append(cell);
           n.rows.append(row);
@@ -124,16 +169,29 @@ export default class DashboardPage extends HTMLElement {
       this._consultaRows = state.consultas;
       this._usingCards = useCards;
     }
-    n.rows.querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.consulta === state.idConsulta)));
+    n.rows
+      .querySelectorAll('button')
+      .forEach((button) =>
+        button.setAttribute('aria-pressed', String(button.dataset.consulta === state.idConsulta)),
+      );
     n.pageSize.value = String(state.max);
     n.pageSize.disabled = !state.idClinica;
     const ready = state.consultasStatus === 'ready';
     n.previous.disabled = !ready || state.first === 0;
     n.next.disabled = !ready || state.first + state.max >= state.totalDatos;
-    n.pageInfo.textContent = !ready ? 'Sin resultados cargados' : !state.consultas.length ? `0 de ${state.totalDatos} consultas` :
-      `${state.first + 1}–${state.first + state.consultas.length} de ${state.totalDatos} consultas`;
-    n.detailStatus.textContent = state.detalleStatus === 'loading' ? 'Cargando detalle…' : state.detalleStatus === 'error' ? errorMessage(state.detalleError) :
-      state.detalleStatus === 'idle' ? 'Selecciona una consulta para ver su información.' : '';
+    n.pageInfo.textContent = !ready
+      ? 'Sin resultados cargados'
+      : !state.consultas.length
+        ? `0 de ${state.totalDatos} consultas`
+        : `${state.first + 1}–${state.first + state.consultas.length} de ${state.totalDatos} consultas`;
+    n.detailStatus.textContent =
+      state.detalleStatus === 'loading'
+        ? 'Cargando detalle…'
+        : state.detalleStatus === 'error'
+          ? errorMessage(state.detalleError)
+          : state.detalleStatus === 'idle'
+            ? 'Selecciona una consulta para ver su información.'
+            : '';
     n.detailStatus.hidden = !n.detailStatus.textContent;
     n.detailData.hidden = state.detalleStatus !== 'ready';
     n.retryDetalle.hidden = state.detalleStatus !== 'error';
@@ -142,26 +200,35 @@ export default class DashboardPage extends HTMLElement {
       n.detailName.textContent = state.detalle.personaNombre ?? 'Persona sin nombre';
       n.detailData.replaceChildren();
       const fields = [
-        ['Rol', state.detalle.rolNombre], ['Clínica', state.detalle.clinicaNombre],
-        ['Inicio', formatDate(state.detalle.fechaInicio)], ['Fin', formatDate(state.detalle.fechaFin)],
-        ['Identificador de consulta', state.detalle.idConsulta], ['Asignación PersonaRol', state.detalle.idPersonaRol]
+        ['Rol', state.detalle.rolNombre],
+        ['Clínica', state.detalle.clinicaNombre],
+        ['Inicio', formatDate(state.detalle.fechaInicio)],
+        ['Fin', formatDate(state.detalle.fechaFin)],
+        ['Identificador de consulta', state.detalle.idConsulta],
+        ['Asignación PersonaRol', state.detalle.idPersonaRol],
       ];
       fields.forEach(([label, value]) => {
-        const term = document.createElement('dt'); term.textContent = label;
-        const description = document.createElement('dd'); description.textContent = value ?? 'Sin especificar';
+        const term = document.createElement('dt');
+        term.textContent = label;
+        const description = document.createElement('dd');
+        description.textContent = value ?? 'Sin especificar';
         n.detailData.append(term, description);
       });
     } else n.detailName.textContent = 'Detalle de consulta';
   }
 
-  destroy() { if (!this._mounted) return; this._mounted = false;
+  destroy() {
+    if (!this._mounted) return;
+    this._mounted = false;
     this._closed = true;
     this._events.abort();
     this._unsubscribe();
     this.control.destroy();
   }
-  disconnectedCallback() { this.destroy(); }
-
+  disconnectedCallback() {
+    this.destroy();
+  }
 }
 
-if (!customElements.get('galenos-dashboard')) customElements.define('galenos-dashboard', DashboardPage);
+if (!customElements.get('galenos-dashboard'))
+  customElements.define('galenos-dashboard', DashboardPage);

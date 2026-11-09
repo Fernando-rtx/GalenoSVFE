@@ -1,0 +1,4 @@
+node_modules/
+test/evidence/
+src/js/config/environment.local.js
+package-lock.json

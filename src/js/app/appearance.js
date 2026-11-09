@@ -12,7 +12,8 @@ export function mountAppearance(root) {
     toggle.setAttribute('aria-expanded', String(!menu.hidden));
   }
   function updateTheme() {
-    theme.textContent = document.documentElement.dataset.theme === 'dark' ? 'Modo claro' : 'Modo oscuro';
+    theme.textContent =
+      document.documentElement.dataset.theme === 'dark' ? 'Modo claro' : 'Modo oscuro';
   }
   const observer = new MutationObserver(updateTheme);
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
@@ -22,11 +23,22 @@ export function mountAppearance(root) {
   context.addEventListener('click', openSession);
   updateTheme();
   return {
-    connectSession(action) { sessionAction = action; },
+    connectSession(action) {
+      sessionAction = action;
+    },
     sessionChanged(identity) {
       root.querySelector('[data-session-name]').textContent = identity?.actor ?? 'Iniciar sesión';
-      session.querySelector('small').textContent = identity ? (identity.puedeEscribir ? 'Edición autorizada' : 'Solo lectura') : 'Contexto autorizado';
+      session.querySelector('small').textContent = identity
+        ? identity.puedeEscribir
+          ? 'Edición autorizada'
+          : 'Solo lectura'
+        : 'Contexto autorizado';
     },
-    destroy() { observer.disconnect(); toggle.removeEventListener('click', toggleMenu); session.removeEventListener('click', openSession); context.removeEventListener('click', openSession); }
+    destroy() {
+      observer.disconnect();
+      toggle.removeEventListener('click', toggleMenu);
+      session.removeEventListener('click', openSession);
+      context.removeEventListener('click', openSession);
+    },
   };
 }

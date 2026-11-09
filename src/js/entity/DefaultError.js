@@ -13,9 +13,13 @@ export default class DefaultError extends Error {
 
   toJSON() {
     return {
-      name: this.name, type: this.type, code: this.code,
-      message: this.message, status: this.status,
-      details: this.details, headers: this.headers
+      name: this.name,
+      type: this.type,
+      code: this.code,
+      message: this.message,
+      status: this.status,
+      details: this.details,
+      headers: this.headers,
     };
   }
 
@@ -24,6 +28,13 @@ export default class DefaultError extends Error {
   }
 
   static processing(message, cause = null, status = null, headers = {}) {
-    return new DefaultError({ type: 'processing', code: 'INVALID_RESPONSE', message, cause, status, headers });
+    return new DefaultError({
+      type: 'processing',
+      code: 'INVALID_RESPONSE',
+      message,
+      cause,
+      status,
+      headers,
+    });
   }
 }

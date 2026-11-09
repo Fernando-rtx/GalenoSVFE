@@ -1,2 +1,2 @@
 /** Alias de compatibilidad: usar ExamenTipoExamenService en código nuevo. */
-export { default } from '../../services/ExamenTipoExamenService.js';
+export { default } from '../ExamenTipoExamenService.js';

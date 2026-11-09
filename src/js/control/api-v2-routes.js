@@ -1,5 +1,5 @@
 import { API_ROUTES } from './api-routes.js';
-import { isUuid, restRange, arrayOf } from '../control/rest-validators.js';
+import { isUuid, restRange, arrayOf } from './rest-validators.js';
 
 const source = 'docs/api-gestion-v2.md';
 const schemas = {

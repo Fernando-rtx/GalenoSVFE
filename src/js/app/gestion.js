@@ -25,7 +25,7 @@ import {
   ProcedimientoPasoSecuenciaService,
   DefaultError,
 } from '../index.js';
-import { API_V2_ROUTES, API_V2_DASHBOARD_ROUTES } from '../config/api-v2-routes.js';
+import { API_V2_ROUTES, API_V2_DASHBOARD_ROUTES } from '../control/api-v2-routes.js';
 import ConsultaGestionControl from '../control/ConsultaGestionControl.js';
 import ConsultaGestionPage from '../boundary/pages/ConsultaGestionPage.js';
 import ProcedimientoControl from '../control/ProcedimientoControl.js';

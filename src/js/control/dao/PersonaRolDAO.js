@@ -1,2 +1,2 @@
 /** Alias de compatibilidad: usar PersonaRolService en código nuevo. */
-export { default } from '../../services/PersonaRolService.js';
+export { default } from '../PersonaRolService.js';

@@ -1,7 +1,7 @@
 import { mountAppearance } from './appearance.js';
 import { mountGestion } from './gestion.js';
 import { mountDashboard } from './dashboard.js';
-import { config as defaultConfig } from '../config/environment.example.js';
+import { config as defaultConfig } from '../control/environment.example.js';
 import '../boundary/components/tarjeta_consulta.js';
 import '../boundary/components/galenos-notifications.js';
 import { registerPwa } from './pwa.js';
@@ -17,7 +17,7 @@ async function start() {
   let gestionConfig = null;
   let authenticatedOnly = false;
   try {
-    const environment = await import('../config/environment.local.js');
+    const environment = await import('../control/environment.local.js');
     config = environment.config;
     gestionConfig = environment.gestionConfig;
     authenticatedOnly = environment.authenticatedOnly === true;

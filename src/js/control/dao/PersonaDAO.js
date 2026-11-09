@@ -1,2 +1,2 @@
 /** Alias de compatibilidad: usar PersonaService en código nuevo. */
-export { default } from '../../services/PersonaService.js';
+export { default } from '../PersonaService.js';

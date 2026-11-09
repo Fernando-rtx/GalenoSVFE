@@ -7,7 +7,7 @@ import {
   clinicaDto,
   consultaDto,
   arrayOf,
-} from '../control/rest-validators.js';
+} from './rest-validators.js';
 
 // Código REST y contrato contrastados en esta revisión, sin inferir rutas de JPA.
 const source =

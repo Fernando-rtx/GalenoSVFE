@@ -1,7 +1,7 @@
 import DefaultError from '../entity/DefaultError.js';
 import DefaultResponse from '../entity/DefaultResponse.js';
-import { createApiConfig } from '../config/api-config.js';
-import { appendQuery } from '../control/query-parameters.js';
+import { createApiConfig } from './api-config.js';
+import { appendQuery } from './query-parameters.js';
 
 const METHODS = Object.freeze({
   get: 'GET',
@@ -164,7 +164,7 @@ function validateContract(contract, operation) {
 }
 
 /** Transporte común. Cada operación requiere un contrato registrado explícitamente. */
-export default class HttpClient {
+export default class DefaultService {
   constructor({ resource, config = createApiConfig(), fetchImpl = globalThis.fetch } = {}) {
     if (typeof resource !== 'string' || !resource.trim() || typeof fetchImpl !== 'function') {
       throw DefaultError.validation(

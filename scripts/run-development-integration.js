@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import Mocha from 'mocha';
 import * as api from '../src/js/index.js';
-import { API_V2_ROUTES, API_V2_DASHBOARD_ROUTES } from '../src/js/config/api-v2-routes.js';
+import { API_V2_ROUTES, API_V2_DASHBOARD_ROUTES } from '../src/js/control/api-v2-routes.js';
 
 if (!process.env.GALENOS_LOCAL_CREDENTIALS)
   throw new Error('Define GALENOS_LOCAL_CREDENTIALS con la ruta privada de las cuentas locales.');

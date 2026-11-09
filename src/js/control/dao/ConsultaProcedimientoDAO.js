@@ -1,2 +1,2 @@
 /** Alias de compatibilidad: usar ConsultaProcedimientoService en código nuevo. */
-export { default } from '../../services/ConsultaProcedimientoService.js';
+export { default } from '../ConsultaProcedimientoService.js';

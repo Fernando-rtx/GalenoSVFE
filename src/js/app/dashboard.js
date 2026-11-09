@@ -8,7 +8,8 @@ export function mountDashboard({ root, config = createApiConfig(), clinicaDAO, c
     clinicaDAO: clinicaDAO || new ClinicaService({ config }),
     consultaDAO: consultaDAO || new ConsultaService({ config }), pageSize
   });
-  const page = new DashboardPage(root, control);
+  const page = root;
+  page.mount(control);
   const ready = autoLoad ? control.loadClinicas() : Promise.resolve();
   return { control, page, ready, destroy: () => page.destroy() };
 }

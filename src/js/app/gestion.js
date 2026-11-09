@@ -13,6 +13,13 @@ import PersonaPage from '../boundary/pages/PersonaPage.js';
 import CatalogoControl from '../control/CatalogoControl.js';
 import CatalogoPage from '../boundary/pages/CatalogoPage.js';
 
+function mountPage(container, tag, ...args) {
+  const page = document.createElement(tag);
+  page._mountArgs = args;
+  container.append(page);
+  return page;
+}
+
 /** Composición adicional dentro del dashboard; las credenciales viven solo en memoria. */
 export function mountGestion({ config, dashboard: dashboardApp, defaultConfig, onSessionChange = () => {} }) {
   const root = document.querySelector('#gestion');
@@ -50,7 +57,7 @@ export function mountGestion({ config, dashboard: dashboardApp, defaultConfig, o
     await dashboardApp.control.connect({ clinicaDAO: new ClinicaService({ config: defaultConfig }), consultaDAO: new ConsultaService({ config: defaultConfig }), autoLoad: Boolean(defaultConfig.baseUrl) });
   }
   let module = 'tipoDocumento';
-  const page = new CatalogoPage(catalogRoot, {
+  const page = mountPage(catalogRoot, 'galenos-catalogos', {
     onRelations(parent,kind) { if(kind==='examen'){openRelations('examenTipoExamen',parent);return;}if(!flow)return;catalogRoot.hidden=true;personaRoot.hidden=true;flowRoot.hidden=false;flow.open(parent); },
     async onLogin(username, password) {
       if (!config?.baseUrl) throw DefaultError.validation('Configura la URL del entorno de gestión.');
@@ -76,26 +83,26 @@ export function mountGestion({ config, dashboard: dashboardApp, defaultConfig, o
         pasoDAO: new ConsultaProcedimientoPasoService({ config: api }), pacienteDAO: new PersonaRolService({ config: api }), procedimientoDAO: new ProcedimientoService({ config: api }) });
       ordersPage?.destroy();orders?.destroy();
       orders = new OrdenControl({ dashboard: dashboardApp.control, contexto: context.datos, ordenDAO: new OrdenExamenService({config:api}), resultadoDAO: new ExamenResultadoService({config:api}) });
-      ordersPage = new OrdenPage(ordersRoot, orders);
-      clinicalPage = new ConsultaGestionPage(clinicalRoot, clinical, {onOrders: paso => orders.open(paso)});clinicalRoot.hidden = false;
+      ordersPage = mountPage(ordersRoot, 'galenos-ordenes', orders);
+      clinicalPage = mountPage(clinicalRoot, 'galenos-consulta-gestion', clinical, {onOrders: paso => orders.open(paso)});clinicalRoot.hidden = false;
       personaPage?.destroy();personaControl?.destroy();
       personaControl = new PersonaControl({ contexto: context.datos, daos: {
         persona: new PersonaService({ config: api }), documento: new DocumentoService({ config: api }), medioContacto: new MedioContactoService({ config: api }),
         personaRol: new PersonaRolService({ config: api }), tipoDocumento: new TipoDocumentoService({ config: api }), tipoMedioContacto: new TipoMedioContactoService({ config: api }),
         rol: new RolService({ config: api }), clinica: new ClinicaService({ config: api })
-      } });personaPage = new PersonaPage(personaRoot, personaControl);
-      flowPage?.destroy();flow?.destroy();flow=new ProcedimientoControl({pasoDAO:new ProcedimientoPasoService({config:api}),rolDAO:new RolService({config:api}),examenDAO:new ExamenService({config:api}),contexto:context.datos});flowPage=new ProcedimientoPage(flowRoot,flow,()=>showModule('procedimiento'),openRelations);
-      relationsPage?.destroy();relations?.destroy();relations=new RelacionControl({contexto:context.datos,daos:{examenTipoExamen:new ExamenTipoExamenService({config:api}),procedimientoPasoExamen:new ProcedimientoPasoExamenService({config:api}),procedimientoPasoSecuencia:new ProcedimientoPasoSecuenciaService({config:api}),tipoExamen:new TipoExamenService({config:api}),examen:new ExamenService({config:api}),procedimientoPaso:new ProcedimientoPasoService({config:api})}});relationsPage=new RelacionPage(relationsRoot,relations,()=>{relationsRoot.hidden=true;if(relations.state.kind==='examenTipoExamen')showModule('examen');else{flowRoot.hidden=false;flow.load();}});
+      } });personaPage = mountPage(personaRoot, 'galenos-personas', personaControl);
+      flowPage?.destroy();flow?.destroy();flow=new ProcedimientoControl({pasoDAO:new ProcedimientoPasoService({config:api}),rolDAO:new RolService({config:api}),examenDAO:new ExamenService({config:api}),contexto:context.datos});flowPage=mountPage(flowRoot, 'galenos-procedimientos', flow,()=>showModule('procedimiento'),openRelations);
+      relationsPage?.destroy();relations?.destroy();relations=new RelacionControl({contexto:context.datos,daos:{examenTipoExamen:new ExamenTipoExamenService({config:api}),procedimientoPasoExamen:new ProcedimientoPasoExamenService({config:api}),procedimientoPasoSecuencia:new ProcedimientoPasoSecuenciaService({config:api}),tipoExamen:new TipoExamenService({config:api}),examen:new ExamenService({config:api}),procedimientoPaso:new ProcedimientoPasoService({config:api})}});relationsPage=mountPage(relationsRoot, 'galenos-relaciones', relations,()=>{relationsRoot.hidden=true;if(relations.state.kind==='examenTipoExamen')showModule('examen');else{flowRoot.hidden=false;flow.load();}});
       showModule(module);
     },
     onLogout() { if(clinical?.state.writing || personaControl?.state.writing || orders?.state.writing || flow?.state.writing || relations?.state.writing)return; control?.destroy();control = null;personaPage?.destroy();personaControl?.destroy();personaControl = null;flowPage?.destroy();flow?.destroy();flow=null;flowRoot.hidden=true;relationsPage?.destroy();relations?.destroy();relations=null;relationsRoot.hidden=true;personaRoot.hidden = true;catalogRoot.hidden = false;page.signedOut();onSessionChange(null);disconnect(); }
   });
-  function navigate(event) {
+  function navigate(event, updateHistory = true) {
     const anchor = event.target.closest('a');
     if (!anchor || (!anchor.dataset.module && anchor.getAttribute('href') !== '#main')) return;
     event.preventDefault();
     if (control?.state.writing || clinical?.state.writing || personaControl?.state.writing || orders?.state.writing || flow?.state.writing || relations?.state.writing) { page.error(DefaultError.validation('Espera a que termine el guardado.'));return; }
-    if (location.hash !== anchor.getAttribute('href')) history.pushState(null,'',anchor.getAttribute('href'));
+    if (updateHistory && location.hash !== anchor.getAttribute('href')) history.pushState(null,'',anchor.getAttribute('href'));
     const isDashboard = !anchor.dataset.module;
     dashboard.hidden = !isDashboard;root.hidden = isDashboard;
     nav.querySelectorAll('a').forEach(link => { link.classList.toggle('nav-current', link.getAttribute('href') === anchor.getAttribute('href'));if (link.getAttribute('href') === anchor.getAttribute('href')) link.setAttribute('aria-current', 'page');else link.removeAttribute('aria-current'); });
@@ -105,7 +112,11 @@ export function mountGestion({ config, dashboard: dashboardApp, defaultConfig, o
   const brand = document.querySelector('.brand');
   brand?.addEventListener('click',navigate);
   nav.addEventListener('click', navigate);
-  function openHash() { const anchor=Array.from(nav.querySelectorAll('a')).find(a=>a.getAttribute('href')===location.hash);if(anchor)anchor.click(); }
+  function openHash() {
+    const anchor = Array.from(nav.querySelectorAll('a')).find(a => a.getAttribute('href') === location.hash)
+      || nav.querySelector('a[href="#main"]');
+    if (anchor) navigate({ target: anchor, preventDefault() {} }, false);
+  }
   window.addEventListener('hashchange',openHash);
   window.addEventListener('popstate',openHash);
   openHash();

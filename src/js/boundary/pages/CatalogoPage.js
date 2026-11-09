@@ -26,8 +26,9 @@ function element(tag, text, className) {
 }
 
 /** Vista de los cinco catálogos, integrada en el shell del dashboard. No llama a la API. */
-export default class CatalogoPage {
-  constructor(root, { onLogin, onLogout, onRelations }) {
+export default class CatalogoPage extends HTMLElement {
+  constructor() { super(); }
+  mount({ onLogin, onLogout, onRelations }) { const root = this; this._mounted = true;
     this.onRelations=onRelations;this.root = root;this.control = null;this.module = 'tipoDocumento';
     this.login = element('form', undefined, 'panel gestion-login');
     this.login.append(element('h2', 'Acceso a gestión'), element('p', 'Utiliza tu cuenta autorizada de GalenosSV.'));
@@ -37,14 +38,14 @@ export default class CatalogoPage {
     }
     this.enter = element('button', 'Iniciar sesión', 'primary-button');this.enter.type = 'submit';this.login.append(this.enter);
     this.notice = element('p', undefined, 'action-error');this.notice.setAttribute('role', 'alert');this.notice.hidden = true;
-    this.title = element('h1', names[this.module]);this.subtitle = element('p', descriptions[this.module], 'subtitle');this.identity = element('p');
+    this.headingNode = element('h1', names[this.module]);this.subtitle = element('p', descriptions[this.module], 'subtitle');this.identity = element('p');
     this.logout = element('button', 'Cerrar sesión', 'secondary-button');this.logout.type = 'button';this.logout.onclick = () => onLogout();
     this.tools = element('div', undefined, 'gestion-tools');this.search = element('form');
     this.query = element('input');this.query.type = 'search';this.query.placeholder = 'Buscar por nombre';this.query.setAttribute('aria-label', 'Buscar catálogo por nombre');
     const search = element('button', 'Buscar', 'secondary-button');search.type = 'submit';
     this.search.append(this.query, search);this.newButton = element('button', 'Nuevo registro', 'primary-button');this.newButton.type = 'button';
     this.tools.append(this.logout);
-    this.heading = element('div');this.heading.append(this.title, this.subtitle);this.header = element('div', undefined, 'catalogo-header');this.header.append(this.heading, this.newButton);this.newButton.hidden = true;
+    this.heading = element('div');this.heading.append(this.headingNode, this.subtitle);this.header = element('div', undefined, 'catalogo-header');this.header.append(this.heading, this.newButton);this.newButton.hidden = true;
     this.results = element('div', undefined, 'panel table-scroll');this.total = element('p');
     this.previous = element('button', 'Anterior', 'pagination-button');this.next = element('button', 'Siguiente', 'pagination-button');
     this.previous.type = this.next.type = 'button';const pager = element('div', undefined, 'pagination');pager.append(this.total, this.previous, this.next);
@@ -52,8 +53,8 @@ export default class CatalogoPage {
     this.dialog = element('dialog', undefined, 'gestion-dialog');this.form = element('form');this.formFields = element('div', undefined, 'gestion-fields');
     this.save = element('button', 'Guardar', 'primary-button');this.save.type = 'submit';
     this.cancel = element('button', 'Cancelar', 'secondary-button');this.cancel.type = 'button';
-    this.remove = element('button', 'Eliminar registro', 'secondary-button');this.remove.type = 'button';
-    const actions = element('div', undefined, 'gestion-tools');actions.append(this.cancel, this.remove, this.save);
+    this.removeButton = element('button', 'Eliminar registro', 'secondary-button');this.removeButton.type = 'button';
+    const actions = element('div', undefined, 'gestion-tools');actions.append(this.cancel, this.removeButton, this.save);
     this.form.append(this.formFields, actions);this.dialog.append(this.form);
     root.append(this.header, this.notice, this.login, this.content, this.dialog);
     this.login.onsubmit = async event => {
@@ -75,7 +76,7 @@ export default class CatalogoPage {
       }
       this.control.save(data);
     };
-    this.remove.onclick = () => {
+    this.removeButton.onclick = () => {
       if (confirm('¿Eliminar este registro? Si tiene referencias la operación será rechazada.')) this.control.remove();
     };
   }
@@ -90,12 +91,12 @@ export default class CatalogoPage {
   }
   error(error) { this.notice.className='action-error';this.notice.setAttribute('role','alert');this.notice.textContent = gestionError(error);this.notice.hidden = false;notify(this.root, 'error', this.notice.textContent); }
   open(module) {
-    this.module = module;this.title.textContent = names[module];this.subtitle.textContent = descriptions[module];
+    this.module = module;this.headingNode.textContent = names[module];this.subtitle.textContent = descriptions[module];
     this.query.value = '';
     if (this.control) this.control.open(module).catch(error => this.error(error));
   }
   render(state) {
-    this.module = state.module;this.title.textContent = names[state.module];this.subtitle.textContent = descriptions[state.module];
+    this.module = state.module;this.headingNode.textContent = names[state.module];this.subtitle.textContent = descriptions[state.module];
     this.identity.textContent = `${state.contexto.actor} · ${state.contexto.puedeEscribir ? 'Edición autorizada' : 'Solo lectura'}`;
     this.newButton.disabled = !state.contexto.puedeEscribir || state.writing;
     this.logout.disabled = state.writing;this.query.disabled = state.writing;
@@ -150,8 +151,13 @@ export default class CatalogoPage {
     this.save.textContent=state.writing?'Guardando…':'Guardar';
     this.form.setAttribute('aria-busy',String(state.writing));
     this.save.disabled = state.writing || !state.contexto.puedeEscribir;this.cancel.disabled = state.writing;
-    this.remove.hidden = !['clinica', 'rol', 'procedimiento'].includes(state.module) || state.editor !== 'edit' || !state.contexto.puedeEscribir;
-    this.remove.disabled = state.writing;
+    this.removeButton.hidden = !['clinica', 'rol', 'procedimiento'].includes(state.module) || state.editor !== 'edit' || !state.contexto.puedeEscribir;
+    this.removeButton.disabled = state.writing;
     if (!state.editor && this.dialog.open) this.dialog.close();
   }
+  connectedCallback() { if (this._mountArgs) { const args = this._mountArgs; this._mountArgs = null; this.mount(...args); } }
+  disconnectedCallback() { if (this._mounted) { this._mounted = false; this.signedOut(); } }
+
 }
+
+if (!customElements.get('galenos-catalogos')) customElements.define('galenos-catalogos', CatalogoPage);

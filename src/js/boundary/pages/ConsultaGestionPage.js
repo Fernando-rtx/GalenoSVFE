@@ -5,8 +5,9 @@ const localDate = iso => { if (!iso) return '';const d = new Date(iso);d.setMinu
 const instant = value => value ? new Date(value).toISOString() : null;
 
 /** Formularios anidados en el dashboard; conserva los componentes originales. */
-export default class ConsultaGestionPage {
-  constructor(root, control, { onOrders } = {}) {
+export default class ConsultaGestionPage extends HTMLElement {
+  constructor() { super(); }
+  mount(control, { onOrders } = {}) { const root = this; this._mounted = true;
     this.onOrders = onOrders;
     this.root = root;this.control = control;this.editor = null;
     this.notice = node('p');this.notice.setAttribute('role','status');
@@ -14,11 +15,11 @@ export default class ConsultaGestionPage {
     this.create = node('button','Nueva consulta','primary-button');this.add = node('button','Asociar procedimiento','secondary-button');
     this.create.onclick = () => control.editConsulta(true);this.add.onclick = () => control.newProcedure();
     this.actions.append(this.create,this.add);
-    this.children = node('section',undefined,'panel consulta-relaciones');this.children.setAttribute('aria-label','Procedimientos y pasos de la consulta');
+    this.relationshipSection = node('section',undefined,'panel consulta-relaciones');this.relationshipSection.setAttribute('aria-label','Procedimientos y pasos de la consulta');
     this.dialog = node('dialog',undefined,'gestion-dialog');this.form = node('form');this.fields = node('div',undefined,'gestion-fields');this.error = node('p',undefined,'action-error');this.error.setAttribute('role','alert');
     this.save = node('button','Guardar','primary-button');this.save.type='submit';this.cancel = node('button','Cancelar','secondary-button');this.cancel.type='button';this.cancel.onclick = () => control.cancel();
     this.dialog.oncancel = event => { event.preventDefault();control.cancel(); };
-    const actions = node('div',undefined,'gestion-tools');actions.append(this.cancel,this.save);this.form.append(this.fields,this.error,actions);this.dialog.append(this.form);root.append(this.notice,this.actions,this.children,this.dialog);
+    const actions = node('div',undefined,'gestion-tools');actions.append(this.cancel,this.save);this.form.append(this.fields,this.error,actions);this.dialog.append(this.form);root.append(this.notice,this.actions,this.relationshipSection,this.dialog);
     this.form.onsubmit = event => { event.preventDefault();control.save(this.data(control.state)); };
     this.cards = document.querySelector('[data-ui=cards]');
     this.openCard = event => { const card=event.target.closest('tarjeta-consulta');if(card&&!event.composedPath().some(n=>n.matches?.('button')))control.openConsulta(card.consulta.idConsulta); };
@@ -71,19 +72,19 @@ export default class ConsultaGestionPage {
     this.create.disabled=state.writing||!state.clinic||!this.control.contexto.puedeEscribir;
     this.add.disabled=state.writing||!state.consulta||!this.control.contexto.puedeEscribir;
     editableRecord(document.querySelector('[data-ui=detail]'),()=>this.control.editConsulta(false),Boolean(state.consulta)&&!state.writing&&this.control.contexto.puedeEscribir);
-    this.children.hidden=!state.consulta;this.children.replaceChildren();
+    this.relationshipSection.hidden=!state.consulta;this.relationshipSection.replaceChildren();
     if(state.consulta) for(const [name,rows,total,first,key,id,label] of [
       ['Procedimientos asociados',state.asociaciones,state.totalAsociaciones,state.firstAsociaciones,'firstAsociaciones','idConsultaProcedimiento','idProcedimiento'],
       ['Pasos de la consulta',state.pasos,state.totalPasos,state.firstPasos,'firstPasos','idConsultaProcedimientoPaso','estado']]) {
-      this.children.append(node('h3',`${name} · ${total}`));
+      this.relationshipSection.append(node('h3',`${name} · ${total}`));
       for(const row of rows) {
         const line=node('div',undefined,'gestion-tools');line.append(node('span',`${row[label]} · ${row.fechaInicio??'Sin fecha'}`));
-        editableRecord(line,()=>key==='firstPasos'?this.control.editStep(row):this.control.editProcedure(row),!state.writing&&this.control.contexto.puedeEscribir);if(key === "firstPasos" && this.onOrders){const orders=node("button","Órdenes","secondary-button");orders.type="button";orders.disabled=state.writing;orders.onclick=()=>this.onOrders(row);line.append(orders);}this.children.append(line);
+        editableRecord(line,()=>key==='firstPasos'?this.control.editStep(row):this.control.editProcedure(row),!state.writing&&this.control.contexto.puedeEscribir);if(key === "firstPasos" && this.onOrders){const orders=node("button","Órdenes","secondary-button");orders.type="button";orders.disabled=state.writing;orders.onclick=()=>this.onOrders(row);line.append(orders);}this.relationshipSection.append(line);
       }
-      if(!rows.length)this.children.append(node('p','Sin registros asociados.'));
+      if(!rows.length)this.relationshipSection.append(node('p','Sin registros asociados.'));
       const pager=node('div',undefined,'gestion-tools');const prev=node('button','Anterior','pagination-button');const next=node('button','Siguiente','pagination-button');
       prev.type=next.type='button';prev.disabled=state.writing||first===0;next.disabled=state.writing||first+10>=total;
-      prev.onclick=()=>this.control.loadChildren({[key]:Math.max(0,first-10)});next.onclick=()=>this.control.loadChildren({[key]:first+10});pager.append(prev,next);this.children.append(pager);
+      prev.onclick=()=>this.control.loadChildren({[key]:Math.max(0,first-10)});next.onclick=()=>this.control.loadChildren({[key]:first+10});pager.append(prev,next);this.relationshipSection.append(pager);
     }
     if(state.editor && !this.dialog.open){this.build(state);this.dialog.showModal();}
     if(!state.editor&&this.dialog.open)this.dialog.close();
@@ -102,5 +103,10 @@ export default class ConsultaGestionPage {
     if(this.catalogPrev){this.catalogPrev.disabled=state.writing||state.firstProcedimientos===0;this.catalogNext.disabled=state.writing||state.firstProcedimientos+20>=state.totalProcedimientos;}
     this.error.textContent=state.error?gestionError(state.error):'';
   }
-  destroy(){editableRecord(document.querySelector('[data-ui=detail]'),()=>{},false);this.cards.removeEventListener('dblclick',this.openCard);this.unsubscribe();if(this.dialog.open)this.dialog.close();this.root.replaceChildren();}
+  destroy(){ if (!this._mounted) return; this._mounted = false;editableRecord(document.querySelector('[data-ui=detail]'),()=>{},false);this.cards.removeEventListener('dblclick',this.openCard);this.unsubscribe();if(this.dialog.open)this.dialog.close();this.root.replaceChildren();this.remove();}
+  connectedCallback() { if (this._mountArgs) { const args = this._mountArgs; this._mountArgs = null; this.mount(...args); } }
+  disconnectedCallback() { this.destroy(); }
+
 }
+
+if (!customElements.get('galenos-consulta-gestion')) customElements.define('galenos-consulta-gestion', ConsultaGestionPage);

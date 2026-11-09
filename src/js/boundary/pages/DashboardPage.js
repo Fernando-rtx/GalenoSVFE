@@ -2,8 +2,9 @@ import { consultaCardModel, errorMessage, formatDate } from './dashboard-present
 import { notify } from '../../app/notifications.js';
 
 /** Página Boundary. Recibe Control; no importa DAO, configuración HTTP ni Fetch. */
-export default class DashboardPage {
-  constructor(root, control) {
+export default class DashboardPage extends HTMLElement {
+  constructor() { super(); }
+  mount(control) { const root = this; this._mounted = true;
     this.root = root;
     this.control = control;
     this._events = new AbortController();
@@ -153,10 +154,14 @@ export default class DashboardPage {
     } else n.detailName.textContent = 'Detalle de consulta';
   }
 
-  destroy() {
+  destroy() { if (!this._mounted) return; this._mounted = false;
     this._closed = true;
     this._events.abort();
     this._unsubscribe();
     this.control.destroy();
   }
+  disconnectedCallback() { this.destroy(); }
+
 }
+
+if (!customElements.get('galenos-dashboard')) customElements.define('galenos-dashboard', DashboardPage);

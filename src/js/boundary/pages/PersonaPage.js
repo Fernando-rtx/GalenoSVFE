@@ -5,8 +5,9 @@ const names={persona:'Persona',documento:'Documento',medioContacto:'Medio de con
 const idField=kind=>'id'+kind[0].toUpperCase()+kind.slice(1);
 
 /** Persona y documentos/contactos/roles dentro del shell existente. */
-export default class PersonaPage {
- constructor(root,control){
+export default class PersonaPage extends HTMLElement {
+ constructor() { super(); }
+ mount(control){ const root = this; this._mounted = true;
   this.root=root;this.control=control;
   root.replaceChildren(node('h1','Personas'),node('p','Administra personas y sus documentos, medios de contacto y asignaciones de rol.','subtitle'));
   this.notice=node('p');this.notice.setAttribute('role','status');this.error=node('p',undefined,'action-error');this.error.setAttribute('role','alert');
@@ -74,5 +75,10 @@ export default class PersonaPage {
   this.form.querySelectorAll('input,button').forEach(input=>{input.disabled=state.writing;});
   this.formError.textContent=state.error?gestionError(state.error):'';
  }
- destroy(){this.unsubscribe();if(this.dialog.open)this.dialog.close();this.root.replaceChildren();}
+ destroy(){ if (!this._mounted) return; this._mounted = false;this.unsubscribe();if(this.dialog.open)this.dialog.close();this.root.replaceChildren();this.remove();}
+ connectedCallback() { if (this._mountArgs) { const args = this._mountArgs; this._mountArgs = null; this.mount(...args); } }
+  disconnectedCallback() { this.destroy(); }
+
 }
+
+if (!customElements.get('galenos-personas')) customElements.define('galenos-personas', PersonaPage);

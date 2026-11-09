@@ -1,5 +1,6 @@
 import { editableRecord } from '../editable-record.js';
 import { gestionError } from './dashboard-presentation.js';
+import { notify } from '../../app/notifications.js';
 
 // Sugerencias de presentación del enum JSF FormatoRegexSugerido; Java valida el formato.
 const formatosSugeridos = [
@@ -87,7 +88,7 @@ export default class CatalogoPage {
     this.unsubscribe?.();this.control = null;this.login.hidden = false;this.content.hidden = true;this.newButton.hidden = true;
     if (this.dialog.open) this.dialog.close();
   }
-  error(error) { this.notice.className='action-error';this.notice.setAttribute('role','alert');this.notice.textContent = gestionError(error);this.notice.hidden = false; }
+  error(error) { this.notice.className='action-error';this.notice.setAttribute('role','alert');this.notice.textContent = gestionError(error);this.notice.hidden = false;notify(this.root, 'error', this.notice.textContent); }
   open(module) {
     this.module = module;this.title.textContent = names[module];this.subtitle.textContent = descriptions[module];
     this.query.value = '';

@@ -1,4 +1,5 @@
 import { consultaCardModel, errorMessage, formatDate } from './dashboard-presentation.js';
+import { notify } from '../../app/notifications.js';
 
 /** Página Boundary. Recibe Control; no importa DAO, configuración HTTP ni Fetch. */
 export default class DashboardPage {
@@ -19,6 +20,7 @@ export default class DashboardPage {
         if (this._closed) return;
         this.nodes.actionError.textContent = errorMessage(error);
         this.nodes.actionError.hidden = false;
+        notify(this.root, 'error', this.nodes.actionError.textContent);
       });
     };
     on(this.nodes.clinica, 'change', () => perform(() => control.selectClinica(this.nodes.clinica.value || null)));

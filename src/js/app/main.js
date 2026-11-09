@@ -3,6 +3,8 @@ import { mountGestion } from './gestion.js';
 import { mountDashboard } from './dashboard.js';
 import { config as defaultConfig } from '../config/environment.example.js';
 import '../boundary/components/tarjeta_consulta.js';
+import '../boundary/components/galenos-notifications.js';
+import { registerPwa } from './pwa.js';
 
 const root = document.querySelector('[data-dashboard]');
 let appearance;
@@ -41,3 +43,4 @@ window.addEventListener('pagehide', () => { closed = true; if (dashboard) dashbo
 // Restaurar una página guardada en la caché de navegación crea solicitudes nuevas.
 window.addEventListener('pageshow', event => { if (event.persisted) { closed = false; start(); } });
 start();
+registerPwa();

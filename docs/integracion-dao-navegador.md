@@ -1,3 +1,5 @@
+> **Nota histórica:** este documento describe una revisión anterior y puede contener nombres DAO del frontend que ya fueron retirados. La arquitectura vigente está en [arquitectura-frontend.md](arquitectura-frontend.md).
+
 # Integración de los DAO de Itzep con el backend
 
 Fecha: 2026-10-23. Frontend revisado: `main` en `d0025b3` (PR #1 de Itzep,

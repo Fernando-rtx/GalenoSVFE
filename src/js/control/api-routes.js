@@ -79,7 +79,7 @@ const routes = {
   }),
 };
 
-// Entidades/DAO Java revisados; no existe recurso ni DTO REST publicado.
+// Entidades/Service Java revisados; no existe recurso ni DTO REST publicado.
 // Solo se registran claves del cliente: nunca se derivan URLs de nombres JPA.
 [
   'consultaProcedimiento',
@@ -103,7 +103,7 @@ const routes = {
   routes[resource] = {
     status: 'pending',
     source,
-    reason: 'Entidad y DAO Java verificados; recurso y DTO REST pendientes de Fernando.',
+    reason: 'Entidad y Service Java verificados; recurso y DTO REST pendientes de Fernando.',
     operations: {},
   };
 });

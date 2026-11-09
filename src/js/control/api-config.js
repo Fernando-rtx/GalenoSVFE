@@ -19,7 +19,7 @@ function immutableCopy(value) {
   return value;
 }
 
-/** Crear una instancia por entorno; nunca leer process.env desde un DAO. */
+/** Crear una instancia por entorno; nunca leer process.env desde un Service. */
 export function createApiConfig({
   baseUrl = null,
   timeoutMs = 15000,

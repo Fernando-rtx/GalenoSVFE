@@ -1,7 +1,7 @@
 /** Órdenes y resultados anidados en un paso de la consulta del dashboard. */
 export default class OrdenControl {
-  constructor({ ordenDAO, resultadoDAO, dashboard, contexto }) {
-    Object.assign(this, { ordenDAO, resultadoDAO, contexto });
+  constructor({ ordenService, resultadoService, dashboard, contexto }) {
+    Object.assign(this, { ordenService, resultadoService, contexto });
     this.listeners = new Set();
     this.request = null;
     this.closed = false;
@@ -57,9 +57,9 @@ export default class OrdenControl {
     this.request = request;
     const { clinic, paso, orden } = this.state;
     this.set({ first, error: null });
-    const dao = orden ? this.resultadoDAO : this.ordenDAO;
+    const service = orden ? this.resultadoService : this.ordenService;
     try {
-      const r = await dao.findRange(first, 10, {
+      const r = await service.findRange(first, 10, {
         signal: request.signal,
         query: {
           idClinica: clinic,
@@ -84,7 +84,7 @@ export default class OrdenControl {
   async save(data) {
     if (this.state.writing || !this.state.editor || !this.contexto.puedeEscribir) return;
     const { clinic, paso, orden, editor } = this.state;
-    const dao = orden ? this.resultadoDAO : this.ordenDAO;
+    const service = orden ? this.resultadoService : this.ordenService;
     const parent = orden
       ? { idOrdenExamen: orden.idOrdenExamen }
       : { idConsultaProcedimientoPaso: paso.idConsultaProcedimientoPaso };
@@ -92,12 +92,12 @@ export default class OrdenControl {
     this.set({ writing: true, error: null });
     try {
       if (editor.data)
-        await dao.update(
+        await service.update(
           editor.data[idKey],
           { ...data, ...parent },
           { query: { idClinica: clinic } },
         );
-      else await dao.create({ ...data, ...parent }, { query: { idClinica: clinic } });
+      else await service.create({ ...data, ...parent }, { query: { idClinica: clinic } });
       this.set({ writing: false, editor: null, message: 'Cambios guardados en PostgreSQL.' });
       if (clinic === this.state.clinic) await this.load(0);
     } catch (error) {

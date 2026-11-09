@@ -1,4 +1,4 @@
-import { createApiConfig, DefaultDAO } from '../../src/js/index.js';
+import { createApiConfig, DefaultService } from '../../src/js/index.js';
 
 // CONTRATO SINTÉTICO: exclusivo de pruebas; no describe endpoints de Galenos.
 export function fixtureRoutes() {
@@ -52,8 +52,8 @@ export function fixtureConfig(overrides = {}) {
   );
 }
 
-export function fixtureDAO(fetchImpl, overrides = {}) {
-  return new DefaultDAO({ resource: 'fixture', config: fixtureConfig(overrides), fetchImpl });
+export function fixtureService(fetchImpl, overrides = {}) {
+  return new DefaultService({ resource: 'fixture', config: fixtureConfig(overrides), fetchImpl });
 }
 
 export function jsonResponse(data, status = 200, headers = {}) {

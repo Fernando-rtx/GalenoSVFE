@@ -10,7 +10,7 @@ const response = (datos) =>
     totalDatos: Array.isArray(datos) ? datos.length : null,
   });
 describe('Consulta de gestión — coordinación unitaria sintética', () => {
-  let dashboard, dao, control;
+  let dashboard, service, control;
   beforeEach(() => {
     dashboard = {
       state: { consultas: [] },
@@ -21,7 +21,7 @@ describe('Consulta de gestión — coordinación unitaria sintética', () => {
       loadConsultas: sinon.stub().resolves(),
       openConsulta: sinon.stub().resolves(),
     };
-    dao = {
+    service = {
       create: sinon.stub().resolves(response({ idConsulta: id })),
       update: sinon.stub().resolves(response({ idConsulta: id })),
       get: sinon.stub().resolves(response([])),
@@ -29,11 +29,11 @@ describe('Consulta de gestión — coordinación unitaria sintética', () => {
     };
     control = new ConsultaGestionControl({
       dashboard,
-      consultaDAO: dao,
-      asociacionDAO: dao,
-      pasoDAO: dao,
-      pacienteDAO: dao,
-      procedimientoDAO: dao,
+      consultaService: service,
+      asociacionService: service,
+      pasoService: service,
+      pacienteService: service,
+      procedimientoService: service,
       contexto: { puedeEscribir: true },
     });
   });
@@ -42,7 +42,7 @@ describe('Consulta de gestión — coordinación unitaria sintética', () => {
     await control.editConsulta(true);
     await control.save({ idPersonaRol: 'paciente' });
     sinon.assert.calledOnceWithExactly(
-      dao.create,
+      service.create,
       { idPersonaRol: 'paciente' },
       { query: { idClinica: 'clinica-sintetica' } },
     );
@@ -52,7 +52,7 @@ describe('Consulta de gestión — coordinación unitaria sintética', () => {
   });
   it('un fallo HTTP conserva el formulario y no comunica éxito', async () => {
     const error = new Error('Fallo sintético');
-    dao.create.rejects(error);
+    service.create.rejects(error);
     await control.editConsulta(true);
     await control.save({});
     expect(control.state.error).to.equal(error);
@@ -64,24 +64,24 @@ describe('Consulta de gestión — coordinación unitaria sintética', () => {
     await control.editConsulta(true);
     await control.save({});
     expect(control.state.editor).to.equal(null);
-    sinon.assert.notCalled(dao.create);
+    sinon.assert.notCalled(service.create);
   });
   it('actualiza un paso con su responsable y asociación existentes, sin crear otro paso', async () => {
     const step = { idConsultaProcedimientoPaso: id };
     control.editStep(step);
     await control.save({ estado: 'EN_CURSO' });
     sinon.assert.calledOnceWithExactly(
-      dao.update,
+      service.update,
       id,
       { estado: 'EN_CURSO' },
       { query: { idClinica: 'clinica-sintetica' } },
     );
-    sinon.assert.notCalled(dao.create);
+    sinon.assert.notCalled(service.create);
   });
-  it('busca pacientes mediante PersonaRolDAO y el contexto de clínica', async () => {
+  it('busca pacientes mediante PersonaRolService y el contexto de clínica', async () => {
     await control.searchPatients('Persona');
-    sinon.assert.calledOnce(dao.get);
-    expect(dao.get.firstCall.args[0].query).to.deep.equal({
+    sinon.assert.calledOnce(service.get);
+    expect(service.get.firstCall.args[0].query).to.deep.equal({
       idClinica: 'clinica-sintetica',
       buscar: 'Persona',
     });

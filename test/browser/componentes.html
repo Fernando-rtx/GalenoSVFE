@@ -65,7 +65,7 @@
           .parseFromString(html, 'text/html')
           .querySelector('[data-dashboard]');
         document.body.append(root);
-        const clinicaDAO = {
+        const clinicaService = {
           findRange: async (first, max) =>
             new DefaultResponse({
               datos: clinicas.slice(first, first + max),
@@ -73,7 +73,7 @@
               status: 200,
             }),
         };
-        const consultaDAO = {
+        const consultaService = {
           findRange: async (first, max, options) => {
             const rows = consultas.filter((row) => row.idClinica === options.query.idClinica);
             return new DefaultResponse({
@@ -90,7 +90,7 @@
               status: 200,
             }),
         };
-        const dashboard = mountDashboard({ root, clinicaDAO, consultaDAO });
+        const dashboard = mountDashboard({ root, clinicaService, consultaService });
         await dashboard.ready;
         const select = root.querySelector('#clinica');
         select.value = clinicas[0].idClinica;

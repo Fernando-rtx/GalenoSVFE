@@ -1,6 +1,11 @@
 import { createServer } from 'node:http';
 import { expect } from 'chai';
-import { createApiConfig, TipoDocumentoDAO, ClinicaDAO, ConsultaDAO } from '../../src/js/index.js';
+import {
+  createApiConfig,
+  TipoDocumentoService,
+  ClinicaService,
+  ConsultaService,
+} from '../../src/js/index.js';
 import { TIPOS, CLINICAS, CONSULTAS } from '../helpers/rest-fixtures.js';
 import { rejection } from '../helpers/http-fixture.js';
 
@@ -53,9 +58,9 @@ describe('DAOs oficiales contra servidor HTTP sintético, sin mock de Fetch', ()
     const config = createApiConfig({
       baseUrl: `http://127.0.0.1:${server.address().port}/GalenosSV/resources/`,
     });
-    tipos = new TipoDocumentoDAO({ config });
-    clinicas = new ClinicaDAO({ config });
-    consultas = new ConsultaDAO({ config });
+    tipos = new TipoDocumentoService({ config });
+    clinicas = new ClinicaService({ config });
+    consultas = new ConsultaService({ config });
   });
 
   after(async () => {

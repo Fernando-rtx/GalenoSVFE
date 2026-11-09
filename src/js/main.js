@@ -22,7 +22,7 @@ async function start() {
     gestionConfig = environment.gestionConfig;
     authenticatedOnly = environment.authenticatedOnly === true;
   } catch (error) {
-    // Sin archivo local no se supone un backend: el DAO informa la configuración pendiente.
+    // Sin archivo local no se supone un backend: el Service informa la configuración pendiente.
     // Los errores de una configuración existente también se presentan, sin URL alternativa.
     document.querySelector('[data-ui="startupStatus"]').textContent =
       'Revisa la configuración local de conexión con el servidor.';

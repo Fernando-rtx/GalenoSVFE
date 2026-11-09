@@ -1,17 +1,22 @@
-import { createApiConfig, TipoDocumentoDAO, ClinicaDAO, ConsultaDAO } from '../../src/js/index.js';
+import {
+  createApiConfig,
+  TipoDocumentoService,
+  ClinicaService,
+  ConsultaService,
+} from '../../src/js/index.js';
 
 // Copiar como environment.local.js SOLO para el demo oficial sintético de Fernando.
 // Completar baseUrl con ./demo info. No emplear una base clínica real.
 export const config = createApiConfig({ baseUrl: null });
 if (!config.baseUrl) throw new Error('Completa baseUrl con la conexión pública de ./demo info.');
 
-const tipos = await new TipoDocumentoDAO({ config }).findRange(0, 1);
-const clinicas = await new ClinicaDAO({ config }).findRange(0, 2);
+const tipos = await new TipoDocumentoService({ config }).findRange(0, 1);
+const clinicas = await new ClinicaService({ config }).findRange(0, 2);
 if (tipos.totalDatos !== 2 || clinicas.totalDatos !== 2 || clinicas.datos.length !== 2) {
   throw new Error('El dataset no coincide con los fixtures del demo oficial.');
 }
 const query = { idClinica: clinicas.datos[0].idClinica };
-const consultas = await new ConsultaDAO({ config }).findRange(0, 1, { query });
+const consultas = await new ConsultaService({ config }).findRange(0, 1, { query });
 if (consultas.totalDatos !== 5 || consultas.datos.length !== 1) {
   throw new Error('Se esperaban cinco consultas sintéticas en la primera clínica del demo.');
 }

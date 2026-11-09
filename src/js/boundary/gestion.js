@@ -2,7 +2,7 @@ import RelacionControl from '../control/RelacionControl.js';
 import RelacionModel from './modelos/RelacionModel.js';
 import {
   createApiConfig,
-  HttpClient,
+  DefaultService,
   ClinicaService,
   RolService,
   TipoDocumentoService,
@@ -114,8 +114,8 @@ export function mountGestion({
     document.querySelector('[data-ui="startupStatus"]').textContent =
       'Inicia sesión desde el menú de gestión para seleccionar tu clínica.';
     await dashboardApp.control.connect({
-      clinicaDAO: new ClinicaService({ config: defaultConfig }),
-      consultaDAO: new ConsultaService({ config: defaultConfig }),
+      clinicaService: new ClinicaService({ config: defaultConfig }),
+      consultaService: new ConsultaService({ config: defaultConfig }),
       autoLoad: Boolean(defaultConfig.baseUrl),
     });
   }
@@ -143,13 +143,13 @@ export function mountGestion({
         routes: API_V2_ROUTES,
         http: { headers: { Authorization: authorization } },
       });
-      const context = await new HttpClient({ resource: 'contexto', config: api }).get();
+      const context = await new DefaultService({ resource: 'contexto', config: api }).get();
       document.querySelector('[data-ui="startupStatus"]').textContent = '';
       control?.destroy();
       control = new CatalogoControl({
         contexto: context.datos,
         module: module === 'persona' ? 'tipoDocumento' : module,
-        daos: {
+        services: {
           clinica: new ClinicaService({ config: api }),
           rol: new RolService({ config: api }),
           tipoDocumento: new TipoDocumentoService({ config: api }),
@@ -165,25 +165,25 @@ export function mountGestion({
       clinical?.destroy();
       const dashboardConfig = createApiConfig({ ...api, routes: API_V2_DASHBOARD_ROUTES });
       await dashboardApp.control.connect({
-        clinicaDAO: new ClinicaService({ config: dashboardConfig }),
-        consultaDAO: new ConsultaService({ config: api }),
+        clinicaService: new ClinicaService({ config: dashboardConfig }),
+        consultaService: new ConsultaService({ config: api }),
       });
       clinical = new ConsultaGestionControl({
         dashboard: dashboardApp.control,
         contexto: context.datos,
-        consultaDAO: new ConsultaService({ config: api }),
-        asociacionDAO: new ConsultaProcedimientoService({ config: api }),
-        pasoDAO: new ConsultaProcedimientoPasoService({ config: api }),
-        pacienteDAO: new PersonaRolService({ config: api }),
-        procedimientoDAO: new ProcedimientoService({ config: api }),
+        consultaService: new ConsultaService({ config: api }),
+        asociacionService: new ConsultaProcedimientoService({ config: api }),
+        pasoService: new ConsultaProcedimientoPasoService({ config: api }),
+        pacienteService: new PersonaRolService({ config: api }),
+        procedimientoService: new ProcedimientoService({ config: api }),
       });
       ordersPage?.destroy();
       orders?.destroy();
       orders = new OrdenControl({
         dashboard: dashboardApp.control,
         contexto: context.datos,
-        ordenDAO: new OrdenExamenService({ config: api }),
-        resultadoDAO: new ExamenResultadoService({ config: api }),
+        ordenService: new OrdenExamenService({ config: api }),
+        resultadoService: new ExamenResultadoService({ config: api }),
       });
       ordersPage = mountPage(ordersRoot, 'galenos-ordenes', orders);
       clinicalPage = mountPage(clinicalRoot, 'galenos-consulta-gestion', clinical, {
@@ -194,7 +194,7 @@ export function mountGestion({
       personaControl?.destroy();
       personaControl = new PersonaControl({
         contexto: context.datos,
-        daos: {
+        services: {
           persona: new PersonaService({ config: api }),
           documento: new DocumentoService({ config: api }),
           medioContacto: new MedioContactoService({ config: api }),
@@ -209,9 +209,9 @@ export function mountGestion({
       flowPage?.destroy();
       flow?.destroy();
       flow = new ProcedimientoControl({
-        pasoDAO: new ProcedimientoPasoService({ config: api }),
-        rolDAO: new RolService({ config: api }),
-        examenDAO: new ExamenService({ config: api }),
+        pasoService: new ProcedimientoPasoService({ config: api }),
+        rolService: new RolService({ config: api }),
+        examenService: new ExamenService({ config: api }),
         contexto: context.datos,
       });
       flowPage = mountPage(
@@ -225,7 +225,7 @@ export function mountGestion({
       relations?.destroy();
       relations = new RelacionControl({
         contexto: context.datos,
-        daos: {
+        services: {
           examenTipoExamen: new ExamenTipoExamenService({ config: api }),
           procedimientoPasoExamen: new ProcedimientoPasoExamenService({ config: api }),
           procedimientoPasoSecuencia: new ProcedimientoPasoSecuenciaService({ config: api }),

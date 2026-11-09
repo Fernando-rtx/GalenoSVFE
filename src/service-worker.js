@@ -1,5 +1,5 @@
 // Solo recursos públicos del shell. Ninguna ruta REST se guarda en Cache Storage.
-const CACHE = 'galenossv-shell-v4';
+const CACHE = 'galenossv-shell-v5';
 const PREFIX = 'galenossv-shell-';
 const ASSETS = new Set([
   '/',
@@ -28,7 +28,6 @@ const ASSETS = new Set([
   '/js/control/ConsultaProcedimientoService.js',
   '/js/control/ConsultaService.js',
   '/js/control/DashboardControl.js',
-  '/js/control/DefaultDAO.js',
   '/js/control/DefaultService.js',
   '/js/control/DocumentoService.js',
   '/js/control/ExamenResultadoService.js',
@@ -53,26 +52,6 @@ const ASSETS = new Set([
   '/js/control/api-config.js',
   '/js/control/api-routes.js',
   '/js/control/api-v2-routes.js',
-  '/js/control/dao/ClinicaDAO.js',
-  '/js/control/dao/ConsultaDAO.js',
-  '/js/control/dao/ConsultaProcedimientoDAO.js',
-  '/js/control/dao/ConsultaProcedimientoPasoDAO.js',
-  '/js/control/dao/DocumentoDAO.js',
-  '/js/control/dao/ExamenDAO.js',
-  '/js/control/dao/ExamenResultadoDAO.js',
-  '/js/control/dao/ExamenTipoExamenDAO.js',
-  '/js/control/dao/MedioContactoDAO.js',
-  '/js/control/dao/OrdenExamenDAO.js',
-  '/js/control/dao/PersonaDAO.js',
-  '/js/control/dao/PersonaRolDAO.js',
-  '/js/control/dao/ProcedimientoDAO.js',
-  '/js/control/dao/ProcedimientoPasoDAO.js',
-  '/js/control/dao/ProcedimientoPasoExamenDAO.js',
-  '/js/control/dao/ProcedimientoPasoSecuenciaDAO.js',
-  '/js/control/dao/RolDAO.js',
-  '/js/control/dao/TipoDocumentoDAO.js',
-  '/js/control/dao/TipoExamenDAO.js',
-  '/js/control/dao/TipoMedioContactoDAO.js',
   '/js/control/environment.example.js',
   '/js/control/query-parameters.js',
   '/js/control/rest-validators.js',

@@ -1,3 +1,5 @@
+> **Nota histórica:** este documento describe una revisión anterior y puede contener nombres DAO del frontend que ya fueron retirados. La arquitectura vigente está en [arquitectura-frontend.md](arquitectura-frontend.md).
+
 # Inventario de entidades y DAO — GalenosSV
 
 Revisión inicial de backend: [e4edd6c6](https://github.com/Fernando-rtx/Galenos/tree/e4edd6c6da3baa0988182d60f48cb9eccfd54e93).

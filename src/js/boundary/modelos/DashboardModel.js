@@ -1,7 +1,7 @@
 import { consultaCardModel, errorMessage, formatDate } from './dashboard-presentation.js';
 import { notify } from '../notifications.js';
 
-/** Página Boundary. Recibe Control; no importa DAO, configuración HTTP ni Fetch. */
+/** Página Boundary. Recibe Control; no importa Service, configuración HTTP ni Fetch. */
 export default class DashboardModel extends HTMLElement {
   constructor() {
     super();

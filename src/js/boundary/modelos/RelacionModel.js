@@ -18,7 +18,7 @@ const definitions = {
     optionId: 'idProcedimientoPaso',
   },
 };
-/** Tres asociaciones con el mismo formulario contextual; no accede a los DAO. */
+/** Tres asociaciones con el mismo formulario contextual; no accede a los Service. */
 export default class RelacionModel extends HTMLElement {
   constructor() {
     super();

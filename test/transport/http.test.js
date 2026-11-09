@@ -1,12 +1,12 @@
 import { createServer } from 'node:http';
 import { expect } from 'chai';
-import { fixtureDAO, rejection } from '../helpers/http-fixture.js';
+import { fixtureService, rejection } from '../helpers/http-fixture.js';
 
 // Servidor HTTP sintético local. Prueba Fetch real, no la API REST de Galenos.
 describe('Transporte HTTP real contra servidor sintético local', () => {
   let server;
   let baseUrl;
-  let dao;
+  let service;
   let requests;
 
   before(async () => {
@@ -47,7 +47,7 @@ describe('Transporte HTTP real contra servidor sintético local', () => {
       server.listen(0, '127.0.0.1', resolve);
     });
     baseUrl = `http://127.0.0.1:${server.address().port}/synthetic-api/`;
-    dao = fixtureDAO(globalThis.fetch, { baseUrl });
+    service = fixtureService(globalThis.fetch, { baseUrl });
   });
 
   after(async () => {
@@ -60,14 +60,14 @@ describe('Transporte HTTP real contra servidor sintético local', () => {
   });
 
   it('ejecuta GET, POST, PUT y DELETE con Fetch nativo y cabeceras reales', async () => {
-    const page = await dao.findRange(0, 2);
+    const page = await service.findRange(0, 2);
     expect(page.totalDatos).to.equal(11);
-    expect((await dao.findById('fixture')).datos.id).to.equal('fixture');
-    const created = await dao.create({ label: 'synthetic' });
+    expect((await service.findById('fixture')).datos.id).to.equal('fixture');
+    const created = await service.create({ label: 'synthetic' });
     expect(created.status).to.equal(201);
     expect(created.getHeader('Location')).to.equal('/fixture-items/new-fixture');
-    expect((await dao.update('fixture', { label: 'updated' })).datos).to.equal(null);
-    expect((await dao.deleteById('fixture')).status).to.equal(204);
+    expect((await service.update('fixture', { label: 'updated' })).datos).to.equal(null);
+    expect((await service.deleteById('fixture')).status).to.equal(204);
     expect(requests.map((request) => request.method)).to.deep.equal([
       'GET',
       'GET',
@@ -81,18 +81,18 @@ describe('Transporte HTTP real contra servidor sintético local', () => {
   });
 
   it('mantiene el estado 404 de una respuesta HTTP real', async () => {
-    expect(await rejection(dao.findById('missing-fixture'))).to.include({
+    expect(await rejection(service.findById('missing-fixture'))).to.include({
       type: 'http',
       status: 404,
     });
   });
 
   it('detecta JSON inválido recibido por red', async () => {
-    expect((await rejection(dao.findById('broken-fixture'))).type).to.equal('processing');
+    expect((await rejection(service.findById('broken-fixture'))).type).to.equal('processing');
   });
 
   it('aborta por timeout una conexión real', async () => {
-    const limited = fixtureDAO(globalThis.fetch, { baseUrl, timeoutMs: 50 });
+    const limited = fixtureService(globalThis.fetch, { baseUrl, timeoutMs: 50 });
     expect((await rejection(limited.findById('slow-fixture'))).code).to.equal('TIMEOUT');
   });
 });

@@ -6,13 +6,13 @@ const response = (datos) => new DefaultResponse({ datos, status: 200, totalDatos
 const step = { idConsultaProcedimientoPaso: 'paso-sintetico' };
 const order = { idOrdenExamen: 'orden-sintetica' };
 describe('Órdenes y resultados — coordinación unitaria sintética', () => {
-  let control, ordenDAO, resultadoDAO;
+  let control, ordenService, resultadoService;
   beforeEach(() => {
-    ordenDAO = {
+    ordenService = {
       findRange: sinon.stub().resolves(response([])),
       create: sinon.stub().resolves(response([])),
     };
-    resultadoDAO = {
+    resultadoService = {
       findRange: sinon.stub().resolves(response([])),
       create: sinon.stub().resolves(response([])),
     };
@@ -23,8 +23,8 @@ describe('Órdenes y resultados — coordinación unitaria sintética', () => {
       },
     };
     control = new OrdenControl({
-      ordenDAO,
-      resultadoDAO,
+      ordenService,
+      resultadoService,
       dashboard,
       contexto: { puedeEscribir: true },
     });
@@ -33,14 +33,14 @@ describe('Órdenes y resultados — coordinación unitaria sintética', () => {
   it('no permite editar filas de órdenes anteriores mientras carga resultados de otro padre', async () => {
     control.set({ paso: step, rows: [order] });
     let finish;
-    resultadoDAO.findRange.returns(
+    resultadoService.findRange.returns(
       new Promise((resolve) => {
         finish = resolve;
       }),
     );
     const pending = control.results(order);
     expect(control.state.rows).to.deep.equal([]);
-    expect(resultadoDAO.findRange.firstCall.args[2].query).to.deep.equal({
+    expect(resultadoService.findRange.firstCall.args[2].query).to.deep.equal({
       idClinica: 'clinica-sintetica',
       idOrden: 'orden-sintetica',
     });
@@ -52,12 +52,12 @@ describe('Órdenes y resultados — coordinación unitaria sintética', () => {
     control.set({ paso: step });
     control.edit();
     const error = new Error('Fallo sintético');
-    ordenDAO.create.rejects(error);
+    ordenService.create.rejects(error);
     await control.save({ indicaciones: 'Prueba' });
     expect(control.state.editor).not.to.equal(null);
     expect(control.state.error).to.equal(error);
     expect(control.state.message).to.equal('');
-    sinon.assert.notCalled(ordenDAO.findRange);
+    sinon.assert.notCalled(ordenService.findRange);
   });
   it('la sesión lectora no crea órdenes aunque invoque directamente el Control', async () => {
     control.contexto = { puedeEscribir: false };
@@ -65,6 +65,6 @@ describe('Órdenes y resultados — coordinación unitaria sintética', () => {
     control.edit();
     await control.save({ indicaciones: 'Prueba' });
     expect(control.state.editor).to.equal(null);
-    sinon.assert.notCalled(ordenDAO.create);
+    sinon.assert.notCalled(ordenService.create);
   });
 });

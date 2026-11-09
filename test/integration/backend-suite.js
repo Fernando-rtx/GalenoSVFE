@@ -1,11 +1,11 @@
 import { expect } from 'chai';
 import {
-  DefaultDAO,
+  DefaultService,
   DefaultResponse,
   DefaultError,
-  TipoDocumentoDAO,
-  ConsultaDAO,
-  ClinicaDAO,
+  TipoDocumentoService,
+  ConsultaService,
+  ClinicaService,
 } from '../../src/js/index.js';
 import { appendQuery } from '../../src/js/control/query-parameters.js';
 
@@ -135,14 +135,14 @@ export function registerIntegrationSuite(environment) {
     cases.forEach((testCase) => {
       describe(testCase.resource, () => {
         const factories = {
-          tipoDocumento: TipoDocumentoDAO,
-          consulta: ConsultaDAO,
-          clinica: ClinicaDAO,
+          tipoDocumento: TipoDocumentoService,
+          consulta: ConsultaService,
+          clinica: ClinicaService,
         };
-        const DAO = Object.prototype.hasOwnProperty.call(factories, testCase.resource)
+        const Service = Object.prototype.hasOwnProperty.call(factories, testCase.resource)
           ? factories[testCase.resource]
-          : DefaultDAO;
-        const dao = new DAO({ resource: testCase.resource, config });
+          : DefaultService;
+        const service = new Service({ resource: testCase.resource, config });
         const operations = config.routes[testCase.resource].operations;
         const options = { query: testCase.query };
         const detailOptions = { query: testCase.detailQuery || testCase.query };
@@ -150,12 +150,12 @@ export function registerIntegrationSuite(environment) {
         let cleanupRequired = false;
 
         after(async () => {
-          if (cleanupRequired) await dao.deleteById(createdId);
+          if (cleanupRequired) await service.deleteById(createdId);
         });
 
         if (operations.findRange) {
           it('consulta una página con Fetch real y lee su total cuando está disponible', async () => {
-            const response = await dao.findRange(testCase.first, testCase.max, options);
+            const response = await service.findRange(testCase.first, testCase.max, options);
             expect(response).to.be.instanceOf(DefaultResponse);
             expect(response.datos).to.be.an('array');
             expect(response.datos.length).to.be.at.most(testCase.max);
@@ -165,21 +165,23 @@ export function registerIntegrationSuite(environment) {
         }
         if (operations.findById) {
           it('consulta un identificador real del entorno de pruebas', async () => {
-            const response = await dao.findById(testCase.id, detailOptions);
+            const response = await service.findById(testCase.id, detailOptions);
             expect(response.datos).not.to.equal(null);
           });
         }
         if (testCase.missingId !== undefined) {
           it('conserva el estado confirmado para un ID inexistente', async () => {
             await assertHttpError(
-              dao.findById(testCase.missingId, detailOptions),
+              service.findById(testCase.missingId, detailOptions),
               testCase.missingStatus,
             );
           });
         }
         (testCase.listChecks || []).forEach((check) => {
           it(check.name, async () => {
-            const response = await dao.findRange(check.first, check.max, { query: check.query });
+            const response = await service.findRange(check.first, check.max, {
+              query: check.query,
+            });
             expect(response).to.be.instanceOf(DefaultResponse);
             expect(response.datos).to.have.lengthOf(check.expectedLength);
             expect(response.totalDatos).to.equal(check.expectedTotal);
@@ -190,19 +192,19 @@ export function registerIntegrationSuite(environment) {
         (testCase.listErrors || []).forEach((check) => {
           it(check.name, async () => {
             await assertHttpError(
-              dao.findRange(check.first, check.max, { query: check.query }),
+              service.findRange(check.first, check.max, { query: check.query }),
               check.status,
             );
           });
         });
         (testCase.detailErrors || []).forEach((check) => {
           it(check.name, async () => {
-            await assertHttpError(dao.findById(check.id, { query: check.query }), check.status);
+            await assertHttpError(service.findById(check.id, { query: check.query }), check.status);
           });
         });
         if (testCase.write) {
           it('crea, consulta, actualiza, vuelve a consultar y elimina datos de prueba', async () => {
-            const response = await dao.create(testCase.write.createData);
+            const response = await service.create(testCase.write.createData);
             createdId = testCase.write.idFromResponse(response);
             expect(
               createdId,
@@ -210,11 +212,11 @@ export function registerIntegrationSuite(environment) {
             ).not.to.equal(undefined);
             expect(createdId).not.to.equal(null);
             cleanupRequired = true;
-            await dao.findById(createdId);
-            await dao.update(createdId, testCase.write.updateData);
-            const updated = await dao.findById(createdId);
+            await service.findById(createdId);
+            await service.update(createdId, testCase.write.updateData);
+            const updated = await service.findById(createdId);
             testCase.write.assertUpdated(updated);
-            await dao.deleteById(createdId);
+            await service.deleteById(createdId);
             cleanupRequired = false;
           });
         }

@@ -1,3 +1,5 @@
+> **Nota histórica:** este documento describe una revisión anterior y puede contener nombres DAO del frontend que ya fueron retirados. La arquitectura vigente está en [arquitectura-frontend.md](arquitectura-frontend.md).
+
 # Preparación de Pull Request — módulo de acceso a datos
 
 Rama: feature/itzep-acceso-datos. Base oficial incorporada: origin/main,
@@ -81,30 +83,30 @@ Commits; sus SHA y la confirmación del push se informan al publicar.
 
 | Estado | Archivo |
 |---|---|
-| Nuevo | `src/js/config/api-config.js` |
-| Nuevo | `src/js/config/api-routes.js` |
-| Nuevo | `src/js/config/environment.example.js` |
+| Nuevo | `src/js/control/api-config.js` |
+| Nuevo | `src/js/control/api-routes.js` |
+| Nuevo | `src/js/control/environment.example.js` |
 | Nuevo | `src/js/control/DefaultDAO.js` |
-| Nuevo | `src/js/control/dao/ClinicaDAO.js` |
-| Nuevo | `src/js/control/dao/ConsultaDAO.js` |
-| Nuevo | `src/js/control/dao/ConsultaProcedimientoDAO.js` |
-| Nuevo | `src/js/control/dao/ConsultaProcedimientoPasoDAO.js` |
-| Nuevo | `src/js/control/dao/DocumentoDAO.js` |
-| Nuevo | `src/js/control/dao/ExamenDAO.js` |
-| Nuevo | `src/js/control/dao/ExamenResultadoDAO.js` |
-| Nuevo | `src/js/control/dao/ExamenTipoExamenDAO.js` |
-| Nuevo | `src/js/control/dao/MedioContactoDAO.js` |
-| Nuevo | `src/js/control/dao/OrdenExamenDAO.js` |
-| Nuevo | `src/js/control/dao/PersonaDAO.js` |
-| Nuevo | `src/js/control/dao/PersonaRolDAO.js` |
-| Nuevo | `src/js/control/dao/ProcedimientoDAO.js` |
-| Nuevo | `src/js/control/dao/ProcedimientoPasoDAO.js` |
-| Nuevo | `src/js/control/dao/ProcedimientoPasoExamenDAO.js` |
-| Nuevo | `src/js/control/dao/ProcedimientoPasoSecuenciaDAO.js` |
-| Nuevo | `src/js/control/dao/RolDAO.js` |
-| Nuevo | `src/js/control/dao/TipoDocumentoDAO.js` |
-| Nuevo | `src/js/control/dao/TipoExamenDAO.js` |
-| Nuevo | `src/js/control/dao/TipoMedioContactoDAO.js` |
+| Nuevo | `src/js/control/ClinicaDAO.js` |
+| Nuevo | `src/js/control/ConsultaDAO.js` |
+| Nuevo | `src/js/control/ConsultaProcedimientoDAO.js` |
+| Nuevo | `src/js/control/ConsultaProcedimientoPasoDAO.js` |
+| Nuevo | `src/js/control/DocumentoDAO.js` |
+| Nuevo | `src/js/control/ExamenDAO.js` |
+| Nuevo | `src/js/control/ExamenResultadoDAO.js` |
+| Nuevo | `src/js/control/ExamenTipoExamenDAO.js` |
+| Nuevo | `src/js/control/MedioContactoDAO.js` |
+| Nuevo | `src/js/control/OrdenExamenDAO.js` |
+| Nuevo | `src/js/control/PersonaDAO.js` |
+| Nuevo | `src/js/control/PersonaRolDAO.js` |
+| Nuevo | `src/js/control/ProcedimientoDAO.js` |
+| Nuevo | `src/js/control/ProcedimientoPasoDAO.js` |
+| Nuevo | `src/js/control/ProcedimientoPasoExamenDAO.js` |
+| Nuevo | `src/js/control/ProcedimientoPasoSecuenciaDAO.js` |
+| Nuevo | `src/js/control/RolDAO.js` |
+| Nuevo | `src/js/control/TipoDocumentoDAO.js` |
+| Nuevo | `src/js/control/TipoExamenDAO.js` |
+| Nuevo | `src/js/control/TipoMedioContactoDAO.js` |
 | Nuevo | `src/js/control/query-parameters.js` |
 | Nuevo | `src/js/control/rest-validators.js` |
 | Nuevo | `src/js/entity/DefaultError.js` |

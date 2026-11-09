@@ -9,8 +9,8 @@ const definitions = {
 };
 /** Asociaciones de tipos, exámenes y secuencias dentro de su registro padre. */
 export default class RelacionControl {
-  constructor({ daos, contexto }) {
-    Object.assign(this, { daos, contexto });
+  constructor({ services, contexto }) {
+    Object.assign(this, { services, contexto });
     this.listeners = new Set();
     this.requests = {};
     this.closed = false;
@@ -60,7 +60,7 @@ export default class RelacionControl {
     const { kind, parent } = this.state;
     const d = definitions[kind];
     try {
-      const r = await this.daos[kind].findRange(first, 10, {
+      const r = await this.services[kind].findRange(first, 10, {
         signal: request.signal,
         query: { [d.parent]: parent[d.parent] },
       });
@@ -80,7 +80,7 @@ export default class RelacionControl {
       let first = 0,
         page;
       do {
-        page = await this.daos[d.options].findRange(first, 20, {
+        page = await this.services[d.options].findRange(first, 20, {
           signal: request.signal,
           query:
             d.options === 'procedimientoPaso' ? { idProcedimiento: parent.idProcedimiento } : {},
@@ -108,8 +108,8 @@ export default class RelacionControl {
     const id = 'id' + kind[0].toUpperCase() + kind.slice(1);
     this.set({ writing: true, error: null });
     try {
-      if (editor.data) await this.daos[kind].update(editor.data[id], payload);
-      else await this.daos[kind].create(payload);
+      if (editor.data) await this.services[kind].update(editor.data[id], payload);
+      else await this.services[kind].create(payload);
       this.set({ writing: false, editor: null, message: 'Asociación guardada en PostgreSQL.' });
       await this.load(0);
     } catch (error) {
@@ -122,7 +122,7 @@ export default class RelacionControl {
     const id = 'id' + kind[0].toUpperCase() + kind.slice(1);
     this.set({ writing: true, error: null });
     try {
-      await this.daos[kind].deleteById(row[id]);
+      await this.services[kind].deleteById(row[id]);
       this.set({ writing: false, message: 'Asociación retirada.' });
       await this.load(0);
     } catch (error) {

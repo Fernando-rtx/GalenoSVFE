@@ -6,19 +6,22 @@ const emptyRows = () => Object.freeze([]);
 
 /** Estado y coordinación del dashboard. No conoce DOM, tarjetas ni Fetch. */
 export default class DashboardControl {
-  constructor({ clinicaDAO, consultaDAO, pageSize = 10 }) {
+  constructor({ clinicaService, consultaService, pageSize = 10 }) {
     if (
-      !clinicaDAO ||
-      typeof clinicaDAO.findRange !== 'function' ||
-      !consultaDAO ||
-      typeof consultaDAO.findRange !== 'function' ||
-      typeof consultaDAO.findById !== 'function'
+      !clinicaService ||
+      typeof clinicaService.findRange !== 'function' ||
+      !consultaService ||
+      typeof consultaService.findRange !== 'function' ||
+      typeof consultaService.findById !== 'function'
     ) {
-      throw DefaultError.validation('Se requieren ClinicaDAO y ConsultaDAO.', 'INVALID_CONFIG');
+      throw DefaultError.validation(
+        'Se requieren ClinicaService y ConsultaService.',
+        'INVALID_CONFIG',
+      );
     }
     this._validatePage(0, pageSize);
-    this.clinicaDAO = clinicaDAO;
-    this.consultaDAO = consultaDAO;
+    this.clinicaService = clinicaService;
+    this.consultaService = consultaService;
     this._listeners = new Set();
     this._requests = {};
     this._disposed = false;
@@ -91,10 +94,10 @@ export default class DashboardControl {
   }
 
   /** Cambio explícito de identidad/transporte, sin sustituir el dashboard ni sus componentes. */
-  async connect({ clinicaDAO, consultaDAO, autoLoad = true }) {
+  async connect({ clinicaService, consultaService, autoLoad = true }) {
     ['clinicas', 'consultas', 'detalle'].forEach((key) => this._cancel(key));
-    this.clinicaDAO = clinicaDAO;
-    this.consultaDAO = consultaDAO;
+    this.clinicaService = clinicaService;
+    this.consultaService = consultaService;
     const previous = {
       idClinica: this.state.idClinica,
       first: this.state.first,
@@ -124,7 +127,7 @@ export default class DashboardControl {
       let first = 0;
       let response;
       do {
-        response = await this.clinicaDAO.findRange(first, this.state.max, {
+        response = await this.clinicaService.findRange(first, this.state.max, {
           signal: request.signal,
         });
         if (!this._current('clinicas', request)) return;
@@ -199,7 +202,7 @@ export default class DashboardControl {
     const request = this._begin('consultas');
     const { idClinica, filtros, first, max } = this.state;
     try {
-      const response = await this.consultaDAO.findRange(first, max, {
+      const response = await this.consultaService.findRange(first, max, {
         query: { ...filtros, idClinica },
         signal: request.signal,
       });
@@ -232,7 +235,7 @@ export default class DashboardControl {
     const request = this._begin('detalle');
     this._set({ idConsulta, detalle: null, detalleStatus: 'loading', detalleError: null });
     try {
-      const response = await this.consultaDAO.findById(idConsulta, {
+      const response = await this.consultaService.findById(idConsulta, {
         query: { idClinica: this.state.idClinica },
         signal: request.signal,
       });

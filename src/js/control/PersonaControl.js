@@ -1,7 +1,7 @@
 /** Registro de personas y asociaciones anidadas; no conoce DOM ni Fetch. */
 export default class PersonaControl {
-  constructor({ daos, contexto }) {
-    this.daos = daos;
+  constructor({ services, contexto }) {
+    this.services = services;
     this.contexto = contexto;
     this.listeners = new Set();
     this.requests = {};
@@ -56,7 +56,7 @@ export default class PersonaControl {
     await this.read(
       'list',
       (signal) =>
-        this.daos.persona.findRange(s.first, s.max, {
+        this.services.persona.findRange(s.first, s.max, {
           signal,
           query: { nombres: s.nombres, apellidos: s.apellidos },
         }),
@@ -70,7 +70,7 @@ export default class PersonaControl {
     this.set({ editor: null, error: null, person: null, children: [], childFirst: 0 });
     await this.read(
       'person',
-      (signal) => this.daos.persona.findById(id, { signal }),
+      (signal) => this.services.persona.findById(id, { signal }),
       (r) => this.set({ person: r.datos }),
     );
     if (this.state.person) await this.loadChildren();
@@ -82,7 +82,7 @@ export default class PersonaControl {
     await this.read(
       'children',
       (signal) =>
-        this.daos[tab].findRange(childFirst, 10, {
+        this.services[tab].findRange(childFirst, 10, {
           signal,
           query: { idPersona: person.idPersona },
         }),
@@ -114,7 +114,7 @@ export default class PersonaControl {
           let first = 0,
             page;
           do {
-            page = await this.daos[resource].findRange(first, 20, { signal });
+            page = await this.services[resource].findRange(first, 20, { signal });
             values.push(...page.datos);
             first += page.datos.length;
           } while (page.datos.length && first < page.totalDatos);
@@ -140,8 +140,8 @@ export default class PersonaControl {
     try {
       const payload = kind === 'persona' ? data : { ...data, idPersona: person.idPersona };
       const saved = selected
-        ? await this.daos[kind].update(selected[id], payload)
-        : await this.daos[kind].create(payload);
+        ? await this.services[kind].update(selected[id], payload)
+        : await this.services[kind].create(payload);
       this.set({
         writing: false,
         editor: null,
@@ -160,7 +160,7 @@ export default class PersonaControl {
     const id = 'id' + tab[0].toUpperCase() + tab.slice(1);
     this.set({ writing: true, error: null, message: '' });
     try {
-      await this.daos[tab].deleteById(row[id]);
+      await this.services[tab].deleteById(row[id]);
       this.set({ writing: false, message: 'Registro eliminado.' });
       await this.loadChildren({ childFirst: 0 });
     } catch (error) {

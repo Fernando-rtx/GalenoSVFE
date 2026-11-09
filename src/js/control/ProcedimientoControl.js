@@ -1,7 +1,7 @@
-/** Plantillas de procedimiento: pasos, rol y exámenes mediante los DAO existentes. */
+/** Plantillas de procedimiento: pasos, rol y exámenes mediante los Service existentes. */
 export default class ProcedimientoControl {
-  constructor({ pasoDAO, rolDAO, examenDAO, contexto }) {
-    Object.assign(this, { pasoDAO, rolDAO, examenDAO, contexto });
+  constructor({ pasoService, rolService, examenService, contexto }) {
+    Object.assign(this, { pasoService, rolService, examenService, contexto });
     this.listeners = new Set();
     this.request = null;
     this.closed = false;
@@ -40,7 +40,7 @@ export default class ProcedimientoControl {
     const request = new AbortController();
     this.request = request;
     try {
-      const r = await this.pasoDAO.findRange(first, 10, {
+      const r = await this.pasoService.findRange(first, 10, {
         signal: request.signal,
         query: { idProcedimiento: this.state.parent.idProcedimiento },
       });
@@ -55,12 +55,12 @@ export default class ProcedimientoControl {
     this.request?.abort();
     const request = new AbortController();
     this.request = request;
-    const all = async (dao, query = {}) => {
+    const all = async (service, query = {}) => {
       const rows = [];
       let page,
         first = 0;
       do {
-        page = await dao.findRange(first, 20, { signal: request.signal, query });
+        page = await service.findRange(first, 20, { signal: request.signal, query });
         rows.push(...page.datos);
         first += page.datos.length;
       } while (page.datos.length && first < page.totalDatos);
@@ -68,9 +68,9 @@ export default class ProcedimientoControl {
     };
     try {
       const [roles, examenes, origins] = await Promise.all([
-        all(this.rolDAO),
-        all(this.examenDAO),
-        all(this.pasoDAO, { idProcedimiento: this.state.parent.idProcedimiento }),
+        all(this.rolService),
+        all(this.examenService),
+        all(this.pasoService, { idProcedimiento: this.state.parent.idProcedimiento }),
       ]);
       if (!request.signal.aborted) this.set({ roles, examenes, origins });
     } catch (error) {
@@ -88,9 +88,12 @@ export default class ProcedimientoControl {
     const selected = this.state.editor.data;
     this.set({ writing: true, error: null });
     try {
-      if (selected) await this.pasoDAO.update(selected.idProcedimientoPaso, data);
+      if (selected) await this.pasoService.update(selected.idProcedimientoPaso, data);
       else
-        await this.pasoDAO.create({ ...data, idProcedimiento: this.state.parent.idProcedimiento });
+        await this.pasoService.create({
+          ...data,
+          idProcedimiento: this.state.parent.idProcedimiento,
+        });
       this.set({ writing: false, editor: null, message: 'Paso guardado en PostgreSQL.' });
       await this.load(0);
     } catch (error) {
@@ -101,7 +104,7 @@ export default class ProcedimientoControl {
     if (this.state.writing || !this.contexto.puedeEscribir) return;
     this.set({ writing: true, error: null });
     try {
-      await this.pasoDAO.deleteById(row.idProcedimientoPaso);
+      await this.pasoService.deleteById(row.idProcedimientoPaso);
       this.set({ writing: false, message: 'Paso terminal eliminado.' });
       await this.load(0);
     } catch (error) {

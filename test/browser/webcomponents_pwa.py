@@ -100,7 +100,7 @@ with sync_playwright() as playwright:
       return {keys, urls:entries.map(request => new URL(request.url).pathname)};
     }"""
     )
-    assert any(key.startswith("galenossv-shell-v4") for key in cache["keys"])
+    assert any(key.startswith("galenossv-shell-v5") for key in cache["keys"])
     assert "/" in cache["urls"]
     assert all(
         "/api/" not in url and "/resources/v2/" not in url and "environment.local.js" not in url

@@ -27,7 +27,7 @@ error, UUID y tipos/nulabilidad son los publicados en el contrato; el DAO no
 deriva propiedades de JPA, no incluye relaciones como documentoCollection y
 no inventa doctorNombre, pacienteNombre ni estados clínicos.
 
-El registro ejecutable es `src/js/config/api-routes.js`. La cabecera de total
+El registro ejecutable es `src/js/control/api-routes.js`. La cabecera de total
 se declara obligatoria para listas; los detalles devuelven `totalDatos: null`.
 `DefaultResponse` adapta a `datos` y `totalDatos` sin exigir un sobre JSON.
 

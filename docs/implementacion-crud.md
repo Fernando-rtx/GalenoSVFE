@@ -1,3 +1,5 @@
+> **Nota histórica:** este documento describe una revisión anterior y puede contener nombres DAO del frontend que ya fueron retirados. La arquitectura vigente está en [arquitectura-frontend.md](arquitectura-frontend.md).
+
 # Correspondencia del primer entregable
 
 El dashboard original sigue siendo el centro de la aplicación. DashboardControl, DashboardPage,

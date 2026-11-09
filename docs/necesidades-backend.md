@@ -1,3 +1,5 @@
+> **Nota histórica:** este documento describe una revisión anterior y puede contener nombres DAO del frontend que ya fueron retirados. La arquitectura vigente está en [arquitectura-frontend.md](arquitectura-frontend.md).
+
 # Necesidades REST para Fernando — propuestas pendientes
 
 Fuente: inventario Java de Galenos main `e4edd6c6` y contrato público 0.2.

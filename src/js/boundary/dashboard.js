@@ -6,14 +6,14 @@ import DashboardModel from './modelos/DashboardModel.js';
 export function mountDashboard({
   root,
   config = createApiConfig(),
-  clinicaDAO,
-  consultaDAO,
+  clinicaService,
+  consultaService,
   pageSize = 10,
   autoLoad = true,
 }) {
   const control = new DashboardControl({
-    clinicaDAO: clinicaDAO || new ClinicaService({ config }),
-    consultaDAO: consultaDAO || new ConsultaService({ config }),
+    clinicaService: clinicaService || new ClinicaService({ config }),
+    consultaService: consultaService || new ConsultaService({ config }),
     pageSize,
   });
   const page = root;

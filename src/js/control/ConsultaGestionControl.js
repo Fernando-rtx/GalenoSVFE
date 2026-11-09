@@ -4,20 +4,20 @@ import DefaultError from '../entity/DefaultError.js';
 export default class ConsultaGestionControl {
   constructor({
     dashboard,
-    consultaDAO,
-    asociacionDAO,
-    pasoDAO,
-    pacienteDAO,
-    procedimientoDAO,
+    consultaService,
+    asociacionService,
+    pasoService,
+    pacienteService,
+    procedimientoService,
     contexto,
   }) {
     Object.assign(this, {
       dashboard,
-      consultaDAO,
-      asociacionDAO,
-      pasoDAO,
-      pacienteDAO,
-      procedimientoDAO,
+      consultaService,
+      asociacionService,
+      pasoService,
+      pacienteService,
+      procedimientoService,
       contexto,
     });
     this.listeners = new Set();
@@ -100,7 +100,7 @@ export default class ConsultaGestionControl {
     const clinic = this.state.clinic;
     await this.read(
       'pacientes',
-      (signal) => this.pacienteDAO.get({ signal, query: { idClinica: clinic, buscar } }),
+      (signal) => this.pacienteService.get({ signal, query: { idClinica: clinic, buscar } }),
       (result) => this.set({ pacientes: result.datos }),
     );
   }
@@ -139,7 +139,8 @@ export default class ConsultaGestionControl {
   async loadProcedures(first) {
     await this.read(
       'catalogo',
-      (signal) => this.procedimientoDAO.findRange(first, 20, { signal, query: { activo: true } }),
+      (signal) =>
+        this.procedimientoService.findRange(first, 20, { signal, query: { activo: true } }),
       (result) =>
         this.set({
           procedimientos: result.datos,
@@ -172,12 +173,12 @@ export default class ConsultaGestionControl {
       this.read(
         'asociaciones',
         (signal) =>
-          this.asociacionDAO.findRange(this.state.firstAsociaciones, 10, { signal, query }),
+          this.asociacionService.findRange(this.state.firstAsociaciones, 10, { signal, query }),
         (r) => this.set({ asociaciones: r.datos, totalAsociaciones: r.totalDatos }),
       ),
       this.read(
         'pasos',
-        (signal) => this.pasoDAO.findRange(this.state.firstPasos, 10, { signal, query }),
+        (signal) => this.pasoService.findRange(this.state.firstPasos, 10, { signal, query }),
         (r) => this.set({ pasos: r.datos, totalPasos: r.totalDatos }),
       ),
     ]);
@@ -191,14 +192,17 @@ export default class ConsultaGestionControl {
       let saved;
       if (editor === 'consulta')
         saved = selected
-          ? await this.consultaDAO.update(selected.idConsulta, data, options)
-          : await this.consultaDAO.create(data, options);
+          ? await this.consultaService.update(selected.idConsulta, data, options)
+          : await this.consultaService.create(data, options);
       if (editor === 'procedimiento')
         saved = selected
-          ? await this.asociacionDAO.update(selected.idConsultaProcedimiento, data, options)
-          : await this.asociacionDAO.create({ ...data, idConsulta: consulta.idConsulta }, options);
+          ? await this.asociacionService.update(selected.idConsultaProcedimiento, data, options)
+          : await this.asociacionService.create(
+              { ...data, idConsulta: consulta.idConsulta },
+              options,
+            );
       if (editor === 'paso')
-        saved = await this.pasoDAO.update(selected.idConsultaProcedimientoPaso, data, options);
+        saved = await this.pasoService.update(selected.idConsultaProcedimientoPaso, data, options);
       this.set({ writing: false, editor: null, message: 'Cambios guardados en PostgreSQL.' });
       if (clinic !== this.state.clinic) return;
       if (editor === 'consulta') {

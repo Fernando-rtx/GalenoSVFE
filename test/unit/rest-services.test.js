@@ -1,6 +1,11 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { createApiConfig, TipoDocumentoDAO, ClinicaDAO, ConsultaDAO } from '../../src/js/index.js';
+import {
+  createApiConfig,
+  TipoDocumentoService,
+  ClinicaService,
+  ConsultaService,
+} from '../../src/js/index.js';
 import { TIPOS, CLINICAS, CONSULTAS } from '../helpers/rest-fixtures.js';
 import { jsonResponse, rejection } from '../helpers/http-fixture.js';
 
@@ -15,9 +20,9 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
   beforeEach(() => {
     fetchStub = sinon.stub();
     const options = { config: createApiConfig({ baseUrl }), fetchImpl: fetchStub };
-    tipos = new TipoDocumentoDAO(options);
-    clinicas = new ClinicaDAO(options);
-    consultas = new ConsultaDAO(options);
+    tipos = new TipoDocumentoService(options);
+    clinicas = new ClinicaService(options);
+    consultas = new ConsultaService(options);
   });
 
   it('TipoDocumento adapta arreglo y Total-registros a la interfaz acordada', async () => {
@@ -47,7 +52,7 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
     expect(fetchStub.firstCall.args[0]).to.equal(`${baseUrl}v1/tipo_documento/${id}`);
   });
 
-  it('Clínica obtiene las opciones por HTTP sin fijar IDs en el DAO', async () => {
+  it('Clínica obtiene las opciones por HTTP sin fijar IDs en el Service', async () => {
     fetchStub.resolves(jsonResponse(CLINICAS, 200, { 'Total-registros': String(CLINICAS.length) }));
     const response = await clinicas.findRange(0, 5);
     expect(new URL(fetchStub.firstCall.args[0]).pathname).to.equal(
@@ -103,11 +108,11 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
 
   it('no envía credenciales aunque un entorno genérico las haya habilitado', async () => {
     fetchStub.resolves(jsonResponse(TIPOS[0]));
-    const dao = new TipoDocumentoDAO({
+    const service = new TipoDocumentoService({
       config: createApiConfig({ baseUrl, http: { credentials: 'include' } }),
       fetchImpl: fetchStub,
     });
-    await dao.findById(TIPOS[0].idTipoDocumento);
+    await service.findById(TIPOS[0].idTipoDocumento);
     expect(fetchStub.firstCall.args[1].credentials).to.equal('omit');
   });
 
@@ -151,13 +156,13 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
 
     ['create', 'update', 'deleteById'].forEach((operation) => {
       it(`${resource.name}.${operation} no está disponible ni envía HTTP`, async () => {
-        const dao = resource.get();
+        const service = resource.get();
         const promise =
           operation === 'create'
-            ? dao.create({})
+            ? service.create({})
             : operation === 'update'
-              ? dao.update('fixture', {})
-              : dao.deleteById('fixture');
+              ? service.update('fixture', {})
+              : service.deleteById('fixture');
         expect((await rejection(promise)).code).to.equal('OPERATION_UNSUPPORTED');
         sinon.assert.notCalled(fetchStub);
       });

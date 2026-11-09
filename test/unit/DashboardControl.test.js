@@ -10,7 +10,7 @@ import {
 } from '../../src/js/boundary/modelos/dashboard-presentation.js';
 import { rejection } from '../helpers/http-fixture.js';
 
-// Datos exclusivamente sintéticos. Estos DAO son dobles, no integración con REST.
+// Datos exclusivamente sintéticos. Estos Service son dobles, no integración con REST.
 const response = (datos, totalDatos = null) =>
   new DefaultResponse({ datos, totalDatos, status: 200 });
 const deferred = () => {
@@ -23,42 +23,42 @@ const deferred = () => {
 };
 
 describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
-  let clinicaDAO, consultaDAO, control;
+  let clinicaService, consultaService, control;
   beforeEach(async () => {
-    clinicaDAO = { findRange: sinon.stub().resolves(response(CLINICAS, CLINICAS.length)) };
-    consultaDAO = {
+    clinicaService = { findRange: sinon.stub().resolves(response(CLINICAS, CLINICAS.length)) };
+    consultaService = {
       findRange: sinon.stub().resolves(response(CONSULTAS.slice(0, 2), 5)),
       findById: sinon.stub().resolves(response(CONSULTAS[0])),
     };
-    control = new DashboardControl({ clinicaDAO, consultaDAO, pageSize: 2 });
+    control = new DashboardControl({ clinicaService, consultaService, pageSize: 2 });
     await control.loadClinicas();
   });
   afterEach(() => control.destroy());
 
-  it('exige dependencias DAO y una paginación válida', () => {
+  it('exige dependencias Service y una paginación válida', () => {
     expect(() => new DashboardControl({})).to.throw(DefaultError);
-    expect(() => new DashboardControl({ clinicaDAO, consultaDAO, pageSize: 0 })).to.throw(
+    expect(() => new DashboardControl({ clinicaService, consultaService, pageSize: 0 })).to.throw(
       DefaultError,
     );
   });
 
   it('no consulta antes de seleccionar una clínica recibida por REST', async () => {
-    sinon.assert.notCalled(consultaDAO.findRange);
+    sinon.assert.notCalled(consultaService.findRange);
     expect(await rejection(control.selectClinica('no-disponible'))).to.be.instanceOf(DefaultError);
-    sinon.assert.notCalled(consultaDAO.findRange);
+    sinon.assert.notCalled(consultaService.findRange);
   });
 
   it('carga todas las páginas de clínicas para no ocultar opciones después de la primera', async () => {
-    clinicaDAO.findRange.reset();
-    clinicaDAO.findRange.onFirstCall().resolves(response([CLINICAS[0]], 2));
-    clinicaDAO.findRange.onSecondCall().resolves(response([CLINICAS[1]], 2));
+    clinicaService.findRange.reset();
+    clinicaService.findRange.onFirstCall().resolves(response([CLINICAS[0]], 2));
+    clinicaService.findRange.onSecondCall().resolves(response([CLINICAS[1]], 2));
     await control.loadClinicas();
-    expect(clinicaDAO.findRange.secondCall.args.slice(0, 2)).to.deep.equal([1, 2]);
+    expect(clinicaService.findRange.secondCall.args.slice(0, 2)).to.deep.equal([1, 2]);
     expect(control.state.clinicas).to.deep.equal(CLINICAS);
   });
 
   it('no entra en bucle si el dataset de clínicas se vacía entre páginas', async () => {
-    clinicaDAO.findRange.resolves(response([], 3));
+    clinicaService.findRange.resolves(response([], 3));
     await control.loadClinicas();
     expect(control.state.clinicas).to.deep.equal([]);
     expect(control.state.clinicasStatus).to.equal('ready');
@@ -66,7 +66,7 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
 
   it('selecciona clínica y conserva datos, total y estado de carga separados', async () => {
     await control.selectClinica(CLINICAS[0].idClinica);
-    const [first, max, options] = consultaDAO.findRange.firstCall.args;
+    const [first, max, options] = consultaService.findRange.firstCall.args;
     expect([first, max]).to.deep.equal([0, 2]);
     expect(options.query).to.deep.equal({ idClinica: CLINICAS[0].idClinica });
     expect(options.signal).to.be.instanceOf(AbortSignal);
@@ -84,8 +84,8 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
       idPersonaRol: CONSULTAS[0].idPersonaRol,
     };
     await control.setFilters(filtros);
-    expect(consultaDAO.findRange.lastCall.args.slice(0, 2)).to.deep.equal([0, 2]);
-    expect(consultaDAO.findRange.lastCall.args[2].query).to.deep.equal({
+    expect(consultaService.findRange.lastCall.args.slice(0, 2)).to.deep.equal([0, 2]);
+    expect(consultaService.findRange.lastCall.args[2].query).to.deep.equal({
       ...filtros,
       idClinica: CLINICAS[0].idClinica,
     });
@@ -94,7 +94,7 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     expect(control.state.filtros.fechaDesde).to.equal('2026-10-22');
   });
 
-  it('rechaza filtros ajenos, UUID y fechas inválidos antes de usar los DAO', async () => {
+  it('rechaza filtros ajenos, UUID y fechas inválidos antes de usar los Service', async () => {
     for (const filters of [
       { estado: 'inventado' },
       { fechaDesde: null },
@@ -104,15 +104,15 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     ]) {
       expect(await rejection(control.setFilters(filters))).to.be.instanceOf(DefaultError);
     }
-    sinon.assert.notCalled(consultaDAO.findRange);
+    sinon.assert.notCalled(consultaService.findRange);
   });
 
   it('representa vacío con total cero y páginas vacías con su total real', async () => {
-    consultaDAO.findRange.resolves(response([], 0));
+    consultaService.findRange.resolves(response([], 0));
     await control.selectClinica(CLINICAS[0].idClinica);
     expect(control.state.consultas).to.deep.equal([]);
     expect(control.state.totalDatos).to.equal(0);
-    consultaDAO.findRange.resolves(response([], 5));
+    consultaService.findRange.resolves(response([], 5));
     await control.setPage(6);
     expect(control.state.totalDatos).to.equal(5);
     expect(control.state.consultasStatus).to.equal('ready');
@@ -122,38 +122,38 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     await control.selectClinica(CLINICAS[0].idClinica);
     await control.setFilters({ fechaDesde: '2026-10-22' });
     await control.selectConsulta(CONSULTAS[0].idConsulta);
-    const signal = consultaDAO.findById.lastCall.args[1].signal;
+    const signal = consultaService.findById.lastCall.args[1].signal;
     await control.selectClinica(CLINICAS[1].idClinica);
     expect(signal.aborted).to.equal(true);
     expect(control.state.filtros).to.deep.equal({});
     expect(control.state.detalle).to.equal(null);
-    const count = consultaDAO.findRange.callCount;
+    const count = consultaService.findRange.callCount;
     await control.selectClinica(null);
     expect(control.state.idClinica).to.equal(null);
     expect(control.state.consultasStatus).to.equal('idle');
-    expect(consultaDAO.findRange.callCount).to.equal(count);
+    expect(consultaService.findRange.callCount).to.equal(count);
   });
 
   it('consulta detalle únicamente de la página actual y envía solo idClinica como contexto', async () => {
     await control.selectClinica(CLINICAS[0].idClinica);
     await control.setFilters({ fechaDesde: '2026-10-22' });
     await control.selectConsulta(CONSULTAS[0].idConsulta);
-    expect(consultaDAO.findById.lastCall.args[1].query).to.deep.equal({
+    expect(consultaService.findById.lastCall.args[1].query).to.deep.equal({
       idClinica: CLINICAS[0].idClinica,
     });
     expect(control.state.detalle).to.deep.equal(CONSULTAS[0]);
     expect(await rejection(control.selectConsulta('ajena'))).to.be.instanceOf(DefaultError);
-    sinon.assert.calledOnce(consultaDAO.findById);
+    sinon.assert.calledOnce(consultaService.findById);
   });
 
   ['clinic', 'filters', 'page'].forEach((change) => {
-    it(`cancela e ignora una respuesta obsoleta al cambiar ${change}, incluso si el DAO ignora AbortSignal`, async () => {
+    it(`cancela e ignora una respuesta obsoleta al cambiar ${change}, incluso si el Service ignora AbortSignal`, async () => {
       const old = deferred();
-      consultaDAO.findRange.onFirstCall().returns(old.promise);
+      consultaService.findRange.onFirstCall().returns(old.promise);
       const pending = control.selectClinica(CLINICAS[0].idClinica);
-      const signal = consultaDAO.findRange.firstCall.args[2].signal;
+      const signal = consultaService.findRange.firstCall.args[2].signal;
       const latestRows = [CONSULTAS[1]];
-      consultaDAO.findRange.onSecondCall().resolves(response(latestRows, 1));
+      consultaService.findRange.onSecondCall().resolves(response(latestRows, 1));
       if (change === 'clinic') await control.selectClinica(CLINICAS[1].idClinica);
       if (change === 'filters') await control.setFilters({ fechaDesde: '2026-10-22' });
       if (change === 'page') await control.setPage(2);
@@ -167,7 +167,7 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
 
   it('ignora errores tardíos de una lista cancelada', async () => {
     const old = deferred();
-    consultaDAO.findRange.onFirstCall().returns(old.promise);
+    consultaService.findRange.onFirstCall().returns(old.promise);
     const pending = control.selectClinica(CLINICAS[0].idClinica);
     await control.selectClinica(CLINICAS[1].idClinica);
     old.reject(new Error('Error tardío sintético'));
@@ -178,7 +178,7 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
 
   it('no publica filas de la clínica anterior al notificar una selección nueva', async () => {
     await control.selectClinica(CLINICAS[0].idClinica);
-    consultaDAO.findRange.returns(new Promise(() => {}));
+    consultaService.findRange.returns(new Promise(() => {}));
     const seen = [];
     const unsubscribe = control.subscribe((state) => seen.push(state));
     control.selectClinica(CLINICAS[1].idClinica);
@@ -193,9 +193,9 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
   it('cancela detalle al cambiar lista e ignora su respuesta tardía', async () => {
     await control.selectClinica(CLINICAS[0].idClinica);
     const old = deferred();
-    consultaDAO.findById.returns(old.promise);
+    consultaService.findById.returns(old.promise);
     const pending = control.selectConsulta(CONSULTAS[0].idConsulta);
-    const signal = consultaDAO.findById.firstCall.args[1].signal;
+    const signal = consultaService.findById.firstCall.args[1].signal;
     await control.setPage(2);
     old.resolve(response(CONSULTAS[0]));
     await pending;
@@ -206,8 +206,8 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
   it('mantiene únicamente el último detalle seleccionado', async () => {
     await control.selectClinica(CLINICAS[0].idClinica);
     const old = deferred();
-    consultaDAO.findById.onFirstCall().returns(old.promise);
-    consultaDAO.findById.onSecondCall().resolves(response(CONSULTAS[1]));
+    consultaService.findById.onFirstCall().returns(old.promise);
+    consultaService.findById.onSecondCall().resolves(response(CONSULTAS[1]));
     const pending = control.selectConsulta(CONSULTAS[0].idConsulta);
     await control.selectConsulta(CONSULTAS[1].idConsulta);
     old.resolve(response(CONSULTAS[0]));
@@ -226,10 +226,10 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
       if (resource !== 'clinicas') await control.selectClinica(CLINICAS[0].idClinica);
       const stub =
         resource === 'clinicas'
-          ? clinicaDAO.findRange
+          ? clinicaService.findRange
           : resource === 'detalle'
-            ? consultaDAO.findById
-            : consultaDAO.findRange;
+            ? consultaService.findById
+            : consultaService.findRange;
       const action = () =>
         resource === 'clinicas'
           ? control.loadClinicas()
@@ -269,14 +269,14 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
 
   it('destruir la página cancela solicitudes y evita notificar respuestas posteriores', async () => {
     const old = deferred();
-    consultaDAO.findRange.returns(old.promise);
+    consultaService.findRange.returns(old.promise);
     const pending = control.selectClinica(CLINICAS[0].idClinica);
     const listener = sinon.spy();
     control.subscribe(listener);
     control.destroy();
     old.resolve(response(CONSULTAS, 5));
     await pending;
-    expect(consultaDAO.findRange.firstCall.args[2].signal.aborted).to.equal(true);
+    expect(consultaService.findRange.firstCall.args[2].signal.aborted).to.equal(true);
     sinon.assert.calledOnce(listener);
   });
 
@@ -289,7 +289,7 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     ]) {
       expect(await rejection(control.setPage(first, max))).to.be.instanceOf(DefaultError);
     }
-    sinon.assert.notCalled(consultaDAO.findRange);
+    sinon.assert.notCalled(consultaService.findRange);
   });
 });
 

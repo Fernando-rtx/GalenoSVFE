@@ -5,43 +5,49 @@ import { rejection } from '../helpers/http-fixture.js';
 
 // Inventario independiente de las exportaciones para detectar omisiones o claves cruzadas.
 const inventory = [
-  ['ClinicaDAO', 'clinica'],
-  ['ConsultaDAO', 'consulta'],
-  ['ConsultaProcedimientoDAO', 'consultaProcedimiento'],
-  ['ConsultaProcedimientoPasoDAO', 'consultaProcedimientoPaso'],
-  ['DocumentoDAO', 'documento'],
-  ['ExamenDAO', 'examen'],
-  ['ExamenResultadoDAO', 'examenResultado'],
-  ['ExamenTipoExamenDAO', 'examenTipoExamen'],
-  ['MedioContactoDAO', 'medioContacto'],
-  ['OrdenExamenDAO', 'ordenExamen'],
-  ['PersonaDAO', 'persona'],
-  ['PersonaRolDAO', 'personaRol'],
-  ['ProcedimientoDAO', 'procedimiento'],
-  ['ProcedimientoPasoDAO', 'procedimientoPaso'],
-  ['ProcedimientoPasoExamenDAO', 'procedimientoPasoExamen'],
-  ['ProcedimientoPasoSecuenciaDAO', 'procedimientoPasoSecuencia'],
-  ['RolDAO', 'rol'],
-  ['TipoDocumentoDAO', 'tipoDocumento'],
-  ['TipoExamenDAO', 'tipoExamen'],
-  ['TipoMedioContactoDAO', 'tipoMedioContacto'],
+  ['ClinicaService', 'clinica'],
+  ['ConsultaService', 'consulta'],
+  ['ConsultaProcedimientoService', 'consultaProcedimiento'],
+  ['ConsultaProcedimientoPasoService', 'consultaProcedimientoPaso'],
+  ['DocumentoService', 'documento'],
+  ['ExamenService', 'examen'],
+  ['ExamenResultadoService', 'examenResultado'],
+  ['ExamenTipoExamenService', 'examenTipoExamen'],
+  ['MedioContactoService', 'medioContacto'],
+  ['OrdenExamenService', 'ordenExamen'],
+  ['PersonaService', 'persona'],
+  ['PersonaRolService', 'personaRol'],
+  ['ProcedimientoService', 'procedimiento'],
+  ['ProcedimientoPasoService', 'procedimientoPaso'],
+  ['ProcedimientoPasoExamenService', 'procedimientoPasoExamen'],
+  ['ProcedimientoPasoSecuenciaService', 'procedimientoPasoSecuencia'],
+  ['RolService', 'rol'],
+  ['TipoDocumentoService', 'tipoDocumento'],
+  ['TipoExamenService', 'tipoExamen'],
+  ['TipoMedioContactoService', 'tipoMedioContacto'],
 ];
 const confirmed = ['clinica', 'consulta', 'tipoDocumento'];
 const blockedCalls = {
-  findRange: (dao) => [dao.findRange(0, 2), dao.findRange(-1, 0)],
-  findById: (dao) => [dao.findById('00000000-0000-4000-8000-000000000001'), dao.findById(null)],
-  create: (dao) => [dao.create({}), dao.create(null)],
-  update: (dao) => [dao.update('00000000-0000-4000-8000-000000000001', {}), dao.update(null, null)],
-  deleteById: (dao) => [
-    dao.deleteById('00000000-0000-4000-8000-000000000001'),
-    dao.deleteById(null),
+  findRange: (service) => [service.findRange(0, 2), service.findRange(-1, 0)],
+  findById: (service) => [
+    service.findById('00000000-0000-4000-8000-000000000001'),
+    service.findById(null),
+  ],
+  create: (service) => [service.create({}), service.create(null)],
+  update: (service) => [
+    service.update('00000000-0000-4000-8000-000000000001', {}),
+    service.update(null, null),
+  ],
+  deleteById: (service) => [
+    service.deleteById('00000000-0000-4000-8000-000000000001'),
+    service.deleteById(null),
   ],
 };
 
-describe('Inventario completo de 20 DAO', () => {
-  it('exporta exactamente un DAO por entidad y registra las mismas 20 claves', () => {
+describe('Inventario completo de 20 Service', () => {
+  it('exporta exactamente un Service por entidad y registra las mismas 20 claves', () => {
     const exported = Object.keys(api).filter(
-      (name) => name.endsWith('DAO') && name !== 'DefaultDAO',
+      (name) => name.endsWith('Service') && name !== 'DefaultService',
     );
     expect(exported.sort()).to.deep.equal(inventory.map(([name]) => name).sort());
     expect(Object.keys(api.API_ROUTES).sort()).to.deep.equal(
@@ -74,12 +80,12 @@ describe('Inventario completo de 20 DAO', () => {
           baseUrl: 'https://fixture.invalid/api/',
           timeoutMs: 4321,
         });
-        const dao = new api[name]({ config, fetchImpl, resource: 'otra-entidad' });
-        expect(dao).to.be.instanceOf(api.DefaultDAO);
-        expect(dao.resource).to.equal(resource);
-        expect(dao.config.baseUrl).to.equal(config.baseUrl);
-        expect(dao.config.timeoutMs).to.equal(4321);
-        expect(dao.fetchImpl).to.equal(fetchImpl);
+        const service = new api[name]({ config, fetchImpl, resource: 'otra-entidad' });
+        expect(service).to.be.instanceOf(api.DefaultService);
+        expect(service.resource).to.equal(resource);
+        expect(service.config.baseUrl).to.equal(config.baseUrl);
+        expect(service.config.timeoutMs).to.equal(4321);
+        expect(service.fetchImpl).to.equal(fetchImpl);
         sinon.assert.notCalled(fetchImpl);
       });
 
@@ -101,11 +107,11 @@ describe('Inventario completo de 20 DAO', () => {
         Object.keys(blockedCalls).forEach((operation) => {
           it(`${operation} rechaza parámetros válidos e inválidos con CONTRACT_PENDING, sin HTTP`, async () => {
             const fetchImpl = sinon.stub();
-            const dao = new api[name]({
+            const service = new api[name]({
               config: api.createApiConfig({ baseUrl: 'https://fixture.invalid/api/' }),
               fetchImpl,
             });
-            const promises = blockedCalls[operation](dao);
+            const promises = blockedCalls[operation](service);
             const errors = await Promise.all(promises.map(rejection));
             errors.forEach((error) => {
               expect(error).to.be.instanceOf(api.DefaultError);

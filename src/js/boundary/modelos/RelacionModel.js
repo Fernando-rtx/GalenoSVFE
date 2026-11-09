@@ -1,4 +1,4 @@
-import { editableRecord } from '../editable-record.js';
+import { editableRecord } from './editable-record.js';
 import { gestionError } from './dashboard-presentation.js';
 const n = (tag, text) => {
   const e = document.createElement(tag);
@@ -19,7 +19,7 @@ const definitions = {
   },
 };
 /** Tres asociaciones con el mismo formulario contextual; no accede a los DAO. */
-export default class RelacionPage extends HTMLElement {
+export default class RelacionModel extends HTMLElement {
   constructor() {
     super();
   }
@@ -206,4 +206,4 @@ export default class RelacionPage extends HTMLElement {
 }
 
 if (!customElements.get('galenos-relaciones'))
-  customElements.define('galenos-relaciones', RelacionPage);
+  customElements.define('galenos-relaciones', RelacionModel);

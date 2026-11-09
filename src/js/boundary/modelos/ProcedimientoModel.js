@@ -1,4 +1,4 @@
-import { editableRecord } from '../editable-record.js';
+import { editableRecord } from './editable-record.js';
 import { gestionError } from './dashboard-presentation.js';
 const n = (tag, text) => {
   const x = document.createElement(tag);
@@ -6,7 +6,7 @@ const n = (tag, text) => {
   return x;
 };
 /** Editor del flujo anidado; utiliza el servicio de procedimientos mediante el Control. */
-export default class ProcedimientoPage extends HTMLElement {
+export default class ProcedimientoModel extends HTMLElement {
   constructor() {
     super();
   }
@@ -228,4 +228,4 @@ export default class ProcedimientoPage extends HTMLElement {
 }
 
 if (!customElements.get('galenos-procedimientos'))
-  customElements.define('galenos-procedimientos', ProcedimientoPage);
+  customElements.define('galenos-procedimientos', ProcedimientoModel);

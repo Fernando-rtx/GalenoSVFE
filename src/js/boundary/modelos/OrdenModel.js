@@ -1,4 +1,4 @@
-import { editableRecord } from '../editable-record.js';
+import { editableRecord } from './editable-record.js';
 import { gestionError } from './dashboard-presentation.js';
 const node = (tag, text, css) => {
   const n = document.createElement(tag);
@@ -12,7 +12,7 @@ const local = (iso) => {
   return d.toISOString().slice(0, 16);
 };
 /** Formularios de orden/resultado vinculados a un paso; sin llamadas HTTP. */
-export default class OrdenPage extends HTMLElement {
+export default class OrdenModel extends HTMLElement {
   constructor() {
     super();
   }
@@ -165,4 +165,4 @@ export default class OrdenPage extends HTMLElement {
   }
 }
 
-if (!customElements.get('galenos-ordenes')) customElements.define('galenos-ordenes', OrdenPage);
+if (!customElements.get('galenos-ordenes')) customElements.define('galenos-ordenes', OrdenModel);

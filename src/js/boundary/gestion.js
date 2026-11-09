@@ -1,5 +1,5 @@
 import RelacionControl from '../control/RelacionControl.js';
-import RelacionPage from '../boundary/pages/RelacionPage.js';
+import RelacionModel from './modelos/RelacionModel.js';
 import {
   createApiConfig,
   HttpClient,
@@ -27,15 +27,15 @@ import {
 } from '../index.js';
 import { API_V2_ROUTES, API_V2_DASHBOARD_ROUTES } from '../control/api-v2-routes.js';
 import ConsultaGestionControl from '../control/ConsultaGestionControl.js';
-import ConsultaGestionPage from '../boundary/pages/ConsultaGestionPage.js';
+import ConsultaGestionModel from './modelos/ConsultaGestionModel.js';
 import ProcedimientoControl from '../control/ProcedimientoControl.js';
-import ProcedimientoPage from '../boundary/pages/ProcedimientoPage.js';
+import ProcedimientoModel from './modelos/ProcedimientoModel.js';
 import OrdenControl from '../control/OrdenControl.js';
-import OrdenPage from '../boundary/pages/OrdenPage.js';
+import OrdenModel from './modelos/OrdenModel.js';
 import PersonaControl from '../control/PersonaControl.js';
-import PersonaPage from '../boundary/pages/PersonaPage.js';
+import PersonaModel from './modelos/PersonaModel.js';
 import CatalogoControl from '../control/CatalogoControl.js';
-import CatalogoPage from '../boundary/pages/CatalogoPage.js';
+import CatalogoModel from './modelos/CatalogoModel.js';
 
 function mountPage(container, tag, ...args) {
   const page = document.createElement(tag);

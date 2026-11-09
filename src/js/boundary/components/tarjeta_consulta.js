@@ -1,5 +1,5 @@
 import './tarjeta_simple.js';
-import { formatUtcDate } from '../format-utc-date.js';
+import { formatUtcDate } from '../modelos/format-utc-date.js';
 
 const stylesheetUrl = new URL('../../../resources/estilos/tarjeta_consulta.css', import.meta.url);
 

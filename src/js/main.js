@@ -1,10 +1,10 @@
-import { mountAppearance } from './appearance.js';
-import { mountGestion } from './gestion.js';
-import { mountDashboard } from './dashboard.js';
-import { config as defaultConfig } from '../control/environment.example.js';
-import '../boundary/components/tarjeta_consulta.js';
-import '../boundary/components/galenos-notifications.js';
-import { registerPwa } from './pwa.js';
+import { mountAppearance } from './boundary/appearance.js';
+import { mountGestion } from './boundary/gestion.js';
+import { mountDashboard } from './boundary/dashboard.js';
+import { config as defaultConfig } from './control/environment.example.js';
+import './boundary/components/tarjeta_consulta.js';
+import './boundary/components/galenos-notifications.js';
+import { registerPwa } from './boundary/pwa.js';
 
 const root = document.querySelector('[data-dashboard]');
 let appearance;
@@ -17,7 +17,7 @@ async function start() {
   let gestionConfig = null;
   let authenticatedOnly = false;
   try {
-    const environment = await import('../control/environment.local.js');
+    const environment = await import('./control/environment.local.js');
     config = environment.config;
     gestionConfig = environment.gestionConfig;
     authenticatedOnly = environment.authenticatedOnly === true;

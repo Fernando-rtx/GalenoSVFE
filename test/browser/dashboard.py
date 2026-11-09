@@ -457,7 +457,7 @@ class DashboardBrowser(unittest.TestCase):
 
     def test_missing_configuration_is_visible_without_backend_fallback(self):
         self.page.route(
-            "**/js/config/environment.local.js",
+            "**/js/control/environment.local.js",
             lambda route: route.fulfill(
                 content_type="application/javascript",
                 body="import { createApiConfig } from './api-config.js'; export const config = createApiConfig({baseUrl: null});",

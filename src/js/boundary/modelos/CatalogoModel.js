@@ -1,6 +1,6 @@
-import { editableRecord } from '../editable-record.js';
+import { editableRecord } from './editable-record.js';
 import { gestionError } from './dashboard-presentation.js';
-import { notify } from '../../app/notifications.js';
+import { notify } from '../notifications.js';
 
 // Sugerencias de presentación del enum JSF FormatoRegexSugerido; Java valida el formato.
 const formatosSugeridos = [
@@ -58,7 +58,7 @@ function element(tag, text, className) {
 }
 
 /** Vista de los cinco catálogos, integrada en el shell del dashboard. No llama a la API. */
-export default class CatalogoPage extends HTMLElement {
+export default class CatalogoModel extends HTMLElement {
   constructor() {
     super();
   }
@@ -351,4 +351,4 @@ export default class CatalogoPage extends HTMLElement {
 }
 
 if (!customElements.get('galenos-catalogos'))
-  customElements.define('galenos-catalogos', CatalogoPage);
+  customElements.define('galenos-catalogos', CatalogoModel);

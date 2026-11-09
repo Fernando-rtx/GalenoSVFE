@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { editableRecord } from '../../src/js/boundary/editable-record.js';
+import { editableRecord } from '../../src/js/boundary/modelos/editable-record.js';
 
 describe('Apertura de registros sin botón Editar', () => {
   function setup(enabled = true) {

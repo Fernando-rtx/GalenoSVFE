@@ -1,4 +1,4 @@
-import { NOTIFICATION_EVENT } from '../../app/notifications.js';
+import { NOTIFICATION_EVENT } from '../notifications.js';
 
 const TYPES = new Set(['error', 'informacion', 'confirmacion', 'advertencia']);
 

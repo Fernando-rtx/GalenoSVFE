@@ -1,4 +1,4 @@
-import { editableRecord } from '../editable-record.js';
+import { editableRecord } from './editable-record.js';
 import { gestionError } from './dashboard-presentation.js';
 const node = (tag, text, className) => {
   const n = document.createElement(tag);
@@ -15,7 +15,7 @@ const names = {
 const idField = (kind) => 'id' + kind[0].toUpperCase() + kind.slice(1);
 
 /** Persona y documentos/contactos/roles dentro del shell existente. */
-export default class PersonaPage extends HTMLElement {
+export default class PersonaModel extends HTMLElement {
   constructor() {
     super();
   }
@@ -312,4 +312,5 @@ export default class PersonaPage extends HTMLElement {
   }
 }
 
-if (!customElements.get('galenos-personas')) customElements.define('galenos-personas', PersonaPage);
+if (!customElements.get('galenos-personas'))
+  customElements.define('galenos-personas', PersonaModel);

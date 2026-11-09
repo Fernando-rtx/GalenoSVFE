@@ -7,7 +7,7 @@ import {
   consultaCardModel,
   errorMessage,
   formatDate,
-} from '../../src/js/boundary/pages/dashboard-presentation.js';
+} from '../../src/js/boundary/modelos/dashboard-presentation.js';
 import { rejection } from '../helpers/http-fixture.js';
 
 // Datos exclusivamente sintéticos. Estos DAO son dobles, no integración con REST.

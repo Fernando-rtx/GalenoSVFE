@@ -55,8 +55,8 @@ describe('PWA: recursos y límite de caché', () => {
       return intercepted;
     };
     expect(caught(request('/api/consultas'))).to.equal(false);
-    expect(caught(request('/js/app/main.js', true))).to.equal(false);
-    expect(caught(request('/js/config/environment.local.js'))).to.equal(false);
-    expect(caught(request('/js/app/main.js'))).to.equal(true);
+    expect(caught(request('/js/main.js', true))).to.equal(false);
+    expect(caught(request('/js/control/environment.local.js'))).to.equal(false);
+    expect(caught(request('/js/main.js'))).to.equal(true);
   });
 });

@@ -1,8 +1,8 @@
 import { consultaCardModel, errorMessage, formatDate } from './dashboard-presentation.js';
-import { notify } from '../../app/notifications.js';
+import { notify } from '../notifications.js';
 
 /** Página Boundary. Recibe Control; no importa DAO, configuración HTTP ni Fetch. */
-export default class DashboardPage extends HTMLElement {
+export default class DashboardModel extends HTMLElement {
   constructor() {
     super();
   }
@@ -231,4 +231,4 @@ export default class DashboardPage extends HTMLElement {
 }
 
 if (!customElements.get('galenos-dashboard'))
-  customElements.define('galenos-dashboard', DashboardPage);
+  customElements.define('galenos-dashboard', DashboardModel);

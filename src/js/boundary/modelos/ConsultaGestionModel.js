@@ -1,4 +1,4 @@
-import { editableRecord } from '../editable-record.js';
+import { editableRecord } from './editable-record.js';
 import { gestionError } from './dashboard-presentation.js';
 const node = (tag, text, className) => {
   const n = document.createElement(tag);
@@ -15,7 +15,7 @@ const localDate = (iso) => {
 const instant = (value) => (value ? new Date(value).toISOString() : null);
 
 /** Formularios anidados en el dashboard; conserva los componentes originales. */
-export default class ConsultaGestionPage extends HTMLElement {
+export default class ConsultaGestionModel extends HTMLElement {
   constructor() {
     super();
   }
@@ -324,4 +324,4 @@ export default class ConsultaGestionPage extends HTMLElement {
 }
 
 if (!customElements.get('galenos-consulta-gestion'))
-  customElements.define('galenos-consulta-gestion', ConsultaGestionPage);
+  customElements.define('galenos-consulta-gestion', ConsultaGestionModel);

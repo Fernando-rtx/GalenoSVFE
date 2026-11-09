@@ -1,6 +1,6 @@
 import { createApiConfig, ClinicaService, ConsultaService } from '../index.js';
 import DashboardControl from '../control/DashboardControl.js';
-import DashboardPage from '../boundary/pages/DashboardPage.js';
+import DashboardModel from './modelos/DashboardModel.js';
 
 /** Composición de la aplicación; las dependencias pueden inyectarse en pruebas. */
 export function mountDashboard({

@@ -1,5 +1,5 @@
 // La tabla, el detalle y las tarjetas comparten el mismo formato UTC.
-export { formatUtcDate as formatDate } from '../format-utc-date.js';
+export { formatUtcDate as formatDate } from './format-utc-date.js';
 
 export function consultaCardModel(consulta) {
   const { idConsulta, personaNombre, rolNombre, clinicaNombre, fechaInicio, fechaFin } = consulta;

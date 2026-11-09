@@ -20,10 +20,12 @@ Las rutas, nombres JSON y reglas de autorización no cambiaron. `src/js/index.js
 
 `src/service-worker.js` precarga una lista cerrada de archivos públicos de la interfaz. Usa red primero y caché como respaldo; al activarse elimina cachés anteriores con prefijo de GalenosSV. Solo intercepta GET del mismo origen cuya ruta esté en la lista. Omite peticiones con `Authorization`; ninguna ruta REST ni configuración local está en la lista. Al quedar offline, la interfaz puede abrirse tras una instalación exitosa del worker, pero las operaciones clínicas requieren conexión y no se presentan datos como actualizados.
 
-La versión `galenossv-shell-v1` debe incrementarse al publicar cambios en recursos precargados. La instalación real y el comportamiento offline requieren verificación en un navegador compatible servido por HTTPS o localhost; las pruebas de Node no certifican esos flujos.
+La versión `galenossv-shell-v2` debe incrementarse al publicar cambios en recursos precargados. La instalación real y el comportamiento offline requieren verificación en un navegador compatible servido por HTTPS o localhost; las pruebas de Node no certifican esos flujos.
 
 ## Pruebas y límites
 
 La línea base fue `npm run check` (79 archivos válidos), `npm test` (420 correctas), y `npm run test:transport` (necesita permiso para abrir `127.0.0.1`; dentro del sandbox falla con EPERM). Tras los cambios: `npm run check` validó 105 archivos, `npm test` pasó 422 pruebas y `npm run test:transport` pasó 9. BrowserSync sirvió por HTTP el shell, manifiesto, Service Worker, módulo de registro y ambos iconos con estado 200. Las pruebas HTTP usan un servidor local sintético, no el backend clínico. No se ejecutaron escrituras sobre `clinica`.
 
 Las páginas administrativas siguen siendo clases de presentación convencionales. Convertirlas integralmente en Custom Elements requiere migración y pruebas de navegador de cada flujo; no se afirma completada aquí. Tampoco se añadieron funciones clínicas nuevas sin requisitos académicos y reglas de negocio confirmadas.
+
+La migración posterior de páginas a Custom Elements y su verificación en Chromium se documenta en [webcomponents-browser-pwa.md](webcomponents-browser-pwa.md).

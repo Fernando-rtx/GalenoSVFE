@@ -4,7 +4,7 @@
 
 - `src/js/app/`: inicialización y composición de la aplicación.
 - `src/js/boundary/components/`: Web Components reutilizables.
-- `src/js/boundary/pages/`: páginas y coordinación de interfaz.
+- `src/js/boundary/pages/`: páginas Custom Elements que renderizan estado y eventos; sin Fetch.
 - `src/js/control/`: coordinación y estado; no crea HTML.
 - `src/js/services/`: clientes REST concretos, sin DOM.
 - `src/js/transport/`: Fetch, contratos, validación y errores HTTP compartidos.
@@ -16,6 +16,7 @@ Usa JavaScript nativo con módulos ES. Los componentes no acceden a la API.
 El cliente HTTP consume el contrato publicado en `docs/api-contract.md`.
 Usa nombres `Service` en consumidores nuevos; `control/dao/` solo conserva alias temporales.
 El Service Worker solo puede guardar recursos públicos de una lista cerrada; nunca datos clínicos REST.
+Al cambiar recursos precargados, incrementa la versión de caché y ejecuta `test/browser/webcomponents_pwa.py` en Chromium.
 No conectes el navegador directamente a PostgreSQL ni incluyas datos reales,
 credenciales o secretos en el repositorio.
 

@@ -102,6 +102,10 @@ export function mountGestion({ config, dashboard: dashboardApp, defaultConfig, o
     document.querySelector('[data-workspace-subtitle]').textContent = isClinical
       ? 'Selecciona una consulta para revisar procedimientos, actividades, órdenes y resultados.'
       : 'Consulta los registros de tu clínica de trabajo.';
+    document.querySelector('[data-workspace-hint]').textContent = isClinical
+      ? 'Selecciona una tarjeta para consultar el seguimiento de la atención.'
+      : 'Selecciona una tarjeta para consultar su detalle.';
+    document.title = `${isClinical ? 'Atención clínica' : 'Consultas'} · GalenosSV`;
     dashboard.hidden = !isDashboard;root.hidden = isDashboard;
     nav.querySelectorAll('a').forEach(link => { link.classList.toggle('nav-current', link.getAttribute('href') === anchor.getAttribute('href'));if (link.getAttribute('href') === anchor.getAttribute('href')) link.setAttribute('aria-current', 'page');else link.removeAttribute('aria-current'); });
     if (!isDashboard) { module = anchor.dataset.module;showModule(module); }

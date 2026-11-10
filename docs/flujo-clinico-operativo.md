@@ -23,6 +23,6 @@ No hay enlace persistente entre la cuenta Liberty y `PersonaRol`. Por eso la int
 
 ## Pruebas y límites
 
-`npm ci --offline`, `npm run check`, `npm test`: 423 pruebas JavaScript aprobadas; `npm run test:transport`: 9 pruebas HTTP sintéticas aprobadas. La sintaxis de 77 archivos pasó. Los nuevos tests verifican la petición de inicio, la recarga, el conflicto HTTP 409 y el rechazo local de transiciones inválidas y sesiones lectoras. No se probó esta rama contra un servidor GalenosSV con PostgreSQL ni se validó una sesión profesional real.
+`npm ci --offline`, `npm run check`, `npm test`: 423 pruebas JavaScript aprobadas; `npm run test:transport`: 9 pruebas HTTP sintéticas aprobadas. La sintaxis de 77 archivos pasó. Los nuevos tests verifican la petición de inicio, la recarga, el conflicto HTTP 409 y el rechazo local de transiciones inválidas y sesiones lectoras. En navegador se comprobó el título, la navegación y la ausencia de desplazamiento horizontal a 390 px, sin backend configurado. No se probó esta rama contra un servidor GalenosSV con PostgreSQL ni se validó una sesión profesional real.
 
 Para probar ambas ramas en otra computadora, descarga `feat/flujo-clinico-operativo` en cada repositorio. Configura el backend local como indica `docs/desarrollo-local.md` y el frontend como indica su `docs/desarrollo-local.md`. Usa una clínica y cuenta de prueba autorizadas. Las pruebas de escritura deben usar una base aislada: no ejecutar limpieza ni migraciones en `clinica`.

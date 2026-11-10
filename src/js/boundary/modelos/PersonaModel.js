@@ -182,7 +182,7 @@ export default class PersonaModel extends HTMLElement {
   render(state) {
     this.notice.textContent = state.status === 'loading' ? 'Cargando…' : state.message;
     this.error.textContent = state.error ? gestionError(state.error) : '';
-    this.newButton.disabled = state.writing || !this.control.contexto.puedeEscribir;
+    this.newButton.disabled = state.writing;
     this.list.replaceChildren();
     const table = node('table');
     const head = node('tr');
@@ -202,7 +202,7 @@ export default class PersonaModel extends HTMLElement {
       editableRecord(
         tr,
         () => this.control.edit('persona', p),
-        !state.writing && this.control.contexto.puedeEscribir,
+        !state.writing,
       );
       tr.append(cell);
       body.append(tr);
@@ -219,7 +219,7 @@ export default class PersonaModel extends HTMLElement {
       editableRecord(
         this.detail.firstChild,
         () => this.control.edit('persona', state.person),
-        !state.writing && this.control.contexto.puedeEscribir,
+        !state.writing,
       );
       const tabs = node('div', undefined, 'gestion-tools');
       for (const [key, label] of [
@@ -236,7 +236,7 @@ export default class PersonaModel extends HTMLElement {
         this.button(
           'Agregar ' + names[state.tab].toLowerCase(),
           () => this.control.edit(state.tab),
-          state.writing || !this.control.contexto.puedeEscribir,
+          state.writing,
         ),
       );
       for (const row of state.children) {
@@ -248,13 +248,13 @@ export default class PersonaModel extends HTMLElement {
             () => {
               if (confirm('¿Eliminar este registro asociado?')) this.control.remove(row);
             },
-            state.writing || !this.control.contexto.puedeEscribir,
+            state.writing,
           ),
         );
         editableRecord(
           line,
           () => this.control.edit(state.tab, row),
-          !state.writing && this.control.contexto.puedeEscribir,
+          !state.writing,
         );
         this.detail.append(line);
       }
@@ -277,7 +277,6 @@ export default class PersonaModel extends HTMLElement {
         for (const row of state.options[resource] ?? []) {
           const id = row[idField(resource)];
           if (!row.activo && id !== current) continue;
-          if (resource === 'clinica' && !this.control.contexto.clinicas.includes(id)) continue;
           const option = node('option', row.nombre ?? id);
           option.value = id;
           select.append(option);

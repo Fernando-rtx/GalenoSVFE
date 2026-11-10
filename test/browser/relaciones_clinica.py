@@ -1,24 +1,16 @@
 """Asociaciones reales con registros DESARROLLO previamente creados; no limpia tablas."""
 
-import json, uuid, unittest, base64, urllib.request, urllib.parse, subprocess
-from pathlib import Path
+import json, uuid, unittest, urllib.request, urllib.parse, subprocess
 from playwright.sync_api import sync_playwright, expect
 
 
 class RelacionesClinica(unittest.TestCase):
     def test_tipos_examenes_y_secuencias(self):
-        a = json.loads(
-            Path(
-                "/Users/albertoalexanderitzepsarceno/Library/Application Support/GalenosSV/credentials.json"
-            ).read_text()
-        )["administrador-local"]
-        auth = "Basic " + base64.b64encode((a["username"] + ":" + a["password"]).encode()).decode()
 
         def get(path):
             with urllib.request.urlopen(
                 urllib.request.Request(
                     "http://localhost:9080/GalenosSV/resources/v2/" + path,
-                    headers={"Authorization": auth},
                 )
             ) as r:
                 return json.load(r)
@@ -43,10 +35,7 @@ class RelacionesClinica(unittest.TestCase):
             page.on("pageerror", lambda e: errors.append(str(e)))
             page.goto("http://localhost:3000")
             page.locator("[data-module=tipoExamen]").click()
-            page.locator("#gestion-usuario").fill(a["username"])
-            page.locator("#gestion-clave").fill(a["password"])
-            page.get_by_role("button", name="Iniciar sesión", exact=True).click()
-            expect(page.locator("[data-catalogos] .gestion-tools").first).to_be_visible()
+            expect(page.locator("[data-catalogos] .catalogo-header")).to_be_visible()
             typeName = "DESARROLLO tipo " + uuid.uuid4().hex[:8]
             page.get_by_role("button", name="Nuevo registro", exact=True).click()
             d = page.locator("#gestion dialog:visible")

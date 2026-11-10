@@ -1,13 +1,10 @@
 """CRUD por navegador real contra REST/PostgreSQL sintético. Sin interceptar Fetch."""
 
-import json
 import os
-from pathlib import Path
 import unittest
 import uuid
 from playwright.sync_api import sync_playwright, expect
 
-CREDS = Path(os.environ["GALENOS_CRUD_CREDENTIALS"])
 ORIGIN = os.environ.get("GALENO_DASHBOARD_ORIGIN", "http://127.0.0.1:3000")
 
 
@@ -16,7 +13,6 @@ class GestionBrowser(unittest.TestCase):
     def setUpClass(cls):
         cls.p = sync_playwright().start()
         cls.browser = cls.p.chromium.launch(headless=True)
-        cls.accounts = json.loads(CREDS.read_text())
 
     @classmethod
     def tearDownClass(cls):
@@ -35,12 +31,8 @@ class GestionBrowser(unittest.TestCase):
         self.context.close()
         self.assertEqual(self.errors, [])
 
-    def login(self, module, role="editor"):
+    def open_module(self, module):
         self.page.locator("[data-module=" + module + "]").click()
-        account = self.accounts[role]
-        self.page.locator("#gestion-usuario").fill(account["username"])
-        self.page.locator("#gestion-clave").fill(account["password"])
-        self.page.get_by_role("button", name="Iniciar sesión").click()
         expect(self.page.locator("#gestion tbody tr").first).to_be_visible()
 
     def test_catalog_crud_and_original_dashboard_context(self):
@@ -48,7 +40,7 @@ class GestionBrowser(unittest.TestCase):
         self.page.locator("#clinica").select_option(clinic)
         expect(self.page.locator("[data-ui=total]")).to_have_text("5")
         self.page.locator("#fechaDesde").fill("2026-08-20")
-        self.login("tipoDocumento")
+        self.open_module("tipoDocumento")
         for module in ["tipoDocumento", "tipoMedioContacto", "tipoExamen", "clinica", "rol"]:
             with self.subTest(module=module):
                 self.page.locator("[data-module=" + module + "]").click()
@@ -94,28 +86,9 @@ class GestionBrowser(unittest.TestCase):
         self.assertGreater(self.page.locator("tarjeta-consulta").count(), 0)
         self.page.screenshot(path="/private/tmp/galeno-dashboard-conservado.png", full_page=True)
 
-    def test_reader_is_visible_and_cannot_submit(self):
-        self.login("tipoDocumento", "lector")
-        expect(self.page.get_by_role("button", name="Nuevo registro")).to_be_disabled()
-        self.page.locator("#gestion tbody tr").first.get_by_role(
-            "button", name="Ver detalle"
-        ).click()
-        expect(
-            self.page.locator("#gestion dialog").get_by_role("button", name="Guardar", exact=True)
-        ).to_be_disabled()
-
-    def test_wrong_credentials_show_cors_error_in_ui(self):
-        self.page.locator("[data-module=tipoDocumento]").click()
-        self.page.locator("#gestion-usuario").fill("inexistente")
-        self.page.locator("#gestion-clave").fill("sintetico-invalido")
-        self.page.get_by_role("button", name="Iniciar sesión").click()
-        expect(self.page.locator("#gestion > [role=alert]")).to_contain_text(
-            "Usuario o contraseña no válidos"
-        )
-
     def test_mobile_management_has_no_document_overflow(self):
         self.page.set_viewport_size({"width": 390, "height": 844})
-        self.login("tipoDocumento")
+        self.open_module("tipoDocumento")
         self.assertTrue(self.page.evaluate("document.documentElement.scrollWidth <= innerWidth"))
 
 

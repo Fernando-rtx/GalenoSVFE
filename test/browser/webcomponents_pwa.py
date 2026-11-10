@@ -33,7 +33,7 @@ with sync_playwright() as playwright:
     assert registered, "Falta registrar un Custom Element"
     expect(page.locator("galenos-dashboard #main")).to_be_visible()
     page.locator('[data-module="rol"]').click()
-    expect(page.locator("galenos-catalogos #gestion-usuario")).to_be_visible()
+    expect(page.locator("galenos-catalogos h1")).to_have_text("Roles")
     assert page.evaluate("location.hash") == "#rol"
     page.go_back()
     expect(page.locator("galenos-dashboard #main")).to_be_visible()
@@ -100,7 +100,7 @@ with sync_playwright() as playwright:
       return {keys, urls:entries.map(request => new URL(request.url).pathname)};
     }"""
     )
-    assert any(key.startswith("galenossv-shell-v6") for key in cache["keys"])
+    assert any(key.startswith("galenossv-shell-") for key in cache["keys"])
     assert "/" in cache["urls"]
     assert all(
         "/api/" not in url and "/resources/v2/" not in url and "environment.local.js" not in url

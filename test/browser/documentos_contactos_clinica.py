@@ -1,24 +1,16 @@
 """Documentos y contactos desde el frontend sobre una persona DESARROLLO; sin limpieza masiva."""
 
-import unittest, json, uuid, base64, urllib.request, urllib.parse, subprocess
-from pathlib import Path
+import unittest, json, uuid, urllib.request, urllib.parse, subprocess
 from playwright.sync_api import sync_playwright, expect
 
 
 class DocumentosContactosClinica(unittest.TestCase):
     def test_documento_y_contacto(self):
-        a = json.loads(
-            Path(
-                "/Users/albertoalexanderitzepsarceno/Library/Application Support/GalenosSV/credentials.json"
-            ).read_text()
-        )["administrador-local"]
-        auth = "Basic " + base64.b64encode((a["username"] + ":" + a["password"]).encode()).decode()
 
         def get(path):
             with urllib.request.urlopen(
                 urllib.request.Request(
                     "http://localhost:9080/GalenosSV/resources/v2/" + path,
-                    headers={"Authorization": auth},
                 )
             ) as r:
                 return json.load(r)
@@ -36,10 +28,7 @@ class DocumentosContactosClinica(unittest.TestCase):
             page.on("pageerror", lambda e: errors.append(str(e)))
             page.goto("http://localhost:3000")
             page.locator("[data-module=tipoDocumento]").click()
-            page.locator("#gestion-usuario").fill(a["username"])
-            page.locator("#gestion-clave").fill(a["password"])
-            page.get_by_role("button", name="Iniciar sesión", exact=True).click()
-            expect(page.locator("[data-catalogos] .gestion-tools").first).to_be_visible()
+            expect(page.locator("[data-catalogos] .catalogo-header")).to_be_visible()
             for module, name in [
                 ("tipoDocumento", "DESARROLLO documento " + token),
                 ("tipoMedioContacto", "DESARROLLO contacto " + token),

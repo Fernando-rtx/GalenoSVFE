@@ -1,25 +1,16 @@
 """Flujo de desarrollo explícito en clinica: plantillas, ejecución, órdenes y resultados."""
 
-import json, uuid, unittest, base64, urllib.request, urllib.parse, subprocess
-from pathlib import Path
+import json, uuid, unittest, urllib.request, urllib.parse, subprocess
 from playwright.sync_api import sync_playwright, expect
 
 
 class FlujoClinica(unittest.TestCase):
     def test_flujo_completo(self):
-        accounts = json.loads(
-            Path(
-                "/Users/albertoalexanderitzepsarceno/Library/Application Support/GalenosSV/credentials.json"
-            ).read_text()
-        )
-        a = accounts["administrador-local"]
-        auth = "Basic " + base64.b64encode((a["username"] + ":" + a["password"]).encode()).decode()
 
         def get(path):
             with urllib.request.urlopen(
                 urllib.request.Request(
                     "http://localhost:9080/GalenosSV/resources/v2/" + path,
-                    headers={"Authorization": auth},
                 )
             ) as r:
                 return json.load(r)
@@ -31,10 +22,7 @@ class FlujoClinica(unittest.TestCase):
             page.on("pageerror", lambda e: errors.append(str(e)))
             page.goto("http://localhost:3000")
             page.locator("[data-module=rol]").click()
-            page.locator("#gestion-usuario").fill(a["username"])
-            page.locator("#gestion-clave").fill(a["password"])
-            page.get_by_role("button", name="Iniciar sesión", exact=True).click()
-            expect(page.locator("[data-catalogos] .gestion-tools").first).to_be_visible()
+            expect(page.locator("[data-catalogos] .catalogo-header")).to_be_visible()
             token = uuid.uuid4().hex[:8]
             suffix = token.translate(str.maketrans("0123456789", "abcdefghij"))
             roleName = "DESARROLLO responsable " + token

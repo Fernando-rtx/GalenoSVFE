@@ -75,7 +75,7 @@ export default class OrdenModel extends HTMLElement {
       this.button(
         s.orden ? 'Nuevo resultado' : 'Nueva orden',
         () => this.control.edit(),
-        s.writing || !this.control.contexto.puedeEscribir,
+        s.writing,
       ),
     );
     if (s.orden)
@@ -96,7 +96,7 @@ export default class OrdenModel extends HTMLElement {
       editableRecord(
         line,
         () => this.control.edit(row),
-        !s.writing && this.control.contexto.puedeEscribir,
+        !s.writing,
       );
       this.list.append(line);
     }

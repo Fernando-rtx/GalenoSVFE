@@ -34,7 +34,6 @@ describe('Consulta de gestión — coordinación unitaria sintética', () => {
       pasoService: service,
       pacienteService: service,
       procedimientoService: service,
-      contexto: { puedeEscribir: true },
     });
   });
   afterEach(() => control.destroy());
@@ -58,13 +57,6 @@ describe('Consulta de gestión — coordinación unitaria sintética', () => {
     expect(control.state.error).to.equal(error);
     expect(control.state.editor).to.equal('consulta');
     sinon.assert.notCalled(dashboard.loadConsultas);
-  });
-  it('lector no abre edición ni ejecuta escrituras', async () => {
-    control.contexto = { puedeEscribir: false };
-    await control.editConsulta(true);
-    await control.save({});
-    expect(control.state.editor).to.equal(null);
-    sinon.assert.notCalled(service.create);
   });
   it('actualiza un paso con su responsable y asociación existentes, sin crear otro paso', async () => {
     const step = { idConsultaProcedimientoPaso: id };

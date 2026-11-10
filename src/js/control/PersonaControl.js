@@ -1,8 +1,7 @@
 /** Registro de personas y asociaciones anidadas; no conoce DOM ni Fetch. */
 export default class PersonaControl {
-  constructor({ services, contexto }) {
+  constructor({ services }) {
     this.services = services;
-    this.contexto = contexto;
     this.listeners = new Set();
     this.requests = {};
     this.closed = false;
@@ -95,7 +94,7 @@ export default class PersonaControl {
     await this.loadChildren();
   }
   async edit(kind, data = null) {
-    if (this.state.writing || !this.contexto.puedeEscribir) return;
+    if (this.state.writing) return;
     this.set({ editor: { kind, data }, options: {}, error: null, message: '' });
     const required =
       kind === 'documento'
@@ -132,7 +131,7 @@ export default class PersonaControl {
     }
   }
   async save(data) {
-    if (this.state.writing || !this.state.editor || !this.contexto.puedeEscribir) return;
+    if (this.state.writing || !this.state.editor) return;
     const { kind, data: selected } = this.state.editor;
     const person = this.state.person;
     const id = 'id' + kind[0].toUpperCase() + kind.slice(1);
@@ -155,7 +154,7 @@ export default class PersonaControl {
     }
   }
   async remove(row) {
-    if (this.state.writing || !this.contexto.puedeEscribir) return;
+    if (this.state.writing) return;
     const { tab } = this.state;
     const id = 'id' + tab[0].toUpperCase() + tab.slice(1);
     this.set({ writing: true, error: null, message: '' });

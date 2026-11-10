@@ -3,7 +3,10 @@ import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 import Mocha from 'mocha';
 
-if (process.env.GALENO_INTEGRATION_PROFILE === 'development') {
+const profile = process.env.GALENO_INTEGRATION_PROFILE ??
+  (process.env.GALENO_INTEGRATION_CONFIG ? 'legacy' : 'academic');
+
+if (['academic', 'development'].includes(profile)) {
   await import('./run-development-integration.js');
 } else {
   const configUrl = process.env.GALENO_INTEGRATION_CONFIG

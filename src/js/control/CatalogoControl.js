@@ -2,13 +2,12 @@ import DefaultError from '../entity/DefaultError.js';
 
 /** Coordinación de los catálogos; los Service conservan todo el transporte HTTP. */
 export default class CatalogoControl {
-  constructor({ services, contexto, module = 'tipoDocumento', pageSize = 10 }) {
+  constructor({ services, module = 'tipoDocumento', pageSize = 10 }) {
     this.services = services;
     this.listeners = new Set();
     this.read = null;
     this.closed = false;
     this.state = Object.freeze({
-      contexto,
       module,
       first: 0,
       max: pageSize,
@@ -83,15 +82,13 @@ export default class CatalogoControl {
     }
   }
   create() {
-    if (!this.state.contexto.puedeEscribir || this.state.writing) return;
+    if (this.state.writing) return;
     this.set({ selected: null, editor: 'create', error: null });
   }
   cancel() {
     if (!this.state.writing) this.set({ selected: null, editor: null, error: null });
   }
   async save(data) {
-    if (!this.state.contexto.puedeEscribir)
-      throw DefaultError.validation('La sesión solo permite lectura.');
     if (this.state.writing || !this.state.editor) return;
     const { module, editor, selected } = this.state;
     const service = this.services[module];
@@ -113,7 +110,7 @@ export default class CatalogoControl {
   }
   async remove() {
     const { module, selected } = this.state;
-    if (!selected || this.state.writing || !this.state.contexto.puedeEscribir) return;
+    if (!selected || this.state.writing) return;
     const idField = 'id' + module[0].toUpperCase() + module.slice(1);
     this.set({ writing: true, error: null });
     try {

@@ -111,8 +111,7 @@ body {
   height: auto;
 }
 .layout-menu-toggle,
-.layout-theme-toggle,
-.layout-session {
+.layout-theme-toggle {
   background: var(--gs-raised);
   color: var(--gs-text);
   border: 1px solid var(--gs-border);
@@ -153,16 +152,6 @@ body {
 }
 .layout-clinic .field-hint {
   margin: 2px 0 0;
-}
-.layout-session {
-  display: grid;
-  text-align: left;
-  max-width: 220px;
-  overflow-wrap: anywhere;
-}
-.layout-session small {
-  color: var(--gs-muted);
-  font-weight: 400;
 }
 .app-shell.menu-closed {
   grid-template-columns: minmax(0, 1fr);
@@ -275,18 +264,6 @@ h2 {
   border-color: var(--gs-border);
   border-radius: 6px;
   box-shadow: none;
-}
-.gestion-login {
-  margin-top: 20px;
-  max-width: 32rem;
-  padding: 20px;
-  border-top: 2px solid var(--gs-blue);
-}
-.gestion-login h2 {
-  margin: 0;
-}
-.gestion-login p {
-  color: var(--gs-muted);
 }
 .gestion-tools {
   gap: 8px;
@@ -671,26 +648,8 @@ dd {
   .filter-grid {
     grid-template-columns: minmax(0, 1fr);
   }
-  .layout-session {
-    max-width: 170px;
-  }
 }
 
-.context-navigation {
-  text-align: left;
-  color: var(--gs-muted);
-  font-size: 0.85rem;
-  font-weight: 500;
-  padding: 9px 10px;
-  border: 0;
-  border-left: 3px solid transparent;
-  border-radius: 4px;
-  background: transparent;
-}
-.context-navigation:hover {
-  background: var(--gs-raised);
-  color: var(--gs-text);
-}
 .gestion > .subtitle,
 [data-catalogos] > .subtitle,
 [data-personas] > .subtitle {

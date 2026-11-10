@@ -1,24 +1,16 @@
 """Ediciones reales y eliminación de un paso DESARROLLO nuevo, sin tocar registros ajenos."""
 
-import json, unittest, base64, urllib.request, uuid
-from pathlib import Path
+import json, unittest, urllib.request, uuid
 from playwright.sync_api import sync_playwright, expect
 
 
 class EdicionesClinica(unittest.TestCase):
     def test_ediciones_y_paso_terminal(self):
-        a = json.loads(
-            Path(
-                "/Users/albertoalexanderitzepsarceno/Library/Application Support/GalenosSV/credentials.json"
-            ).read_text()
-        )["administrador-local"]
-        auth = "Basic " + base64.b64encode((a["username"] + ":" + a["password"]).encode()).decode()
 
         def get(path):
             with urllib.request.urlopen(
                 urllib.request.Request(
                     "http://localhost:9080/GalenosSV/resources/v2/" + path,
-                    headers={"Authorization": auth},
                 )
             ) as r:
                 return json.load(r)
@@ -42,10 +34,7 @@ class EdicionesClinica(unittest.TestCase):
             errors = []
             page.on("pageerror", lambda e: errors.append(str(e)))
             page.goto("http://localhost:3000/#procedimiento")
-            page.locator("#gestion-usuario").fill(a["username"])
-            page.locator("#gestion-clave").fill(a["password"])
-            page.get_by_role("button", name="Iniciar sesión", exact=True).click()
-            expect(page.locator("[data-catalogos] .gestion-tools").first).to_be_visible()
+            expect(page.locator("[data-catalogos] .catalogo-header")).to_be_visible()
             page.locator("[data-catalogos] input[type=search]").fill(proc["nombre"])
             page.get_by_role("button", name="Buscar", exact=True).click()
             page.locator("[data-catalogos] tbody tr").filter(has_text=proc["nombre"]).get_by_role(

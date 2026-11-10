@@ -101,7 +101,7 @@ export default class ProcedimientoModel extends HTMLElement {
     this.headingNode.textContent = 'Pasos · ' + (s.parent?.nombre ?? 'Procedimiento');
     this.status.textContent = s.error ? gestionError(s.error) : s.message;
     this.tools.querySelectorAll('button').forEach((b) => (b.disabled = s.writing));
-    this.tools.lastChild.disabled = s.writing || !this.control.contexto.puedeEscribir;
+    this.tools.lastChild.disabled = s.writing;
     this.list.replaceChildren();
     for (const row of s.rows) {
       const line = n('div');
@@ -113,7 +113,7 @@ export default class ProcedimientoModel extends HTMLElement {
           () => {
             if (confirm('¿Eliminar el paso terminal y sus asociaciones?')) this.control.remove(row);
           },
-          s.writing || !this.control.contexto.puedeEscribir,
+          s.writing,
         ),
       );
       if (this.onRelations)
@@ -132,7 +132,7 @@ export default class ProcedimientoModel extends HTMLElement {
       editableRecord(
         line,
         () => this.control.edit(row),
-        !s.writing && this.control.contexto.puedeEscribir,
+        !s.writing,
       );
       this.list.append(line);
     }

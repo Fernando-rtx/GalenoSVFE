@@ -101,7 +101,7 @@ export default class RelacionModel extends HTMLElement {
     this.headingNode.textContent = d.title + ' · ' + (s.parent.nombre ?? '');
     this.status.textContent = s.error ? gestionError(s.error) : s.message;
     this.tools.firstChild.disabled = s.writing;
-    this.tools.lastChild.disabled = s.writing || !this.control.contexto.puedeEscribir;
+    this.tools.lastChild.disabled = s.writing;
     this.list.replaceChildren();
     for (const row of s.rows) {
       const target = s.options.find((x) => x[d.optionId] === row[d.target]);
@@ -117,13 +117,13 @@ export default class RelacionModel extends HTMLElement {
           () => {
             if (confirm('¿Quitar únicamente esta asociación?')) this.control.remove(row);
           },
-          s.writing || !this.control.contexto.puedeEscribir,
+          s.writing,
         ),
       );
       editableRecord(
         line,
         () => this.control.edit(row),
-        !s.writing && this.control.contexto.puedeEscribir,
+        !s.writing,
       );
       this.list.append(line);
     }

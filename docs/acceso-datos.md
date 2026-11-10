@@ -11,21 +11,21 @@ Fetch. Los DAO viven en `src/js/control/`, no crean HTML ni acceden al DOM.
 `config/` centraliza opciones y rutas; no hay dependencia directa de JPA.
 Los datos recibidos son los DTO REST; no se reconstruyen entidades Java.
 
-`DefaultDAO` implementa una vez el transporte y consulta el registro de
+`DefaultService` implementa una vez el transporte y consulta el registro de
 operaciones. TipoDocumento, Clínica y Consulta seleccionan su recurso sin
 repetir URL, Fetch, errores ni validación. Los validadores REST y la
 serialización de parámetros están extraídos a funciones reutilizables.
 
 ## Configuración e importación
 
-Copiar `src/js/config/environment.example.js` como `environment.local.js`.
+Copiar `src/js/control/environment.example.js` como `environment.local.js`.
 Definir allí la URL efectiva del backend, incluido `/GalenosSV/resources/`.
 El valor inicial es `null`: importar funciona, enviar HTTP requiere configurarlo.
 No se supone que los puertos de prueba de Fernando estén disponibles aquí.
 
 ```js
 import { TipoDocumentoDAO, ClinicaDAO, ConsultaDAO } from './js/index.js';
-import { config } from './js/config/environment.local.js';
+import { config } from './js/control/environment.local.js';
 
 const tipos = new TipoDocumentoDAO({ config });
 const clinicas = new ClinicaDAO({ config });

@@ -1,3 +1,5 @@
+> **Nota histórica:** este documento describe una revisión anterior y puede contener nombres DAO del frontend que ya fueron retirados. La arquitectura vigente está en [arquitectura-frontend.md](arquitectura-frontend.md).
+
 # Verificación final de la entrega de Itzep
 
 Fecha: 23 de octubre de 2026, America/El_Salvador.
@@ -115,7 +117,7 @@ consumo-dao-rodrigo.md, inventario-dao.md y este documento.
    `test/integration/environment.demo.example.js` como
    `test/integration/environment.local.js` y completar baseUrl con esa conexión.
    El ejemplo descubre UUID por HTTP; no necesita claves PostgreSQL.
-3. Copiar `src/js/config/environment.example.js` como environment.local.js
+3. Copiar `src/js/control/environment.example.js` como environment.local.js
    en su mismo directorio y completar la misma baseUrl para el cliente.
    Ambos archivos locales están ignorados por Git.
 4. Ejecutar `npm test`, `npm run check`, `npm run test:transport` y

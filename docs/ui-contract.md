@@ -85,6 +85,6 @@ new CustomEvent("consulta-seleccionada", {
 
 ## Registro e integración
 
-`src/js/app/main.js` importa `tarjeta_consulta.js`, que registra ambos elementos. La página crea `tarjeta-consulta`, asigna la propiedad `consulta` antes de conectarla al DOM y escucha `consulta-seleccionada`. Si se actualiza la propiedad después, la tarjeta vuelve a presentar sus datos sin duplicar su estructura.
+`src/js/main.js` importa `tarjeta_consulta.js`, que registra ambos elementos. La página crea `tarjeta-consulta`, asigna la propiedad `consulta` antes de conectarla al DOM y escucha `consulta-seleccionada`. Si se actualiza la propiedad después, la tarjeta vuelve a presentar sus datos sin duplicar su estructura.
 
 Los estilos se cargan dentro de cada Shadow DOM desde `src/resources/estilos/tarjeta.css` y `tarjeta_consulta.css`. Las rutas se resuelven con `new URL(..., import.meta.url)` al servir el proyecto desde `src`.

@@ -6,7 +6,7 @@ El punto público es `src/js/index.js`. Hay 20 clases con nombres PascalCase
 existentes y sufijo DAO; no se renombraron los tres DAO anteriores ni sus
 métodos. Se conserva la convención del proyecto para no romper imports.
 
-Cada DAO hereda estas firmas de DefaultDAO:
+Cada Service hereda estas firmas de DefaultService:
 
 ```text
 findRange(first, max, options = {})
@@ -35,7 +35,7 @@ implementa componentes asignados a Rodrigo.
 
 ```js
 import { ClinicaDAO, ConsultaDAO } from './js/index.js';
-import { config } from './js/config/environment.local.js';
+import { config } from './js/control/environment.local.js';
 
 const clinicas = new ClinicaDAO({ config });
 const consultas = new ConsultaDAO({ config });
@@ -127,7 +127,7 @@ importa los DAO y tipos desde el punto público, obtiene clínicas/consultas por
 HTTP y comprueba paginación, filtros, datos, totales y errores. Se ejecuta con
 la misma suite en Node y en el runner de navegador. La cancelación al sustituir
 una solicitud, su limpieza y el rechazo previo a Fetch se comprueban en
-`test/unit/DefaultDAO.test.js`; no se atribuye esa prueba a un Web Component.
+`test/unit/DefaultService.test.js`; no se atribuye esa prueba a un Web Component.
 
 No se necesita un contrato de componente para entregar este módulo de acceso
 a datos. La conexión concreta con tarjetas/dashboard permanece pendiente del

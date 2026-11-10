@@ -18,6 +18,7 @@ Thumbs.db
 
 # Entornos locales del módulo de acceso a datos
 src/js/config/environment.local.js
+src/js/control/environment.local.js
 test/integration/environment.local.js
 
 # Caché de los verificadores Python externos de navegador

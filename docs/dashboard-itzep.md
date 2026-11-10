@@ -5,15 +5,15 @@ La nueva responsabilidad de dashboard y su integración fue autorizada por Itzep
 
 ## Organización y uso
 
-- `src/js/app/dashboard.js`: composición con ClinicaDAO/ConsultaDAO inyectables.
-- `src/js/app/main.js`: configuración local, inicio y limpieza al abandonar la página.
+- `src/js/boundary/dashboard.js`: composición con ClinicaDAO/ConsultaDAO inyectables.
+- `src/js/main.js`: configuración local, inicio y limpieza al abandonar la página.
 - `src/js/control/DashboardControl.js`: clínicas, selección, filtros, paginación,
   detalle, errores, AbortController y descarte de respuestas obsoletas. No usa DOM ni Fetch.
-- `src/js/boundary/pages/DashboardPage.js`: DOM y eventos; no accede directamente a HTTP.
+- `src/js/boundary/modelos/DashboardPage.js`: DOM y eventos; no accede directamente a HTTP.
 - `dashboard-presentation.js`: mensajes seguros, fechas UTC y modelo de seis campos.
 - `src/resources/estilos/dashboard.css`: layout responsive exclusivo del dashboard.
 
-Copiar `src/js/config/environment.example.js` como `environment.local.js` en
+Copiar `src/js/control/environment.example.js` como `environment.local.js` en
 ese directorio y completar la base URL con `./demo info` del demo sintético
 oficial. Ejecutar `npm ci` y `npm run dev`. Abrir `/index.html` en el origen
 permitido por CORS. La configuración de BrowserSync ahora sirve index.html en
@@ -43,7 +43,7 @@ La página escucha `consulta-seleccionada` en su raíz. Requiere
 DOM. El Control comprueba que el ID pertenece a la página visible y obtiene
 el detalle con `findById(idConsulta, { query: { idClinica }, signal })`.
 
-La entrega consolidada incluye las tarjetas reales. `src/js/app/main.js`
+La entrega consolidada incluye las tarjetas reales. `src/js/main.js`
 importa `tarjeta_consulta.js`; este módulo registra
 `tarjeta-consulta` e importa `tarjeta_simple.js`. Ambos reciben datos por DOM y
 propiedades, sin Fetch. La aplicación comparte el formato UTC entre tarjetas

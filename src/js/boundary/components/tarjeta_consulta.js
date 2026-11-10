@@ -1,5 +1,5 @@
 import './tarjeta_simple.js';
-import { formatUtcDate } from '../format-utc-date.js';
+import { formatUtcDate } from '../modelos/format-utc-date.js';
 
 const stylesheetUrl = new URL('../../../resources/estilos/tarjeta_consulta.css', import.meta.url);
 
@@ -43,8 +43,10 @@ export default class TarjetaConsulta extends HTMLElement {
     content.slot = 'contenido';
     const values = {};
     for (const [field, label] of [
-      ['rolNombre', 'Rol'], ['clinicaNombre', 'Clínica'],
-      ['fechaInicio', 'Inicio'], ['fechaFin', 'Fin']
+      ['rolNombre', 'Rol'],
+      ['clinicaNombre', 'Clínica'],
+      ['fechaInicio', 'Inicio'],
+      ['fechaFin', 'Fin'],
     ]) {
       const row = document.createElement('div');
       const term = document.createElement('dt');
@@ -62,9 +64,13 @@ export default class TarjetaConsulta extends HTMLElement {
     button.addEventListener('click', () => {
       const idConsulta = this._consulta?.idConsulta;
       if (typeof idConsulta !== 'string' || !idConsulta.trim()) return;
-      button.dispatchEvent(new CustomEvent('consulta-seleccionada', {
-        detail: { idConsulta }, bubbles: true, composed: true
-      }));
+      button.dispatchEvent(
+        new CustomEvent('consulta-seleccionada', {
+          detail: { idConsulta },
+          bubbles: true,
+          composed: true,
+        }),
+      );
     });
 
     card.append(title, content, button);

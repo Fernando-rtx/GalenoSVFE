@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es">
+  <meta charset="utf-8" /><title>Componentes de página sintéticos</title>
+  <body>
+    <output id="resultado">EJECUTANDO</output>
+    <div data-ui="cards"></div>
+    <aside data-ui="detail"></aside>
+    <script type="module">
+      import '/js/boundary/modelos/CatalogoModel.js';
+      import '/js/boundary/modelos/ConsultaGestionModel.js';
+      import '/js/boundary/modelos/OrdenModel.js';
+      import '/js/boundary/modelos/PersonaModel.js';
+      import '/js/boundary/modelos/ProcedimientoModel.js';
+      import '/js/boundary/modelos/RelacionModel.js';
+
+      const assert = (condition, message) => {
+        if (!condition) throw Error(message);
+      };
+      const calls = [];
+      const control = {
+        state: { first: 0, max: 10, writing: false },
+        contexto: { puedeEscribir: true },
+        subscribe() {
+          calls.push('subscribe');
+          return () => calls.push('unsubscribe');
+        },
+        editConsulta(value) {
+          calls.push(`editConsulta:${value}`);
+        },
+        cancel() {
+          calls.push('cancel');
+        },
+        edit(value) {
+          calls.push(`edit:${value}`);
+        },
+      };
+      function mount(tag, ...args) {
+        const element = document.createElement(tag);
+        element._mountArgs = args;
+        document.body.append(element);
+        assert(element._mounted, `${tag}: no montó al conectarse`);
+        return element;
+      }
+      try {
+        const catalog = mount('galenos-catalogos', {
+          onLogin: async () => {},
+          onLogout() {},
+          onRelations() {},
+        });
+        assert(catalog.querySelector('form input[name=usuario]'), 'Catálogos: formulario ausente');
+        catalog.login.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        assert(
+          catalog.querySelector('[aria-invalid="true"]'),
+          'Falta validación accesible de campos obligatorios',
+        );
+        assert(catalog.querySelector('[aria-errormessage]'), 'Falta mensaje junto al campo');
+        catalog.connect(control);
+        catalog.remove();
+        const consult = mount('galenos-consulta-gestion', control);
+        consult.querySelector('button').click();
+        assert(calls.includes('editConsulta:true'), 'Consultas: acción nueva ausente');
+        consult.remove();
+        const order = mount('galenos-ordenes', control);
+        order.querySelector('button').click();
+        assert(calls.includes('cancel'), 'Órdenes: cancelar ausente');
+        order.remove();
+        const person = mount('galenos-personas', control);
+        person.querySelector('button.primary-button').click();
+        assert(calls.includes('edit:persona'), 'Personas: acción nueva ausente');
+        person.remove();
+        const procedure = mount('galenos-procedimientos', control, () =>
+          calls.push('back-procedure'),
+        );
+        procedure.querySelector('button').click();
+        assert(calls.includes('back-procedure'), 'Procedimientos: volver ausente');
+        procedure.remove();
+        const relation = mount('galenos-relaciones', control, () => calls.push('back-relation'));
+        relation.querySelector('button').click();
+        assert(calls.includes('back-relation'), 'Relaciones: volver ausente');
+        relation.remove();
+        assert(
+          calls.filter((call) => call === 'unsubscribe').length === 6,
+          'No se limpiaron las seis suscripciones',
+        );
+        document.querySelector('#resultado').textContent =
+          'PASS: montaje, acciones y limpieza de seis componentes de página';
+      } catch (error) {
+        document.querySelector('#resultado').textContent = `FAIL: ${error.message}`;
+        console.error(error);
+      }
+    </script>
+  </body>
+</html>

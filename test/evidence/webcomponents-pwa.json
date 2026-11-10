@@ -1,0 +1,26 @@
+{
+  "cards_fixture": "PASS",
+  "page_component_lifecycle": "PASS",
+  "custom_elements": [
+    "galenos-dashboard",
+    "galenos-catalogos",
+    "galenos-consulta-gestion",
+    "galenos-ordenes",
+    "galenos-personas",
+    "galenos-procedimientos",
+    "galenos-relaciones",
+    "galenos-notifications",
+    "tarjeta-consulta"
+  ],
+  "spa_back": "PASS",
+  "theme_and_mobile": "PASS",
+  "shadow_event_dedup_close": "PASS",
+  "manifest": "GalenosSV",
+  "service_worker_cache": [
+    "galenossv-shell-v6"
+  ],
+  "offline_shell": "PASS",
+  "chromium_installability_errors": [],
+  "clinical_cache_entries": 0,
+  "page_errors": []
+}

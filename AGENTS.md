@@ -2,23 +2,24 @@
 
 ## Arquitectura
 
-- `src/js/app/`: inicialización y composición de la aplicación.
 - `src/js/boundary/components/`: Web Components reutilizables.
-- `src/js/boundary/pages/`: páginas y coordinación de interfaz.
-- `src/js/control/`: DAOs HTTP y lógica de coordinación; no crea HTML.
-- `src/js/entity/`: entidades y respuestas; no importa DOM ni `fetch`.
-- `src/resources/estilos/`: estilos y tokens compartidos.
-- `test/`: pruebas unitarias e integrales con datos sintéticos.
+- `src/js/boundary/modelos/`: pantallas y modelos de presentación como Custom Elements.
+- `src/js/control/`: controles, los 20 Services REST, `DefaultService`, configuración y rutas API.
+- `src/js/entity/`: errores y respuestas; no importa DOM ni Fetch.
+- `src/js/main.js`: punto de composición y arranque.
+- `src/resources/`: estilos, imágenes y recursos públicos.
+- `test/`: pruebas unitarias, HTTP sintéticas y de navegador.
 
-Usa JavaScript nativo con módulos ES. Los componentes no acceden a la API.
-El cliente HTTP consume el contrato publicado en `docs/api-contract.md`.
-No conectes el navegador directamente a PostgreSQL ni incluyas datos reales,
-credenciales o secretos en el repositorio.
+Boundary renderiza estado y emite eventos. Control coordina estado y casos de uso. Services y DefaultService consumen el contrato `docs/api-contract.md`. Entity representa objetos de respuesta del cliente.
+
+Usa JavaScript nativo con módulos ES. No conectes el navegador a PostgreSQL. No guardes datos clínicos, credenciales ni respuestas REST en Cache Storage. El Service Worker precarga solo recursos públicos de lista cerrada.
 
 ## Contratos y cambios
 
-- No inventes rutas, propiedades, filtros, permisos o estados de API.
-- Marca fixtures como sintéticos y distingue errores de red de errores HTTP.
-- Cambios incompatibles en contratos requieren coordinación con el backend.
-- No añadas frameworks ni dependencias sin acuerdo del equipo y versiones fijas.
-- No trabajes directamente en `main`; usa una rama por cambio y revisión por PR.
+- No inventes rutas, propiedades JSON, filtros, permisos ni estados REST.
+- Distingue errores de red de errores HTTP; fixtures deben declararse sintéticos.
+- No renombres DAO JPA del backend ni cambies DTO REST.
+- No añadas frameworks o dependencias sin acuerdo del equipo y versiones fijas.
+- No cambies reglas clínicas ni incluyas lógica de Cafefe.
+- No trabajes directamente en `main`; usa rama y Pull Request.
+- Sigue `.prettierrc.json` y `pyproject.toml`.

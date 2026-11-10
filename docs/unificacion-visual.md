@@ -77,9 +77,9 @@ El acceso y los comandos de integración están en `docs/desarrollo-local.md`.
 ## Archivos de esta adaptación
 
 - `src/index.html`: cabecera, logotipo, clínica compartida y menú con orden JSF.
-- `src/js/app/appearance.js`, `main.js`, `gestion.js`: interacción visual y conexión
+- `src/js/boundary/appearance.js`, `main.js`, `gestion.js`: interacción visual y conexión
   de los controles de sesión con la autenticación existente.
-- `src/js/boundary/pages/CatalogoPage.js`, `PersonaPage.js`: títulos, cabecera,
+- `src/js/boundary/modelos/CatalogoPage.js`, `PersonaPage.js`: títulos, cabecera,
   búsqueda en tabla y columnas de datos del DTO ya disponible.
 - `src/resources/estilos/galenos.css`: tokens usados y adaptación común de todos los flujos.
 - `dashboard.css`, `tarjeta.css`, `tarjeta_consulta.css`: eliminación de la identidad

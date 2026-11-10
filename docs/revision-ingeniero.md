@@ -1,3 +1,5 @@
+> **Nota histórica:** este documento describe una revisión anterior y puede contener nombres DAO del frontend que ya fueron retirados. La arquitectura vigente está en [arquitectura-frontend.md](arquitectura-frontend.md).
+
 # Correcciones verificadas — 30 de octubre de 2026
 
 Estado global: **PARCIALMENTE COMPLETO**. Frontend revisado desde main

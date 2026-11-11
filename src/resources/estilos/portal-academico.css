@@ -1,0 +1,68 @@
+/* Formulario HU1/HU2: reutiliza los colores del tema compartido GalenosSV. */
+:host {
+  display: block;
+  max-width: 900px;
+  margin: 2rem auto;
+  font: inherit;
+  color: var(--gs-text, #243746);
+}
+* {
+  box-sizing: border-box;
+}
+h1 {
+  font-size: 2rem;
+}
+form,
+section {
+  padding: 1.4rem;
+  border: 1px solid var(--gs-border, #bccbd8);
+  border-radius: var(--radius, 6px);
+  margin: 1rem 0;
+  background: var(--gs-surface, #fff);
+}
+label {
+  display: block;
+  margin: 1rem 0 0.4rem;
+}
+input,
+select,
+button {
+  font: inherit;
+  padding: 0.7rem;
+  border: 1px solid var(--gs-border, #bccbd8);
+  border-radius: var(--radius, 6px);
+  max-width: 100%;
+}
+input,
+select {
+  width: 100%;
+  background: var(--gs-input, #f8fbfd);
+  color: var(--gs-text, #243746);
+}
+button {
+  cursor: pointer;
+  color: var(--gs-on-blue, #fff);
+  background: var(--gs-blue, #126b9b);
+  margin: 0.6rem 0.5rem 0.4rem 0;
+}
+button:hover {
+  background: var(--gs-button-hover, #11628c);
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+:focus-visible {
+  outline: 3px solid var(--gs-accent, #126b9b);
+  outline-offset: 3px;
+}
+[hidden] {
+  display: none !important;
+}
+[role='status'] {
+  min-height: 1.6rem;
+  color: var(--gs-muted, #50677a);
+}
+ul {
+  padding-left: 1.3rem;
+}

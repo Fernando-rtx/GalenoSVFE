@@ -207,6 +207,7 @@ export function mountGestion({ config: api, dashboard: dashboardApp }) {
   brand?.addEventListener('click', navigate);
   nav.addEventListener('click', navigate);
   function openHash() {
+    if (['#pacientes', '#empleados', ''].includes(location.hash)) return;
     const anchor =
       Array.from(nav.querySelectorAll('a')).find((a) => a.getAttribute('href') === location.hash) ||
       nav.querySelector('a[href="#main"]');

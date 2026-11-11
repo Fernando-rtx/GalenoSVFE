@@ -1,0 +1,18 @@
+{
+  "scope": "Chromium -> Fetch real -> Liberty Java -> PostgreSQL temporal sintético",
+  "passed": 11,
+  "checks": [
+    "Catálogo cargado desde Java; sólo tipo activo disponible",
+    "Tipo omitido, formato inválido e identidad inexistente rechazados",
+    "Paciente con dos clínicas propias obtenido del backend",
+    "Dos citas y procedimientos; descarga PDF Java real completada",
+    "Estado vacío y desconexión/reconexión reales del navegador",
+    "Paciente sin rol empleado rechazado por Java",
+    "Empleado con dos roles/clínicas; selección de PersonaRol y actualización",
+    "Dashboard y tarjeta originales reutilizados con la asignación elegida",
+    "Cierre de sesión con revocación Java y borrado de estado del formulario",
+    "La sesión no se restaura desde almacenamiento",
+    "Cache Storage sin REST, documentos, sesiones ni PDF"
+  ],
+  "pageErrors": []
+}

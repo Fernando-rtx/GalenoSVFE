@@ -26,7 +26,6 @@ describe('Órdenes y resultados — coordinación unitaria sintética', () => {
       ordenService,
       resultadoService,
       dashboard,
-      contexto: { puedeEscribir: true },
     });
   });
   afterEach(() => control.destroy());
@@ -58,13 +57,5 @@ describe('Órdenes y resultados — coordinación unitaria sintética', () => {
     expect(control.state.error).to.equal(error);
     expect(control.state.message).to.equal('');
     sinon.assert.notCalled(ordenService.findRange);
-  });
-  it('la sesión lectora no crea órdenes aunque invoque directamente el Control', async () => {
-    control.contexto = { puedeEscribir: false };
-    control.set({ paso: step });
-    control.edit();
-    await control.save({ indicaciones: 'Prueba' });
-    expect(control.state.editor).to.equal(null);
-    sinon.assert.notCalled(ordenService.create);
   });
 });

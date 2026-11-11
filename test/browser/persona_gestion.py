@@ -1,7 +1,6 @@
 """Registro y asociaciones reales desde la interfaz; solo PostgreSQL sintético."""
 
-import os, json, unittest, uuid
-from pathlib import Path
+import unittest, uuid
 from playwright.sync_api import sync_playwright, expect
 
 
@@ -12,12 +11,8 @@ class PersonaBrowser(unittest.TestCase):
             page = b.new_page(viewport={"width": 1440, "height": 1000})
             errors = []
             page.on("pageerror", lambda e: errors.append(str(e)))
-            c = json.loads(Path(os.environ["GALENOS_CRUD_CREDENTIALS"]).read_text())["editor"]
             page.goto("http://127.0.0.1:3000")
             page.locator("[data-module=persona]").click()
-            page.locator("#gestion-usuario").fill(c["username"])
-            page.locator("#gestion-clave").fill(c["password"])
-            page.get_by_role("button", name="Iniciar sesión").click()
             root = page.locator("[data-personas]")
             expect(root).to_be_visible()
             suffix = uuid.uuid4().hex[:8].translate(str.maketrans("0123456789", "abcdefghij"))

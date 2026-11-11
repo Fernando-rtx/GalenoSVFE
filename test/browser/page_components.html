@@ -19,7 +19,6 @@
       const calls = [];
       const control = {
         state: { first: 0, max: 10, writing: false },
-        contexto: { puedeEscribir: true },
         subscribe() {
           calls.push('subscribe');
           return () => calls.push('unsubscribe');
@@ -43,12 +42,13 @@
       }
       try {
         const catalog = mount('galenos-catalogos', {
-          onLogin: async () => {},
-          onLogout() {},
           onRelations() {},
         });
-        assert(catalog.querySelector('form input[name=usuario]'), 'Catálogos: formulario ausente');
-        catalog.login.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        const required = document.createElement('input');
+        required.name = 'nombre';
+        required.required = true;
+        catalog.formFields.append(required);
+        catalog.form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
         assert(
           catalog.querySelector('[aria-invalid="true"]'),
           'Falta validación accesible de campos obligatorios',

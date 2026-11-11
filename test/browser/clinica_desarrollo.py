@@ -1,21 +1,16 @@
 """Prueba explícita con registros DESARROLLO identificables en clinica. No limpia tablas."""
 
-import os, json, unittest, uuid, base64, urllib.request, subprocess
-from pathlib import Path
+import json, unittest, uuid, urllib.request, subprocess
 from playwright.sync_api import sync_playwright, expect
 
 
 class ClinicaDevelopment(unittest.TestCase):
     def test_persona_relaciones_y_consulta_persisten(self):
-        accounts = json.loads(Path(os.environ["GALENOS_LOCAL_CREDENTIALS"]).read_text())
-        a = accounts["administrador-local"]
-        auth = "Basic " + base64.b64encode((a["username"] + ":" + a["password"]).encode()).decode()
 
         def get(path):
             with urllib.request.urlopen(
                 urllib.request.Request(
                     "http://localhost:9080/GalenosSV/resources/v2/" + path,
-                    headers={"Authorization": auth},
                 )
             ) as r:
                 return json.load(r)
@@ -27,10 +22,7 @@ class ClinicaDevelopment(unittest.TestCase):
             page.on("pageerror", lambda e: errors.append(str(e)))
             page.goto("http://localhost:3000")
             page.locator("[data-module=rol]").click()
-            page.locator("#gestion-usuario").fill(a["username"])
-            page.locator("#gestion-clave").fill(a["password"])
-            page.get_by_role("button", name="Iniciar sesión", exact=True).click()
-            expect(page.locator("[data-catalogos] .gestion-tools").first).to_be_visible()
+            expect(page.locator("[data-catalogos] .catalogo-header")).to_be_visible()
             if not any(row["nombre"].strip().lower() == "paciente" for row in get("rol?max=100")):
                 page.get_by_role("button", name="Nuevo registro", exact=True).click()
                 d = page.locator("#gestion dialog:visible")

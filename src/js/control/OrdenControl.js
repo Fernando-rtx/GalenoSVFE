@@ -1,7 +1,7 @@
 /** Órdenes y resultados anidados en un paso de la consulta del dashboard. */
 export default class OrdenControl {
-  constructor({ ordenService, resultadoService, dashboard, contexto }) {
-    Object.assign(this, { ordenService, resultadoService, contexto });
+  constructor({ ordenService, resultadoService, dashboard }) {
+    Object.assign(this, { ordenService, resultadoService });
     this.listeners = new Set();
     this.request = null;
     this.closed = false;
@@ -75,14 +75,14 @@ export default class OrdenControl {
     }
   }
   edit(data = null) {
-    if (!this.state.writing && this.contexto.puedeEscribir)
+    if (!this.state.writing)
       this.set({ editor: { data }, error: null, message: '' });
   }
   cancel() {
     if (!this.state.writing) this.set({ editor: null, error: null });
   }
   async save(data) {
-    if (this.state.writing || !this.state.editor || !this.contexto.puedeEscribir) return;
+    if (this.state.writing || !this.state.editor) return;
     const { clinic, paso, orden, editor } = this.state;
     const service = orden ? this.resultadoService : this.ordenService;
     const parent = orden

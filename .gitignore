@@ -1,5 +1,5 @@
 # Dependencias y salidas generadas
-node_modules/
+node_modules
 coverage/
 dist/
 target/

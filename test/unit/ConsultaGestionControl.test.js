@@ -34,7 +34,6 @@ describe('Consulta de gestión — coordinación unitaria sintética', () => {
       pasoService: service,
       pacienteService: service,
       procedimientoService: service,
-      contexto: { puedeEscribir: true },
     });
   });
   afterEach(() => control.destroy());
@@ -58,13 +57,6 @@ describe('Consulta de gestión — coordinación unitaria sintética', () => {
     expect(control.state.error).to.equal(error);
     expect(control.state.editor).to.equal('consulta');
     sinon.assert.notCalled(dashboard.loadConsultas);
-  });
-  it('lector no abre edición ni ejecuta escrituras', async () => {
-    control.contexto = { puedeEscribir: false };
-    await control.editConsulta(true);
-    await control.save({});
-    expect(control.state.editor).to.equal(null);
-    sinon.assert.notCalled(service.create);
   });
   it('actualiza un paso con su responsable y asociación existentes, sin crear otro paso', async () => {
     const step = { idConsultaProcedimientoPaso: id };
@@ -90,11 +82,11 @@ describe('Consulta de gestión — coordinación unitaria sintética', () => {
     expect(control.state.message).to.equal('Actividad iniciada.');
     sinon.assert.calledTwice(service.findRange);
   });
-  it('no envía una transición inválida ni permite escribir en sesión lectora', async () => {
+  it('no envía una transición inválida o sin clínica seleccionada', async () => {
     control.set({ consulta: { idConsulta: id } });
     const step = { idConsultaProcedimientoPaso: id, estado: 'PENDIENTE' };
     await control.transitionStep(step, 'COMPLETADO');
-    control.contexto = { puedeEscribir: false };
+    control.set({ clinic: null });
     await control.transitionStep(step, 'EN_CURSO');
     sinon.assert.notCalled(service.update);
   });

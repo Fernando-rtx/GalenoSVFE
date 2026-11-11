@@ -1,7 +1,6 @@
 """Flujo real desde el dashboard conservado, contra base CRUD sintética."""
 
-import json, os, unittest, uuid
-from pathlib import Path
+import unittest, uuid
 from playwright.sync_api import sync_playwright, expect
 
 
@@ -12,12 +11,8 @@ class ConsultaBrowser(unittest.TestCase):
             page = b.new_page(viewport={"width": 1440, "height": 1000})
             errors = []
             page.on("pageerror", lambda e: errors.append(str(e)))
-            c = json.loads(Path(os.environ["GALENOS_CRUD_CREDENTIALS"]).read_text())["editor"]
             page.goto("http://127.0.0.1:3000")
             page.locator("[data-module=tipoDocumento]").click()
-            page.locator("#gestion-usuario").fill(c["username"])
-            page.locator("#gestion-clave").fill(c["password"])
-            page.get_by_role("button", name="Iniciar sesión").click()
             expect(page.locator("#gestion tbody tr").first).to_be_visible()
             page.locator('[data-navigation] a[href="#main"]').click()
             page.locator("#clinica").select_option("00000000-0000-4000-8000-000000000011")

@@ -14,9 +14,6 @@ OUTPUT = Path("/private/tmp/galenos-visual")
 
 class AparienciaJSF(unittest.TestCase):
     def test_temas_modulos_formularios_y_responsive_sin_escrituras(self):
-        credentials = json.loads(
-            (Path.home() / "Library/Application Support/GalenosSV/credentials.json").read_text()
-        )["administrador-local"]
         OUTPUT.mkdir(exist_ok=True)
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
@@ -36,12 +33,7 @@ class AparienciaJSF(unittest.TestCase):
             page.goto("http://localhost:3000/#tipoDocumento")
             page.evaluate("localStorage.setItem('galenos.theme','light')")
             page.reload()
-            expect(page.locator("#gestion-usuario")).to_be_visible()
-            page.locator("#gestion-usuario").fill(credentials["username"])
-            page.locator("#gestion-clave").fill(credentials["password"])
-            page.get_by_role("button", name="Iniciar sesión", exact=True).click()
-            expect(page.locator("[data-catalogos] .gestion-tools").first).to_be_visible()
-            expect(page.locator("[data-session-name]")).to_have_text(credentials["username"])
+            expect(page.locator("[data-catalogos] .catalogo-header")).to_be_visible()
             self.assertTrue(
                 page.locator(".layout-logo-image").evaluate("(n)=>n.complete&&n.naturalWidth>0")
             )
@@ -217,11 +209,7 @@ class AparienciaJSF(unittest.TestCase):
                         path=str(OUTPUT / ("responsive-" + str(width) + "-" + theme + ".png")),
                         full_page=True,
                     )
-            page.locator("[data-session]").click()
-            page.get_by_role("button", name="Cerrar sesión", exact=True).click()
-            expect(page.locator("[data-session-name]")).to_have_text("Iniciar sesión")
-            expect(page.locator("#clinica")).to_be_disabled()
-            expect(page.get_by_role("button", name="Editar", exact=True)).to_have_count(0)
+            expect(page.locator("#clinica")).to_be_enabled()
             self.assertEqual(writes, [])
             self.assertEqual(errors, [])
             browser.close()

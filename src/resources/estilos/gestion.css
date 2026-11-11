@@ -9,15 +9,6 @@
 .gestion h1 {
   margin: 0 0 1.5rem;
 }
-.gestion-login {
-  max-width: 28rem;
-  padding: 1.5rem;
-  display: grid;
-  gap: 0.8rem;
-}
-.gestion-login[hidden] {
-  display: none;
-}
 .gestion-tools {
   display: flex;
   gap: 0.8rem;

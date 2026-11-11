@@ -1,27 +1,18 @@
 """CRUD administrativo real con filas DESARROLLO nuevas; solo elimina sus propios UUID."""
 
-import unittest, json, uuid
-from pathlib import Path
+import unittest, uuid
 from playwright.sync_api import sync_playwright, expect
 
 
 class AdministracionClinica(unittest.TestCase):
     def test_clinica_y_rol_sin_referencias(self):
-        a = json.loads(
-            Path(
-                "/Users/albertoalexanderitzepsarceno/Library/Application Support/GalenosSV/credentials.json"
-            ).read_text()
-        )["administrador-local"]
         with sync_playwright() as p:
             b = p.chromium.launch(headless=True)
             page = b.new_page(viewport={"width": 1440, "height": 1100})
             errors = []
             page.on("pageerror", lambda e: errors.append(str(e)))
             page.goto("http://localhost:3000/#clinica")
-            page.locator("#gestion-usuario").fill(a["username"])
-            page.locator("#gestion-clave").fill(a["password"])
-            page.get_by_role("button", name="Iniciar sesión", exact=True).click()
-            expect(page.locator("[data-catalogos] .gestion-tools").first).to_be_visible()
+            expect(page.locator("[data-catalogos] .catalogo-header")).to_be_visible()
             for module in ["clinica", "rol"]:
                 page.locator("[data-module=" + module + "]").click()
                 name = "DESARROLLO CRUD " + module + " " + uuid.uuid4().hex[:8]

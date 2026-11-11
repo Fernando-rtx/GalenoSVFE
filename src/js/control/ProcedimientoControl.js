@@ -1,7 +1,7 @@
 /** Plantillas de procedimiento: pasos, rol y exámenes mediante los Service existentes. */
 export default class ProcedimientoControl {
-  constructor({ pasoService, rolService, examenService, contexto }) {
-    Object.assign(this, { pasoService, rolService, examenService, contexto });
+  constructor({ pasoService, rolService, examenService }) {
+    Object.assign(this, { pasoService, rolService, examenService });
     this.listeners = new Set();
     this.request = null;
     this.closed = false;
@@ -50,7 +50,7 @@ export default class ProcedimientoControl {
     }
   }
   async edit(data = null) {
-    if (this.state.writing || !this.contexto.puedeEscribir) return;
+    if (this.state.writing) return;
     this.set({ editor: { data }, roles: [], examenes: [], origins: [], error: null });
     this.request?.abort();
     const request = new AbortController();
@@ -84,7 +84,7 @@ export default class ProcedimientoControl {
     }
   }
   async save(data) {
-    if (this.state.writing || !this.state.editor || !this.contexto.puedeEscribir) return;
+    if (this.state.writing || !this.state.editor) return;
     const selected = this.state.editor.data;
     this.set({ writing: true, error: null });
     try {
@@ -101,7 +101,7 @@ export default class ProcedimientoControl {
     }
   }
   async remove(row) {
-    if (this.state.writing || !this.contexto.puedeEscribir) return;
+    if (this.state.writing) return;
     this.set({ writing: true, error: null });
     try {
       await this.pasoService.deleteById(row.idProcedimientoPaso);

@@ -1,5 +1,9 @@
 # Unificación visual con GalenosSV JSF
 
+> Documento histórico de la unificación visual. El flujo actual abre la gestión sin
+> inicio de sesión, según la [guía académica local](desarrollo-local.md).
+
+
 Rama: `feat/unificacion-visual-jsf`. Backend sin modificaciones. Se conserva la conexión
 REST autenticada a clinica y los contratos de los veinte DAO y de las tarjetas.
 

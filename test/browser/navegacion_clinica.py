@@ -1,63 +1,52 @@
-"""Navegación autenticada, filtros y responsive reales, únicamente lecturas."""
+"""Navegación académica real en Chromium, con lecturas y sin credenciales."""
 
-import json, unittest
-from pathlib import Path
-from playwright.sync_api import sync_playwright, expect
+import os
+import unittest
+
+from playwright.sync_api import expect, sync_playwright
 
 
 class NavegacionClinica(unittest.TestCase):
-    def test_menu_sesion_dashboard_y_mobile(self):
-        a = json.loads(
-            Path(
-                "/Users/albertoalexanderitzepsarceno/Library/Application Support/GalenosSV/credentials.json"
-            ).read_text()
-        )["administrador-local"]
-        with sync_playwright() as p:
-            b = p.chromium.launch(headless=True)
-            page = b.new_page(viewport={"width": 1280, "height": 720})
+    def test_dashboard_y_gestion_sin_inicio_de_sesion(self):
+        url = os.environ.get("GALENOS_FRONTEND_URL", "http://localhost:3000")
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            page = browser.new_page(viewport={"width": 1280, "height": 720})
             errors = []
-            page.on("pageerror", lambda e: errors.append(str(e)))
-            page.goto("http://localhost:3000/#rol")
-            expect(page.locator("#gestion-usuario")).to_be_visible()
-            page.locator("#gestion-usuario").fill(a["username"])
-            page.locator("#gestion-clave").fill(a["password"])
-            page.get_by_role("button", name="Iniciar sesión", exact=True).click()
-            expect(page.locator("[data-catalogos] .gestion-tools").first).to_be_visible()
-            page.locator("[data-module=tipoDocumento]").click()
-            expect(page.locator("[data-catalogos] h1")).to_have_text("Tipos de documento")
+            page.on("pageerror", lambda error: errors.append(str(error)))
+            with page.expect_response(
+                lambda response: "/resources/v2/clinica_disponible?" in response.url
+            ) as clinics:
+                page.goto(url + "/#main")
+            self.assertEqual(clinics.value.status, 200)
+            self.assertNotIn("authorization", clinics.value.request.headers)
+            expect(page.locator("#clinica")).to_be_enabled()
+            expect(page.locator("input[type=password]")).to_have_count(0)
+
+            with page.expect_response(
+                lambda response: "/resources/v2/consulta?" in response.url
+            ) as consultations:
+                page.locator("#clinica").select_option(index=1)
+            self.assertEqual(consultations.value.status, 200)
+            self.assertNotIn("authorization", consultations.value.request.headers)
+
+            with page.expect_response(
+                lambda response: "/resources/v2/rol?" in response.url
+            ) as roles:
+                page.locator('[data-module="rol"]').click()
+            self.assertEqual(roles.value.status, 200)
+            expect(page.locator("[data-catalogos] h1")).to_have_text("Roles")
             page.get_by_role("button", name="Nuevo registro", exact=True).click()
-            d = page.locator("[data-catalogos] dialog")
-            d.locator("#catalogo-formato").select_option(label="Correo electrónico")
-            self.assertTrue(
-                d.locator("[name=expresionRegular]").evaluate(
-                    '(input)=>new RegExp(input.value).test("prueba@example.invalid")'
-                )
-            )
-            d.get_by_role("button", name="Cancelar", exact=True).click()
-            expect(d).not_to_be_visible()
-            page.locator('[data-navigation] a[href="#main"]').click()
-            page.locator("#clinica").select_option(index=1)
-            expect(page.locator("tarjeta-consulta").first).to_be_visible()
-            page.locator("tarjeta-consulta").first.locator("button").click()
-            expect(page.locator("[data-ui=detailData]")).to_be_visible()
-            page.locator("#fechaDesde").fill("1900-01-01")
-            page.get_by_role("button", name="Aplicar filtros").click()
-            page.locator("[data-module=persona]").click()
-            expect(page.locator("[data-personas]")).to_be_visible()
-            page.locator(".brand").click()
-            expect(page.locator("#fechaDesde")).to_have_value("1900-01-01")
+            expect(page.locator("[data-catalogos] dialog")).to_be_visible()
+            page.get_by_role("button", name="Cancelar", exact=True).click()
+            expect(page.locator("[data-catalogos] dialog")).not_to_be_visible()
+
             page.set_viewport_size({"width": 390, "height": 844})
-            page.locator("[data-module=tipoExamen]").click()
-            expect(page.locator("[data-catalogos] h1")).to_have_text("Tipos de examen")
+            page.go_back()
+            expect(page.locator("#main")).to_be_visible()
             self.assertTrue(page.evaluate("document.documentElement.scrollWidth <= innerWidth"))
-            page.get_by_role("button", name="Cerrar sesión", exact=True).click()
-            expect(page.locator("#gestion-usuario")).to_be_visible()
-            page.locator('[data-navigation] a[href="#main"]').click()
-            expect(page.locator("#clinica")).to_be_disabled()
-            expect(page.locator("[data-ui=startupStatus]")).to_contain_text("Inicia sesión")
             self.assertEqual(errors, [])
-            page.screenshot(path="/private/tmp/galenos-mobile-final.png", full_page=True)
-            b.close()
+            browser.close()
 
 
 if __name__ == "__main__":

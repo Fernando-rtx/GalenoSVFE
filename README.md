@@ -1,5 +1,10 @@
 # GalenoSVFE
 
+Aplicación académica local con datos ficticios. Abre el dashboard sin iniciar
+sesión. Arranca Liberty y el frontend con la
+[guía de desarrollo local](docs/desarrollo-local.md).
+
+
 Frontend nativo de GalenosSV para la gestión clínica. Usa JavaScript con módulos ES, Web Components, Fetch API, Boundary–Control–Entity y contratos REST publicados en `docs/api-contract.md`.
 
 ## Estructura

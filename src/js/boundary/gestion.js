@@ -1,8 +1,6 @@
 import RelacionControl from '../control/RelacionControl.js';
 import RelacionModel from './modelos/RelacionModel.js';
 import {
-  createApiConfig,
-  DefaultService,
   ClinicaService,
   RolService,
   TipoDocumentoService,
@@ -25,7 +23,6 @@ import {
   ProcedimientoPasoSecuenciaService,
   DefaultError,
 } from '../index.js';
-import { API_V2_ROUTES, API_V2_DASHBOARD_ROUTES } from '../control/api-v2-routes.js';
 import ConsultaGestionControl from '../control/ConsultaGestionControl.js';
 import ConsultaGestionModel from './modelos/ConsultaGestionModel.js';
 import ProcedimientoControl from '../control/ProcedimientoControl.js';
@@ -44,13 +41,8 @@ function mountPage(container, tag, ...args) {
   return page;
 }
 
-/** Composición adicional dentro del dashboard; las credenciales viven solo en memoria. */
-export function mountGestion({
-  config,
-  dashboard: dashboardApp,
-  defaultConfig,
-  onSessionChange = () => {},
-}) {
+/** Compone los módulos de gestión del dashboard académico. */
+export function mountGestion({ config: api, dashboard: dashboardApp }) {
   const root = document.querySelector('#gestion');
   const hint = document.createElement('p');
   hint.className = 'record-hint';
@@ -59,14 +51,7 @@ export function mountGestion({
   root.append(hint);
   const dashboard = document.querySelector('#main');
   const nav = document.querySelector('[data-navigation]');
-  let control;
-  let clinical;
-  let clinicalPage;
-  let orders;
-  let ordersPage;
   const ordersRoot = document.querySelector('[data-ordenes]');
-  let relations;
-  let relationsPage;
   const relationsRoot = document.createElement('div');
   relationsRoot.hidden = true;
   root.append(relationsRoot);
@@ -77,13 +62,9 @@ export function mountGestion({
     relationsRoot.hidden = false;
     relations.open(kind, parent);
   }
-  let flow;
-  let flowPage;
   const flowRoot = document.createElement('div');
   flowRoot.hidden = true;
   root.append(flowRoot);
-  let personaControl;
-  let personaPage;
   const catalogRoot = document.createElement('div');
   catalogRoot.dataset.catalogos = '';
   const personaRoot = document.createElement('div');
@@ -93,8 +74,8 @@ export function mountGestion({
   function showModule(target) {
     flowRoot.hidden = true;
     relationsRoot.hidden = true;
-    const persons = target === 'persona' && personaControl;
-    catalogRoot.hidden = Boolean(persons);
+    const persons = target === 'persona';
+    catalogRoot.hidden = persons;
     personaRoot.hidden = !persons;
     if (persons) {
       personaControl.load();
@@ -103,175 +84,90 @@ export function mountGestion({
     page.open(target);
   }
   const clinicalRoot = document.querySelector('[data-consulta-gestion]');
-  async function disconnect() {
-    ordersPage?.destroy();
-    orders?.destroy();
-    ordersRoot.hidden = true;
-    clinicalPage?.destroy();
-    clinical?.destroy();
-    clinical = null;
-    clinicalRoot.hidden = true;
-    document.querySelector('[data-ui="startupStatus"]').textContent =
-      'Inicia sesión desde el menú de gestión para seleccionar tu clínica.';
-    await dashboardApp.control.connect({
-      clinicaService: new ClinicaService({ config: defaultConfig }),
-      consultaService: new ConsultaService({ config: defaultConfig }),
-      autoLoad: Boolean(defaultConfig.baseUrl),
-    });
-  }
-  let module = 'tipoDocumento';
   const page = mountPage(catalogRoot, 'galenos-catalogos', {
     onRelations(parent, kind) {
       if (kind === 'examen') {
         openRelations('examenTipoExamen', parent);
         return;
       }
-      if (!flow) return;
       catalogRoot.hidden = true;
       personaRoot.hidden = true;
       flowRoot.hidden = false;
       flow.open(parent);
     },
-    async onLogin(username, password) {
-      if (!config?.baseUrl)
-        throw DefaultError.validation('Configura la URL del entorno de gestión.');
-      if (!username || username.includes(':')) throw DefaultError.validation('Usuario inválido.');
-      const bytes = new TextEncoder().encode(`${username}:${password}`);
-      const authorization = `Basic ${btoa(String.fromCharCode(...bytes))}`;
-      const api = createApiConfig({
-        ...config,
-        routes: API_V2_ROUTES,
-        http: { headers: { Authorization: authorization } },
-      });
-      const context = await new DefaultService({ resource: 'contexto', config: api }).get();
-      document.querySelector('[data-ui="startupStatus"]').textContent = '';
-      control?.destroy();
-      control = new CatalogoControl({
-        contexto: context.datos,
-        module: module === 'persona' ? 'tipoDocumento' : module,
-        services: {
-          clinica: new ClinicaService({ config: api }),
-          rol: new RolService({ config: api }),
-          tipoDocumento: new TipoDocumentoService({ config: api }),
-          tipoMedioContacto: new TipoMedioContactoService({ config: api }),
-          tipoExamen: new TipoExamenService({ config: api }),
-          examen: new ExamenService({ config: api }),
-          procedimiento: new ProcedimientoService({ config: api }),
-        },
-      });
-      page.connect(control);
-      onSessionChange(context.datos);
-      clinicalPage?.destroy();
-      clinical?.destroy();
-      const dashboardConfig = createApiConfig({ ...api, routes: API_V2_DASHBOARD_ROUTES });
-      await dashboardApp.control.connect({
-        clinicaService: new ClinicaService({ config: dashboardConfig }),
-        consultaService: new ConsultaService({ config: api }),
-      });
-      clinical = new ConsultaGestionControl({
-        dashboard: dashboardApp.control,
-        contexto: context.datos,
-        consultaService: new ConsultaService({ config: api }),
-        asociacionService: new ConsultaProcedimientoService({ config: api }),
-        pasoService: new ConsultaProcedimientoPasoService({ config: api }),
-        pacienteService: new PersonaRolService({ config: api }),
-        procedimientoService: new ProcedimientoService({ config: api }),
-      });
-      ordersPage?.destroy();
-      orders?.destroy();
-      orders = new OrdenControl({
-        dashboard: dashboardApp.control,
-        contexto: context.datos,
-        ordenService: new OrdenExamenService({ config: api }),
-        resultadoService: new ExamenResultadoService({ config: api }),
-      });
-      ordersPage = mountPage(ordersRoot, 'galenos-ordenes', orders);
-      clinicalPage = mountPage(clinicalRoot, 'galenos-consulta-gestion', clinical, {
-        onOrders: (paso) => orders.open(paso),
-      });
-      clinicalRoot.hidden = false;
-      personaPage?.destroy();
-      personaControl?.destroy();
-      personaControl = new PersonaControl({
-        contexto: context.datos,
-        services: {
-          persona: new PersonaService({ config: api }),
-          documento: new DocumentoService({ config: api }),
-          medioContacto: new MedioContactoService({ config: api }),
-          personaRol: new PersonaRolService({ config: api }),
-          tipoDocumento: new TipoDocumentoService({ config: api }),
-          tipoMedioContacto: new TipoMedioContactoService({ config: api }),
-          rol: new RolService({ config: api }),
-          clinica: new ClinicaService({ config: api }),
-        },
-      });
-      personaPage = mountPage(personaRoot, 'galenos-personas', personaControl);
-      flowPage?.destroy();
-      flow?.destroy();
-      flow = new ProcedimientoControl({
-        pasoService: new ProcedimientoPasoService({ config: api }),
-        rolService: new RolService({ config: api }),
-        examenService: new ExamenService({ config: api }),
-        contexto: context.datos,
-      });
-      flowPage = mountPage(
-        flowRoot,
-        'galenos-procedimientos',
-        flow,
-        () => showModule('procedimiento'),
-        openRelations,
-      );
-      relationsPage?.destroy();
-      relations?.destroy();
-      relations = new RelacionControl({
-        contexto: context.datos,
-        services: {
-          examenTipoExamen: new ExamenTipoExamenService({ config: api }),
-          procedimientoPasoExamen: new ProcedimientoPasoExamenService({ config: api }),
-          procedimientoPasoSecuencia: new ProcedimientoPasoSecuenciaService({ config: api }),
-          tipoExamen: new TipoExamenService({ config: api }),
-          examen: new ExamenService({ config: api }),
-          procedimientoPaso: new ProcedimientoPasoService({ config: api }),
-        },
-      });
-      relationsPage = mountPage(relationsRoot, 'galenos-relaciones', relations, () => {
-        relationsRoot.hidden = true;
-        if (relations.state.kind === 'examenTipoExamen') showModule('examen');
-        else {
-          flowRoot.hidden = false;
-          flow.load();
-        }
-      });
-      showModule(module);
+  });
+  const control = new CatalogoControl({
+    services: {
+      clinica: new ClinicaService({ config: api }),
+      rol: new RolService({ config: api }),
+      tipoDocumento: new TipoDocumentoService({ config: api }),
+      tipoMedioContacto: new TipoMedioContactoService({ config: api }),
+      tipoExamen: new TipoExamenService({ config: api }),
+      examen: new ExamenService({ config: api }),
+      procedimiento: new ProcedimientoService({ config: api }),
     },
-    onLogout() {
-      if (
-        clinical?.state.writing ||
-        personaControl?.state.writing ||
-        orders?.state.writing ||
-        flow?.state.writing ||
-        relations?.state.writing
-      )
-        return;
-      control?.destroy();
-      control = null;
-      personaPage?.destroy();
-      personaControl?.destroy();
-      personaControl = null;
-      flowPage?.destroy();
-      flow?.destroy();
-      flow = null;
-      flowRoot.hidden = true;
-      relationsPage?.destroy();
-      relations?.destroy();
-      relations = null;
-      relationsRoot.hidden = true;
-      personaRoot.hidden = true;
-      catalogRoot.hidden = false;
-      page.signedOut();
-      onSessionChange(null);
-      disconnect();
+  });
+  page.connect(control);
+  const clinical = new ConsultaGestionControl({
+    dashboard: dashboardApp.control,
+    consultaService: new ConsultaService({ config: api }),
+    asociacionService: new ConsultaProcedimientoService({ config: api }),
+    pasoService: new ConsultaProcedimientoPasoService({ config: api }),
+    pacienteService: new PersonaRolService({ config: api }),
+    procedimientoService: new ProcedimientoService({ config: api }),
+  });
+  const orders = new OrdenControl({
+    dashboard: dashboardApp.control,
+    ordenService: new OrdenExamenService({ config: api }),
+    resultadoService: new ExamenResultadoService({ config: api }),
+  });
+  const ordersPage = mountPage(ordersRoot, 'galenos-ordenes', orders);
+  const clinicalPage = mountPage(clinicalRoot, 'galenos-consulta-gestion', clinical, {
+    onOrders: (paso) => orders.open(paso),
+  });
+  clinicalRoot.hidden = false;
+  const personaControl = new PersonaControl({
+    services: {
+      persona: new PersonaService({ config: api }),
+      documento: new DocumentoService({ config: api }),
+      medioContacto: new MedioContactoService({ config: api }),
+      personaRol: new PersonaRolService({ config: api }),
+      tipoDocumento: new TipoDocumentoService({ config: api }),
+      tipoMedioContacto: new TipoMedioContactoService({ config: api }),
+      rol: new RolService({ config: api }),
+      clinica: new ClinicaService({ config: api }),
     },
+  });
+  const personaPage = mountPage(personaRoot, 'galenos-personas', personaControl);
+  const flow = new ProcedimientoControl({
+    pasoService: new ProcedimientoPasoService({ config: api }),
+    rolService: new RolService({ config: api }),
+    examenService: new ExamenService({ config: api }),
+  });
+  const flowPage = mountPage(
+    flowRoot,
+    'galenos-procedimientos',
+    flow,
+    () => showModule('procedimiento'),
+    openRelations,
+  );
+  const relations = new RelacionControl({
+    services: {
+      examenTipoExamen: new ExamenTipoExamenService({ config: api }),
+      procedimientoPasoExamen: new ProcedimientoPasoExamenService({ config: api }),
+      procedimientoPasoSecuencia: new ProcedimientoPasoSecuenciaService({ config: api }),
+      tipoExamen: new TipoExamenService({ config: api }),
+      examen: new ExamenService({ config: api }),
+      procedimientoPaso: new ProcedimientoPasoService({ config: api }),
+    },
+  });
+  const relationsPage = mountPage(relationsRoot, 'galenos-relaciones', relations, () => {
+    relationsRoot.hidden = true;
+    if (relations.state.kind === 'examenTipoExamen') showModule('examen');
+    else {
+      flowRoot.hidden = false;
+      flow.load();
+    }
   });
   function navigate(event, updateHistory = true) {
     const anchor = event.target.closest('a');
@@ -318,8 +214,7 @@ export function mountGestion({
       else link.removeAttribute('aria-current');
     });
     if (!isDashboard) {
-      module = anchor.dataset.module;
-      showModule(module);
+      showModule(anchor.dataset.module);
     }
     (isDashboard ? dashboard : root).focus();
   }
@@ -336,10 +231,6 @@ export function mountGestion({
   window.addEventListener('popstate', openHash);
   openHash();
   return {
-    openSession() {
-      nav.querySelector('[data-module="rol"]').click();
-      (control ? page.logout : page.login.elements.usuario).focus();
-    },
     destroy() {
       brand?.removeEventListener('click', navigate);
       nav.removeEventListener('click', navigate);
@@ -356,7 +247,6 @@ export function mountGestion({
       flow?.destroy();
       relationsPage?.destroy();
       relations?.destroy();
-      page.signedOut();
       root.replaceChildren();
     },
   };

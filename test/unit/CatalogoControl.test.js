@@ -25,7 +25,6 @@ describe('Gestión de catálogos — coordinación unitaria sintética', () => {
     };
     control = new CatalogoControl({
       services: { tipoDocumento: service },
-      contexto: { actor: 'Prueba', puedeEscribir: true },
     });
   });
   afterEach(() => control.destroy());
@@ -68,19 +67,6 @@ describe('Gestión de catálogos — coordinación unitaria sintética', () => {
     sinon.assert.calledOnce(service.create);
     finish(response(row));
     await pending;
-  });
-  it('sesión de lectura no persiste aunque se invoque el Control directamente', async () => {
-    control.set({ contexto: { puedeEscribir: false } });
-    control.create();
-    expect(control.state.editor).to.equal(null);
-    let error;
-    try {
-      await control.save({ nombre: 'Prueba' });
-    } catch (caught) {
-      error = caught;
-    }
-    expect(error).to.be.instanceOf(DefaultError);
-    sinon.assert.notCalled(service.create);
   });
   it('ignora una lectura tardía anterior aunque el transporte no respete AbortController', async () => {
     let finish;

@@ -10,7 +10,7 @@ junto a ellos dentro del mismo menú. JSF y REST utilizan el WAR y datasource de
 
 | XHTML | Acceso JavaScript / coordinación | Operaciones publicadas |
 | --- | --- | --- |
-| CambiarRol | Login Liberty + selector de clínica del dashboard | Identidad autenticada y clínicas autorizadas; no permite suplantar otra identidad eligiendo PersonaRol |
+| CambiarRol | Selector de clínica del dashboard | La clínica se usa para validar el contexto de las operaciones |
 | Clinica | Menú Clínicas; CatalogoControl/CatalogoPage | Lista/filtro/página, detalle, crear, editar/desactivar, eliminar sin referencias |
 | Rol | Menú Roles; CatalogoControl/CatalogoPage | Lista/filtro/página, detalle, crear, editar/desactivar, eliminar sin referencias |
 | TipoDocumento | Menú Tipos de documento | Lista/filtro/página, detalle, crear y editar/desactivar |
@@ -35,11 +35,7 @@ El modelo de OrdenExamen tiene FK a ConsultaProcedimientoPaso; no tiene FK a Exa
 Los pasos ejecutados de Consulta se crean automáticamente al asociar un procedimiento;
 no se inventó una relación inexistente entre ConsultaProcedimientoPaso y la plantilla de paso.
 
-CambiarRol tiene una adaptación de seguridad, no una copia literal: el actor REST es la identidad
-verificada por Liberty. El selector visual JSF no concede identidad ni permisos de aplicación.
-Una política clínica de producción que vincule cuentas a PersonaRol y permisos profesionales
-requiere decisión del equipo. El perfil implementado es de desarrollo local, con administrador
-y lector explícitos y alcance por UUID de clínica; no se presenta como autenticación de producción.
+El selector de clínica del dashboard conserva el contexto de trabajo. Rol y PersonaRol siguen siendo entidades de negocio y no representan cuentas de acceso.
 
 ## Los veinte DAO y REST v2
 
@@ -70,7 +66,7 @@ Las columnas de entrada/salida están documentadas en api-gestion-v2.md.
 | ExamenResultadoDAO / examen_resultado | Sí | Sí | Sí | No |
 
 API_ROUTES0.2 permanece compatible con sus operaciones anteriores. Las nuevas operaciones
-se seleccionan explícitamente mediante API_V2_ROUTES después de autenticar. Ningún DAO
+se seleccionan explícitamente mediante API_V2_ROUTES al abrir el dashboard. Ningún DAO
 pendiente se habilita mediante respuestas simuladas. Contexto y búsqueda acotada de pacientes
 usan DefaultDAO.get/PersonaRolDAO.get con contratos publicados.
 
@@ -82,7 +78,7 @@ usan DefaultDAO.get/PersonaRolDAO.get con contratos publicados.
 - Integración v2: 24 pruebas HTTP reales, incluyendo los veinte DAO, 401 y 403. Solo lectura.
 - Chromium: ocho pruebas de flujo con registros DESARROLLO en clinica: persona/consulta,
   catálogos Examen/Procedimiento, flujo/pasos/orden/resultado, tres asociaciones,
-  documentos/contactos, CRUD limitado de Clínica/Rol, ediciones de pasos/órdenes/resultados y navegación/cierre de sesión/móvil.
+  documentos/contactos, CRUD limitado de Clínica/Rol, ediciones de pasos/órdenes/resultados y navegación y vista móvil.
 - Los flujos comprueban recuperación HTTP y SELECT independiente cuando corresponde.
   No interceptan Fetch ni simulan respuestas REST.
 - Las 19 páginas JSF responden HTTP200; no equivale a probar manualmente cada formulario JSF.

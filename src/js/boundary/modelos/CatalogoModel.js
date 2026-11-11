@@ -63,45 +63,18 @@ export default class CatalogoModel extends HTMLElement {
   constructor() {
     super();
   }
-  mount({ onLogin, onLogout, onRelations }) {
+  mount({ onRelations }) {
     const root = this;
     this._mounted = true;
     this.onRelations = onRelations;
     this.root = root;
     this.control = null;
     this.module = 'tipoDocumento';
-    this.login = element('form', undefined, 'panel gestion-login');
-    this.login.append(
-      element('h2', 'Acceso a gestión'),
-      element('p', 'Utiliza tu cuenta autorizada de GalenosSV.'),
-    );
-    for (const [key, label] of [
-      ['usuario', 'Usuario'],
-      ['clave', 'Contraseña'],
-    ]) {
-      const input = element('input');
-      input.name = key;
-      input.id = `gestion-${key}`;
-      input.required = true;
-      input.type = key === 'clave' ? 'password' : 'text';
-      input.autocomplete = key === 'clave' ? 'current-password' : 'username';
-      const title = element('label', label);
-      title.htmlFor = input.id;
-      this.login.append(title, input);
-    }
-    this.enter = element('button', 'Iniciar sesión', 'primary-button');
-    this.enter.type = 'submit';
-    this.login.append(this.enter);
     this.notice = element('p', undefined, 'action-error');
     this.notice.setAttribute('role', 'alert');
     this.notice.hidden = true;
     this.headingNode = element('h1', names[this.module]);
     this.subtitle = element('p', descriptions[this.module], 'subtitle');
-    this.identity = element('p');
-    this.logout = element('button', 'Cerrar sesión', 'secondary-button');
-    this.logout.type = 'button';
-    this.logout.onclick = () => onLogout();
-    this.tools = element('div', undefined, 'gestion-tools');
     this.search = element('form');
     this.query = element('input');
     this.query.type = 'search';
@@ -112,7 +85,6 @@ export default class CatalogoModel extends HTMLElement {
     this.search.append(this.query, search);
     this.newButton = element('button', 'Nuevo registro', 'primary-button');
     this.newButton.type = 'button';
-    this.tools.append(this.logout);
     this.heading = element('div');
     this.heading.append(this.headingNode, this.subtitle);
     this.header = element('div', undefined, 'catalogo-header');
@@ -126,7 +98,7 @@ export default class CatalogoModel extends HTMLElement {
     const pager = element('div', undefined, 'pagination');
     pager.append(this.total, this.previous, this.next);
     this.content = element('div');
-    this.content.append(this.identity, this.tools, this.results, pager);
+    this.content.append(this.results, pager);
     this.content.hidden = true;
     this.dialog = element('dialog', undefined, 'gestion-dialog');
     this.form = element('form');
@@ -141,20 +113,7 @@ export default class CatalogoModel extends HTMLElement {
     actions.append(this.cancel, this.removeButton, this.save);
     this.form.append(this.formFields, actions);
     this.dialog.append(this.form);
-    root.append(this.header, this.notice, this.login, this.content, this.dialog);
-    this.login.onsubmit = async (event) => {
-      event.preventDefault();
-      this.enter.disabled = true;
-      this.notice.hidden = true;
-      try {
-        await onLogin(this.login.elements.usuario.value, this.login.elements.clave.value);
-        this.login.elements.clave.value = '';
-      } catch (error) {
-        this.error(error);
-      } finally {
-        this.enter.disabled = false;
-      }
-    };
+    root.append(this.header, this.notice, this.content, this.dialog);
     this.search.onsubmit = (event) => {
       event.preventDefault();
       this.control?.load({ first: 0, nombre: this.query.value.trim() });
@@ -186,15 +145,13 @@ export default class CatalogoModel extends HTMLElement {
   connect(control) {
     this.unsubscribe?.();
     this.control = control;
-    this.login.hidden = true;
     this.content.hidden = false;
     this.newButton.hidden = false;
     this.unsubscribe = control.subscribe((state) => this.render(state));
   }
-  signedOut() {
+  disconnect() {
     this.unsubscribe?.();
     this.control = null;
-    this.login.hidden = false;
     this.content.hidden = true;
     this.newButton.hidden = true;
     if (this.dialog.open) this.dialog.close();
@@ -217,9 +174,7 @@ export default class CatalogoModel extends HTMLElement {
     this.module = state.module;
     this.headingNode.textContent = names[state.module];
     this.subtitle.textContent = descriptions[state.module];
-    this.identity.textContent = `${state.contexto.actor} · ${state.contexto.puedeEscribir ? 'Edición autorizada' : 'Solo lectura'}`;
-    this.newButton.disabled = !state.contexto.puedeEscribir || state.writing;
-    this.logout.disabled = state.writing;
+    this.newButton.disabled = state.writing;
     this.query.disabled = state.writing;
     this.previous.disabled = state.writing || state.status !== 'ready' || state.first === 0;
     this.next.disabled =
@@ -323,16 +278,15 @@ export default class CatalogoModel extends HTMLElement {
       this.dialog.showModal();
     }
     this.form.querySelectorAll('input, textarea, select').forEach((node) => {
-      node.disabled = state.writing || !state.contexto.puedeEscribir;
+      node.disabled = state.writing;
     });
     this.save.textContent = state.writing ? 'Guardando…' : 'Guardar';
     this.form.setAttribute('aria-busy', String(state.writing));
-    this.save.disabled = state.writing || !state.contexto.puedeEscribir;
+    this.save.disabled = state.writing;
     this.cancel.disabled = state.writing;
     this.removeButton.hidden =
       !['clinica', 'rol', 'procedimiento'].includes(state.module) ||
-      state.editor !== 'edit' ||
-      !state.contexto.puedeEscribir;
+      state.editor !== 'edit';
     this.removeButton.disabled = state.writing;
     if (!state.editor && this.dialog.open) this.dialog.close();
   }
@@ -341,17 +295,15 @@ export default class CatalogoModel extends HTMLElement {
       const args = this._mountArgs;
       this._mountArgs = null;
       this.mount(...args);
-      this._clearFormValidation = [this.form, this.login]
-        .filter(Boolean)
-        .map((form) => bindFormValidation(form, this));
+      this._clearFormValidation = bindFormValidation(this.form, this);
     }
   }
   disconnectedCallback() {
-    this._clearFormValidation?.forEach((clear) => clear());
+    this._clearFormValidation?.();
     this._clearFormValidation = null;
     if (this._mounted) {
       this._mounted = false;
-      this.signedOut();
+      this.disconnect();
     }
   }
 }

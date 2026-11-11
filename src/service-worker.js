@@ -1,5 +1,5 @@
 // Solo recursos públicos del shell. Ninguna ruta REST se guarda en Cache Storage.
-const CACHE = 'galenossv-shell-v6';
+const CACHE = 'galenossv-shell-v7';
 const PREFIX = 'galenossv-shell-';
 const ASSETS = new Set([
   '/js/boundary/modelos/form-validation.js',

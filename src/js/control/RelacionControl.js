@@ -9,8 +9,8 @@ const definitions = {
 };
 /** Asociaciones de tipos, exámenes y secuencias dentro de su registro padre. */
 export default class RelacionControl {
-  constructor({ services, contexto }) {
-    Object.assign(this, { services, contexto });
+  constructor({ services }) {
+    Object.assign(this, { services });
     this.listeners = new Set();
     this.requests = {};
     this.closed = false;
@@ -94,14 +94,14 @@ export default class RelacionControl {
     }
   }
   edit(data = null) {
-    if (!this.state.writing && this.contexto.puedeEscribir)
+    if (!this.state.writing)
       this.set({ editor: { data }, error: null, message: '' });
   }
   cancel() {
     if (!this.state.writing) this.set({ editor: null, error: null });
   }
   async save(data) {
-    if (this.state.writing || !this.state.editor || !this.contexto.puedeEscribir) return;
+    if (this.state.writing || !this.state.editor) return;
     const { kind, parent, editor } = this.state;
     const d = definitions[kind];
     const payload = { ...data, [d.parent]: parent[d.parent] };
@@ -117,7 +117,7 @@ export default class RelacionControl {
     }
   }
   async remove(row) {
-    if (this.state.writing || !this.contexto.puedeEscribir) return;
+    if (this.state.writing) return;
     const { kind } = this.state;
     const id = 'id' + kind[0].toUpperCase() + kind.slice(1);
     this.set({ writing: true, error: null });

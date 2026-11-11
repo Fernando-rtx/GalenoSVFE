@@ -9,7 +9,6 @@ export default class ConsultaGestionControl {
     pasoService,
     pacienteService,
     procedimientoService,
-    contexto,
   }) {
     Object.assign(this, {
       dashboard,
@@ -18,7 +17,6 @@ export default class ConsultaGestionControl {
       pasoService,
       pacienteService,
       procedimientoService,
-      contexto,
     });
     this.listeners = new Set();
     this.requests = {};
@@ -105,12 +103,12 @@ export default class ConsultaGestionControl {
     );
   }
   async openConsulta(idConsulta) {
-    if (this.state.writing || !this.contexto.puedeEscribir) return;
+    if (this.state.writing) return;
     await this.dashboard.selectConsulta(idConsulta);
     if (!this.closed && this.state.consulta?.idConsulta === idConsulta) this.editConsulta(false);
   }
   async editConsulta(create = false) {
-    if (this.state.writing || !this.contexto.puedeEscribir) return;
+    if (this.state.writing) return;
     if (!this.state.clinic) {
       this.set({ error: DefaultError.validation('Selecciona una clínica autorizada.') });
       return;
@@ -124,7 +122,7 @@ export default class ConsultaGestionControl {
     });
   }
   async newProcedure() {
-    if (!this.state.consulta || this.state.writing || !this.contexto.puedeEscribir) return;
+    if (!this.state.consulta || this.state.writing) return;
     this.set({
       editor: 'procedimiento',
       selected: null,
@@ -150,17 +148,16 @@ export default class ConsultaGestionControl {
     );
   }
   editProcedure(row) {
-    if (!this.state.writing && this.contexto.puedeEscribir)
+    if (!this.state.writing)
       this.set({ editor: 'procedimiento', selected: row, error: null, message: '' });
   }
   editStep(row) {
-    if (!this.state.writing && this.contexto.puedeEscribir)
+    if (!this.state.writing)
       this.set({ editor: 'paso', selected: row, error: null, message: '' });
   }
   async transitionStep(row, estado) {
     if (
       this.state.writing ||
-      !this.contexto.puedeEscribir ||
       !this.state.clinic ||
       !this.state.consulta
     )
@@ -226,7 +223,7 @@ export default class ConsultaGestionControl {
     ]);
   }
   async save(data) {
-    if (this.state.writing || !this.state.editor || !this.contexto.puedeEscribir) return;
+    if (this.state.writing || !this.state.editor) return;
     const { editor, selected, clinic, consulta } = this.state;
     const options = { query: { idClinica: clinic } };
     this.set({ writing: true, error: null, message: '' });

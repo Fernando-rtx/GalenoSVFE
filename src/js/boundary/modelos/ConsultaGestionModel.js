@@ -197,12 +197,12 @@ export default class ConsultaGestionModel extends HTMLElement {
   }
   render(state) {
     this.notice.textContent = state.error ? gestionError(state.error) : state.message;
-    this.create.disabled = state.writing || !state.clinic || !this.control.contexto.puedeEscribir;
-    this.add.disabled = state.writing || !state.consulta || !this.control.contexto.puedeEscribir;
+    this.create.disabled = state.writing || !state.clinic;
+    this.add.disabled = state.writing || !state.consulta;
     editableRecord(
       document.querySelector('[data-ui=detail]'),
       () => this.control.editConsulta(false),
-      Boolean(state.consulta) && !state.writing && this.control.contexto.puedeEscribir,
+      Boolean(state.consulta) && !state.writing,
     );
     this.relationshipSection.hidden = !state.consulta;
     this.relationshipSection.replaceChildren();
@@ -243,7 +243,7 @@ export default class ConsultaGestionModel extends HTMLElement {
                 : row.estado === 'EN_CURSO'
                   ? 'COMPLETADO'
                   : null;
-            if (next && this.control.contexto.puedeEscribir) {
+            if (next) {
               const transition = node(
                 'button',
                 next === 'EN_CURSO' ? 'Iniciar actividad' : 'Completar actividad',
@@ -266,7 +266,7 @@ export default class ConsultaGestionModel extends HTMLElement {
             editableRecord(
               line,
               () => this.control.editProcedure(row),
-              !state.writing && this.control.contexto.puedeEscribir,
+              !state.writing,
             );
           }
           this.relationshipSection.append(line);

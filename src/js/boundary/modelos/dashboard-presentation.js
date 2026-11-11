@@ -18,7 +18,7 @@ export function errorMessage(error) {
     return 'Revisa los filtros, la clínica y la consulta seleccionada.';
   if (error.type === 'processing') return 'La respuesta del servidor no tiene el formato esperado.';
   if (error.status === 404) return 'El registro no está disponible en la clínica seleccionada.';
-  if (error.status === 401) return 'Inicia sesión nuevamente para continuar.';
+  if (error.status === 401) return 'El servidor rechazó el acceso a este recurso.';
   if (error.status === 400) return 'Revisa los datos enviados.';
   if (error.status === 409)
     return 'Los cambios entran en conflicto con el estado actual del registro.';
@@ -30,8 +30,6 @@ export function errorMessage(error) {
 
 /** Mensajes seguros de la frontera REST de gestión. */
 export function gestionError(error) {
-  if (error?.status === 401) return 'Usuario o contraseña no válidos. Inicia sesión nuevamente.';
-  if (error?.status === 403) return 'La sesión no tiene permiso para esta operación.';
   if (error?.status === 422) return 'El servidor rechazó los datos. Revisa el formulario.';
   return errorMessage(error);
 }

@@ -7,7 +7,7 @@
     <meta name="description" content="Dashboard académico de consultas de GalenosSV." />
     <meta name="theme-color" content="#245a8e" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <title>Consultas · GalenosSV</title>
+    <title>GalenosSV · Pacientes y empleados</title>
     <script src="/resources/scripts/tema.js"></script>
     <link rel="stylesheet" href="/resources/estilos/dashboard.css" />
     <link rel="stylesheet" href="/resources/estilos/gestion.css" />
@@ -57,13 +57,14 @@
             <option value="es">Español</option></select
           ><span class="sr-only" id="language-note"
             >La interfaz JavaScript está disponible en español.</span
-          ><button type="button" id="themeToggle" class="layout-theme-toggle">Modo claro</button
-          >
+          ><button type="button" id="themeToggle" class="layout-theme-toggle">Modo claro</button>
         </div>
       </header>
       <aside class="sidebar" id="layoutNavigation">
         <p class="nav-label">NAVEGACIÓN</p>
         <nav aria-label="Principal" data-navigation>
+          <a href="#pacientes">Portal de pacientes</a>
+          <a href="#empleados">Portal de empleados</a>
           <a href="#clinica" data-module="clinica">Clínicas</a>
           <a href="#rol" data-module="rol">Roles</a>
           <a href="#tipoMedioContacto" data-module="tipoMedioContacto"
@@ -80,7 +81,11 @@
         <p class="sidebar-footer">Programación para Internet<br />Universidad de El Salvador</p>
       </aside>
       <div class="workspace">
-        <main id="main" tabindex="-1">
+        <section data-portales aria-label="Identificación académica">
+          <busqueda-citas></busqueda-citas>
+          <inicio-sesion hidden></inicio-sesion>
+        </section>
+        <main id="main" tabindex="-1" hidden>
           <div class="page-heading">
             <div>
               <p class="eyebrow">PANEL DE CONSULTAS</p>

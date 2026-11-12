@@ -43,7 +43,7 @@ fila del fixture y reiniciar Liberty.
 ## Decisiones necesarias para HU1 y HU2
 
 Las historias que exponen información clínica o identifican empleados requieren
-un contrato aprobado por el equipo backend y el ingeniero. Antes de implementarlas
-se debe acordar autenticación, autorización por clínica y rol, minimización de
-datos devueltos y generación/descarga del ticket. La API REST v2 actual no se debe
-presentar como una API pública de citas ni como autenticación de empleados.
+un contrato aprobado por el equipo backend y el ingeniero. Los endpoints actuales
+no se deben presentar como API pública de citas ni como autenticación de empleados.
+La propuesta de contratos y decisiones pendientes está en
+[propuesta backend](https://github.com/Fernando-rtx/Galenos/blob/test/rubrica-parcial-2026/docs/propuesta-hu1-hu2.md).

@@ -1,10 +1,11 @@
 """Prueba de navegador de componentes y shell PWA; solo datos sintéticos."""
 
 import json
+import os
 from pathlib import Path
 from playwright.sync_api import sync_playwright, expect
 
-BASE = "http://127.0.0.1:3000"
+BASE = os.environ.get("GALENOS_BROWSER_BASE_URL", "http://127.0.0.1:3000").rstrip("/")
 TAGS = [
     "galenos-dashboard",
     "galenos-catalogos",

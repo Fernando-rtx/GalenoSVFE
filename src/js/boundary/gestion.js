@@ -171,7 +171,11 @@ export function mountGestion({ config: api, dashboard: dashboardApp }) {
   });
   function navigate(event, updateHistory = true) {
     const anchor = event.target.closest('a');
-    if (!anchor || (!anchor.dataset.module && anchor.getAttribute('href') !== '#main')) return;
+    if (
+      !anchor ||
+      (!anchor.dataset.module && !['#main', '#atencion'].includes(anchor.getAttribute('href')))
+    )
+      return;
     event.preventDefault();
     if (
       control?.state.writing ||
@@ -187,6 +191,17 @@ export function mountGestion({ config: api, dashboard: dashboardApp }) {
     if (updateHistory && location.hash !== anchor.getAttribute('href'))
       history.pushState(null, '', anchor.getAttribute('href'));
     const isDashboard = !anchor.dataset.module;
+    const isClinical = anchor.getAttribute('href') === '#atencion';
+    document.querySelector('[data-workspace-title]').textContent = isClinical
+      ? 'Atención clínica'
+      : 'Consultas';
+    document.querySelector('[data-workspace-subtitle]').textContent = isClinical
+      ? 'Selecciona una consulta para revisar procedimientos, actividades, órdenes y resultados.'
+      : 'Consulta los registros de tu clínica de trabajo.';
+    document.querySelector('[data-workspace-hint]').textContent = isClinical
+      ? 'Selecciona una tarjeta para consultar el seguimiento de la atención.'
+      : 'Selecciona una tarjeta para consultar su detalle.';
+    document.title = `${isClinical ? 'Atención clínica' : 'Consultas'} · GalenosSV`;
     dashboard.hidden = !isDashboard;
     root.hidden = isDashboard;
     nav.querySelectorAll('a').forEach((link) => {

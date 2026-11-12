@@ -70,6 +70,34 @@ describe('Consulta de gestión — coordinación unitaria sintética', () => {
     );
     sinon.assert.notCalled(service.create);
   });
+  it('inicia una actividad y recarga los pasos desde REST', async () => {
+    control.set({ consulta: { idConsulta: id } });
+    const step = { idConsultaProcedimientoPaso: id, idConsultaProcedimiento: id,
+      idPersonaRol: id, fechaInicio: '2026-11-06T12:00:00Z', estado: 'PENDIENTE' };
+    await control.transitionStep(step, 'EN_CURSO');
+    sinon.assert.calledOnceWithExactly(service.update, id, {
+      idConsultaProcedimiento: id, idPersonaRol: id, fechaInicio: step.fechaInicio,
+      fechaFin: null, estado: 'EN_CURSO',
+    }, { query: { idClinica: 'clinica-sintetica' } });
+    expect(control.state.message).to.equal('Actividad iniciada.');
+    sinon.assert.calledTwice(service.findRange);
+  });
+  it('no envía una transición inválida o sin clínica seleccionada', async () => {
+    control.set({ consulta: { idConsulta: id } });
+    const step = { idConsultaProcedimientoPaso: id, estado: 'PENDIENTE' };
+    await control.transitionStep(step, 'COMPLETADO');
+    control.set({ clinic: null });
+    await control.transitionStep(step, 'EN_CURSO');
+    sinon.assert.notCalled(service.update);
+  });
+  it('ante conflicto 409 vuelve a consultar el estado real y conserva el error', async () => {
+    control.set({ consulta: { idConsulta: id } });
+    const error = Object.assign(new Error('Conflicto sintético'), { status: 409 });
+    service.update.rejects(error);
+    await control.transitionStep({ idConsultaProcedimientoPaso: id, estado: 'PENDIENTE' }, 'EN_CURSO');
+    sinon.assert.calledTwice(service.findRange);
+    expect(control.state.error).to.equal(error);
+  });
   it('busca pacientes mediante PersonaRolService y el contexto de clínica', async () => {
     await control.searchPatients('Persona');
     sinon.assert.calledOnce(service.get);

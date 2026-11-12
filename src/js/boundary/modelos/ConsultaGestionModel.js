@@ -230,19 +230,44 @@ export default class ConsultaGestionModel extends HTMLElement {
         this.relationshipSection.append(node('h3', `${name} · ${total}`));
         for (const row of rows) {
           const line = node('div', undefined, 'gestion-tools');
-          line.append(node('span', `${row[label]} · ${row.fechaInicio ?? 'Sin fecha'}`));
-          editableRecord(
-            line,
-            () =>
-              key === 'firstPasos' ? this.control.editStep(row) : this.control.editProcedure(row),
-            !state.writing,
-          );
-          if (key === 'firstPasos' && this.onOrders) {
-            const orders = node('button', 'Órdenes', 'secondary-button');
-            orders.type = 'button';
-            orders.disabled = state.writing;
-            orders.onclick = () => this.onOrders(row);
-            line.append(orders);
+          if (key === 'firstPasos') {
+            line.append(
+              node(
+                'span',
+                `Estado: ${row.estado ?? 'Sin estado'} · Inicio: ${row.fechaInicio ?? 'Sin fecha'} · Responsable: ${row.idPersonaRol}`,
+              ),
+            );
+            const next =
+              row.estado === 'PENDIENTE'
+                ? 'EN_CURSO'
+                : row.estado === 'EN_CURSO'
+                  ? 'COMPLETADO'
+                  : null;
+            if (next) {
+              const transition = node(
+                'button',
+                next === 'EN_CURSO' ? 'Iniciar actividad' : 'Completar actividad',
+                'primary-button',
+              );
+              transition.type = 'button';
+              transition.disabled = state.writing;
+              transition.onclick = () => this.control.transitionStep(row, next);
+              line.append(transition);
+            }
+            if (this.onOrders) {
+              const orders = node('button', 'Órdenes y resultados', 'secondary-button');
+              orders.type = 'button';
+              orders.disabled = state.writing;
+              orders.onclick = () => this.onOrders(row);
+              line.append(orders);
+            }
+          } else {
+            line.append(node('span', `${row[label]} · ${row.fechaInicio ?? 'Sin fecha'}`));
+            editableRecord(
+              line,
+              () => this.control.editProcedure(row),
+              !state.writing,
+            );
           }
           this.relationshipSection.append(line);
         }

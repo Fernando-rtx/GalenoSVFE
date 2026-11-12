@@ -228,6 +228,11 @@ body {
 #gestion:focus {
   outline: none;
 }
+#main:focus-visible,
+#gestion:focus-visible {
+  outline: 3px solid var(--gs-accent);
+  outline-offset: 2px;
+}
 #gestion > div {
   min-width: 0;
 }

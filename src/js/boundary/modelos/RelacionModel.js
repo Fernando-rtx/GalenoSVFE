@@ -1,4 +1,4 @@
-import { bindFormValidation } from './form-validation.js';
+import { bindFormValidation, showAccessibleDialog } from './form-validation.js';
 import { editableRecord } from './editable-record.js';
 import { gestionError } from './dashboard-presentation.js';
 const n = (tag, text) => {
@@ -164,7 +164,7 @@ export default class RelacionModel extends HTMLElement {
           active.checked = s.editor.data ? Boolean(s.editor.data.activo) : true;
         }
       }
-      this.dialog.showModal();
+      showAccessibleDialog(this.dialog);
     }
     if (s.editor) {
       const value = s.editor.data?.[d.target] ?? this.target.value;

@@ -13,7 +13,7 @@ distingue funciones existentes de criterios probados durante esta revisión.
 | 5 | SPA, Web Components y modularidad | `main` conserva navegación SPA, Custom Elements, módulos ES y capas Boundary–Control–Entity/Services. Las 426 pruebas unitarias y sintaxis de 85 archivos pasaron. | Mantener compatibilidad en la entrega final y adjuntar el commit evaluado. |
 | 6 | PWA e instalación | Manifiesto, Service Worker, shell offline e instalabilidad Chromium cuentan con comprobaciones automatizadas previas en `test/browser/webcomponents_pwa.py`. | Repetir en el commit de entrega y realizar instalación manual en navegador compatible. El offline conserva el shell, no el acceso a datos clínicos ni el flujo de atención. |
 | 7 | Pruebas | 426 unitarias JS, 9 transporte HTTP, 776 pruebas Java; WAR empaquetado. Integración real REST/PostgreSQL pasó en `galenos_demo_crud`. | Completar integración de HU1/HU2 cuando se definan sus contratos y credenciales de prueba. El test HU4 de navegador requiere estado inicial PENDIENTE. |
-| 8 | UI, responsive y accesibilidad | Hay componentes y estilos propios, navegación por teclado y checks de móvil en pruebas existentes. | Repetir revisión visual y accesible sobre todas las historias del parcial, en el entorno que usará el ingeniero. |
+| 8 | UI, responsive y accesibilidad | La revisión recorrió teclado, enlace de salto, indicador de foco, etiqueta accesible de diálogo, foco de entrada/retorno y etiquetas de campos. Chromium no detectó desbordamiento horizontal entre 320 y 1440 px. | Repetir inspección visual y con lector de pantalla en las historias que se habiliten después de implementar HU1/HU2. |
 
 ## Repetir HU4
 
@@ -39,6 +39,20 @@ Si se usa ese entorno temporal, sustituir `python3` por
 
 La prueba termina el paso en `COMPLETADO`; para repetirla, restablecer solo esa
 fila del fixture y reiniciar Liberty.
+
+## Repetir la revisión de teclado y responsive
+
+Con BrowserSync activo:
+
+```sh
+GALENOS_BROWSER_BASE_URL=http://127.0.0.1:3000 \
+  /tmp/galeno-browser-tools/bin/python test/browser/accesibilidad_operativa.py
+```
+
+Comprueba que el primer Tab llega a “Saltar al contenido”, el destino muestra
+foco visible, el diálogo tiene título accesible y devuelve el foco al cerrarse,
+los campos tienen etiqueta y el documento no se desborda horizontalmente en
+320, 390, 700, 1024 ni 1440 px.
 
 ## Decisiones necesarias para HU1 y HU2
 

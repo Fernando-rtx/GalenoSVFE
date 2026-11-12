@@ -1,4 +1,4 @@
-import { bindFormValidation } from './form-validation.js';
+import { bindFormValidation, showAccessibleDialog } from './form-validation.js';
 import { editableRecord } from './editable-record.js';
 import { gestionError } from './dashboard-presentation.js';
 import { notify } from '../notifications.js';
@@ -275,7 +275,7 @@ export default class CatalogoModel extends HTMLElement {
           this.formFields.append(title, formatos);
         }
       }
-      this.dialog.showModal();
+      showAccessibleDialog(this.dialog);
     }
     this.form.querySelectorAll('input, textarea, select').forEach((node) => {
       node.disabled = state.writing;

@@ -169,7 +169,7 @@ export function mountGestion({ config: api, dashboard: dashboardApp }) {
       flow.load();
     }
   });
-  function navigate(event, updateHistory = true) {
+  function navigate(event, updateHistory = true, moveFocus = true) {
     const anchor = event.target.closest('a');
     if (
       !anchor ||
@@ -216,20 +216,20 @@ export function mountGestion({ config: api, dashboard: dashboardApp }) {
     if (!isDashboard) {
       showModule(anchor.dataset.module);
     }
-    (isDashboard ? dashboard : root).focus();
+    if (moveFocus) (isDashboard ? dashboard : root).focus();
   }
   const brand = document.querySelector('.brand');
   brand?.addEventListener('click', navigate);
   nav.addEventListener('click', navigate);
-  function openHash() {
+  function openHash(moveFocus = true) {
     const anchor =
       Array.from(nav.querySelectorAll('a')).find((a) => a.getAttribute('href') === location.hash) ||
       nav.querySelector('a[href="#main"]');
-    if (anchor) navigate({ target: anchor, preventDefault() {} }, false);
+    if (anchor) navigate({ target: anchor, preventDefault() {} }, false, moveFocus);
   }
-  window.addEventListener('hashchange', openHash);
-  window.addEventListener('popstate', openHash);
-  openHash();
+  window.addEventListener('hashchange', () => openHash(true));
+  window.addEventListener('popstate', () => openHash(true));
+  openHash(Boolean(location.hash));
   return {
     destroy() {
       brand?.removeEventListener('click', navigate);

@@ -2,6 +2,8 @@ import { API_ROUTES } from './api-routes.js';
 import { isUuid, restRange, arrayOf } from './rest-validators.js';
 
 const source = 'docs/api-gestion-v2.md';
+const stringOrNull = (v) => v === null || typeof v === 'string';
+const uuidOrNull = (v) => v === null || isUuid(v);
 const schemas = {
   examen: ['idExamen', 'nombre', 'observaciones', 'activo'],
   procedimiento: ['idProcedimiento', 'nombre', 'observaciones', 'activo'],
@@ -129,12 +131,123 @@ routes.contexto = {
     },
   },
 };
+
+const dateQuery = (value) => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
+const orderedDates = (query) => !query.fechaDesde || !query.fechaHasta || query.fechaDesde <= query.fechaHasta;
+const nonEmptyText = (value) => typeof value === 'string' && value.trim().length > 0;
+const clinicSchema = recordSchema({ idClinica: isUuid, nombre: stringOrNull });
+const employeeRoleSchema = recordSchema({
+  idPersonaRol: isUuid, idRol: isUuid, nombreRol: stringOrNull, idClinica: isUuid, nombreClinica: stringOrNull,
+});
+const identitySchema = recordSchema({
+  idPersona: isUuid,
+  nombres: stringOrNull,
+  apellidos: stringOrNull,
+  clinicas: arrayOf(clinicSchema),
+  roles: arrayOf(employeeRoleSchema),
+});
+const historySchema = recordSchema({
+  idPaso: uuidOrNull,
+  idConsultaProcedimientoPaso: isUuid,
+  nombre: stringOrNull,
+  fechaInicio: stringOrNull,
+  fechaFin: stringOrNull,
+  responsable: stringOrNull,
+  valor: stringOrNull,
+  estado: stringOrNull,
+});
+const appointmentSchema = recordSchema({
+  idConsulta: isUuid,
+  fechaInicio: stringOrNull,
+  fechaFin: stringOrNull,
+  paciente: stringOrNull,
+  clinica: stringOrNull,
+  procedimiento: stringOrNull,
+  idPasoActual: uuidOrNull,
+  pasoActual: stringOrNull,
+  historial: arrayOf(historySchema),
+});
+const careSchema = recordSchema({
+  idConsulta: isUuid,
+  idConsultaProcedimientoPaso: isUuid,
+  paciente: stringOrNull,
+  clinica: stringOrNull,
+  rol: stringOrNull,
+  procedimiento: stringOrNull,
+  idPasoActual: isUuid,
+  pasoActual: stringOrNull,
+  valorActual: stringOrNull,
+  pasoFinal: (v) => typeof v === 'boolean',
+  historial: arrayOf(historySchema),
+  examenes: arrayOf(recordSchema({ idExamen: isUuid, nombre: stringOrNull })),
+  siguientes: arrayOf(recordSchema({ idPaso: isUuid, nombre: stringOrNull, tipoSecuencia: stringOrNull })),
+  puedeRetroceder: (v) => typeof v === 'boolean',
+});
+const identityQuery = {
+  idTipoDocumento: { required: true, validate: isUuid },
+  numero: { required: true, validate: nonEmptyText },
+};
+const staffQuery = {
+  idPersona: { required: true, validate: isUuid },
+  idClinica: { required: true, validate: isUuid },
+  idRol: { required: true, validate: isUuid },
+  fechaDesde: { validate: dateQuery },
+  fechaHasta: { validate: dateQuery },
+};
+const patientQuery = {
+  ...identityQuery,
+  idClinica: { required: true, validate: isUuid },
+  fechaDesde: { validate: dateQuery },
+  fechaHasta: { validate: dateQuery },
+};
+routes.empleadoIdentidad = {
+  status: 'verified', source, credentials: 'omit', operations: {
+    get: { method: 'GET', path: 'v2/empleado/identidad', response: 'json', successStatuses: [200],
+      query: identityQuery, validateResponse: identitySchema },
+  },
+};
+routes.pacienteClinicas = {
+  status: 'verified', source, credentials: 'omit', operations: {
+    get: { method: 'GET', path: 'v2/paciente/clinicas', response: 'json', successStatuses: [200],
+      query: identityQuery, validateResponse: identitySchema },
+  },
+};
+routes.pacienteCitas = {
+  status: 'verified', source, credentials: 'omit', operations: {
+    findRange: { method: 'GET', path: 'v2/paciente/citas', response: 'json', successStatuses: [200],
+      pagination: { firstParam: 'first', maxParam: 'max', totalHeader: 'Total-registros', requireTotal: true },
+      validateRange: restRange, validateResponse: arrayOf(appointmentSchema), query: patientQuery, validateQuery: orderedDates },
+  },
+};
+routes.empleadoConsultas = {
+  status: 'verified', source, credentials: 'omit', operations: {
+    findRange: { method: 'GET', path: 'v2/empleado/consultas', response: 'json', successStatuses: [200],
+      pagination: { firstParam: 'first', maxParam: 'max', totalHeader: 'Total-registros', requireTotal: true },
+      validateRange: restRange, validateResponse: arrayOf(appointmentSchema), query: staffQuery, validateQuery: orderedDates },
+  },
+};
+routes.atencion = {
+  status: 'verified', source, credentials: 'omit', operations: {
+    findById: { method: 'GET', path: 'v2/atencion/consulta/{id}', response: 'json', successStatuses: [200],
+      validateId: isUuid, query: staffQuery, validateResponse: careSchema },
+    create: { method: 'POST', path: 'v2/atencion/registrar', body: 'json', response: 'json', successStatuses: [200],
+      query: {}, validateData: (value) => object(value) && isUuid(value.idConsulta) && isUuid(value.idPersona)
+        && isUuid(value.idClinica) && isUuid(value.idRol) && isUuid(value.idConsultaProcedimientoPaso)
+        && ['GUARDAR_PARCIAL', 'AVANZAR', 'RETROCEDER', 'FINALIZAR'].includes(value.accion)
+        && typeof value.valor === 'string' && (value.idPasoSiguiente == null || isUuid(value.idPasoSiguiente))
+        && Array.isArray(value.examenes) && value.examenes.every(isUuid), validateResponse: careSchema },
+  },
+};
+routes.pacienteTicket = {
+  status: 'verified', source, credentials: 'omit', operations: {
+    findById: { method: 'GET', path: 'v2/paciente/citas/{id}/ticket', response: 'blob', successStatuses: [200],
+      validateId: isUuid, query: { ...identityQuery, idClinica: { required: true, validate: isUuid } } },
+  },
+};
 export const API_V2_ROUTES = routes;
 
 // Flujo clínico sintético; ninguna operación habilita los contratos v1 pendientes.
 const clinicQuery = { idClinica: { required: true, validate: isUuid } };
-const stringOrNull = (v) => v === null || typeof v === 'string';
-const uuidOrNull = (v) => v === null || isUuid(v);
 function recordSchema(schema) {
   return (v) =>
     object(v) &&
@@ -248,9 +361,11 @@ flowRoutes(
     idConsultaProcedimientoPaso: isUuid,
     idConsultaProcedimiento: isUuid,
     idPersonaRol: isUuid,
+    idProcedimientoPaso: uuidOrNull,
     fechaInicio: stringOrNull,
     fechaFin: stringOrNull,
     estado: stringOrNull,
+    valor: stringOrNull,
   },
   ['idConsultaProcedimiento', 'idPersonaRol', 'fechaInicio', 'fechaFin', 'estado'],
   { create: false, listQuery: { idConsulta: { required: true, validate: isUuid } } },
@@ -377,10 +492,11 @@ flowRoutes(
   {
     idOrdenExamen: isUuid,
     idConsultaProcedimientoPaso: isUuid,
+    idExamen: uuidOrNull,
     fechaCreacion: stringOrNull,
     indicaciones: stringOrNull,
   },
-  ['idConsultaProcedimientoPaso', 'fechaCreacion', 'indicaciones'],
+  ['idConsultaProcedimientoPaso', 'idExamen', 'fechaCreacion', 'indicaciones'],
   { listQuery: { idPaso: { required: true, validate: isUuid } } },
 );
 flowRoutes(

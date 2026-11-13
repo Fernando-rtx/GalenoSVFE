@@ -1,10 +1,11 @@
 // Solo recursos públicos del shell. Ninguna ruta REST se guarda en Cache Storage.
-const CACHE = 'galenossv-shell-v7';
+const CACHE = 'galenossv-shell-v8';
 const PREFIX = 'galenossv-shell-';
 const ASSETS = new Set([
   '/js/boundary/modelos/form-validation.js',
   '/',
   '/js/boundary/appearance.js',
+  '/js/boundary/components/galenos-academic-app.js',
   '/js/boundary/components/galenos-notifications.js',
   '/js/boundary/components/tarjeta_consulta.js',
   '/js/boundary/components/tarjeta_simple.js',
@@ -30,6 +31,7 @@ const ASSETS = new Set([
   '/js/control/ConsultaService.js',
   '/js/control/DashboardControl.js',
   '/js/control/DefaultService.js',
+  '/js/control/AcademicCareService.js',
   '/js/control/DocumentoService.js',
   '/js/control/ExamenResultadoService.js',
   '/js/control/ExamenService.js',

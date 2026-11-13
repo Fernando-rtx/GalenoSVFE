@@ -4,6 +4,19 @@ import TipoDocumentoService from './TipoDocumentoService.js';
 import { createApiConfig } from './api-config.js';
 import { GT02_ROUTES } from './api-v2-routes.js';
 
+// Mensajes públicos verificados en IdentidadAcademicaService del backend.
+const mensajesIdentidad = new Set([
+  'Tipo de documento no encontrado',
+  'Tipo de documento no disponible',
+  'Ingrese el número de documento',
+  'Formato de documento inválido',
+  'Persona no encontrada',
+  'Documento ambiguo; contacte a la clínica',
+  'No tiene asignaciones disponibles para este portal',
+  'Identifíquese para continuar',
+  'Sesión no válida para este portal',
+]);
+
 /** Transporte sin persistencia; distingue HTTP, red y cancelación. */
 export class IdentidadAcademicaService {
   constructor({ baseUrl, fetchImpl = globalThis.fetch }) {
@@ -39,19 +52,36 @@ export class IdentidadAcademicaService {
       });
     }
     if (!response.ok) {
-      // No mostrar contenido arbitrario del servidor, HTML o trazas internas.
+      const identidad = path.startsWith(`${GT02_ROUTES.identidad}/`);
+      let mensaje;
+      let cause;
+      if (identidad && response.status >= 400 && response.status < 500 &&
+          response.headers.get('Content-Type')?.startsWith('application/json')) {
+        try {
+          const error = await response.json();
+          if (mensajesIdentidad.has(error?.mensaje)) mensaje = error.mensaje;
+        } catch (error) {
+          if (error.name === 'AbortError') throw error;
+          cause = error;
+        }
+      }
+      // Sólo se presentan mensajes públicos conocidos; nunca HTML, SQL o trazas.
       throw new DefaultError({
         type: 'http',
         code: 'HTTP',
         status: response.status,
+        cause,
         message:
+          mensaje ??
           {
             400: 'Solicitud inválida.',
             401: 'La sesión expiró. Identifícate de nuevo.',
             403: 'No tienes una asignación válida para esta operación.',
             404: 'No se encontró el registro solicitado.',
             409: 'El documento es ambiguo. Contacta a la clínica.',
-            422: 'Revisa el documento, la clínica y las fechas.',
+            422: identidad
+              ? 'Revisa el tipo y el formato del número de documento.'
+              : 'Revisa el documento, la clínica y las fechas.',
           }[response.status] ?? 'El servidor no pudo completar la operación. Reintenta.',
       });
     }

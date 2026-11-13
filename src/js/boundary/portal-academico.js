@@ -1,4 +1,5 @@
 import './modelos/BusquedaCitasModel.js';
+import { offerTicketDownload } from './ticket-options.js';
 import './modelos/InicioSesionModel.js';
 import { IdentidadAcademicaService } from '../control/IdentidadAcademicaService.js';
 import { CitasPacienteService } from '../control/CitasPacienteService.js';
@@ -97,8 +98,9 @@ export function mountPortal(view, config) {
       first += 20;
       run(search);
     },
-    'descargar-ticket': (event) =>
-      run(async (signal) => {
+    'descargar-ticket': async (event) => {
+      if (!await offerTicketDownload()) return;
+      return run(async (signal) => {
         const blob = await citas.ticket(event.detail.idConsulta, signal);
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -107,7 +109,8 @@ export function mountPortal(view, config) {
         a.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
         view.status('Ticket descargado.');
-      }),
+      });
+    },
   };
   for (const [type, handler] of Object.entries(handlers)) view.addEventListener(type, handler);
   const online = () => {

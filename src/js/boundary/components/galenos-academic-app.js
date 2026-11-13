@@ -1,4 +1,5 @@
 import AcademicCareService from '../../control/AcademicCareService.js';
+import { gestionError } from '../modelos/dashboard-presentation.js';
 
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/El_Salvador', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 const esc = (value = '') => String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -45,7 +46,7 @@ class GalenosAcademicApp extends HTMLElement {
     this.updateNetwork();
   }
   show(name) { this.shadowRoot.querySelectorAll('[data-panel]').forEach((p) => { p.hidden = p.dataset.panel !== name; }); this.shadowRoot.querySelectorAll('[data-tab]').forEach((b) => b.classList.toggle('active', b.dataset.tab === name)); }
-  async request(fn, status) { if (!this.api) { status.textContent = 'Falta configurar la conexión con el backend.'; status.className = 'status error'; return null; } this.abort?.abort(); this.abort = new AbortController(); status.className = 'status'; status.textContent = 'Cargando…'; try { const result = await fn({ signal: this.abort.signal }); status.textContent = ''; return result.datos; } catch (error) { if (error.code !== 'CANCELLED') { status.textContent = error.status === 401 ? 'Identidad o acceso no válido.' : error.status === 403 ? 'Esta identidad no tiene acceso a esa clínica, rol o consulta.' : 'No se pudo conectar. Revisa la red y vuelve a intentar.'; status.className = 'status error'; } return null; } }
+  async request(fn, status) { if (!this.api) { status.textContent = 'Falta configurar la conexión con el backend.'; status.className = 'status error'; return null; } this.abort?.abort(); this.abort = new AbortController(); status.className = 'status'; status.textContent = 'Cargando…'; try { const result = await fn({ signal: this.abort.signal }); status.textContent = ''; return result.datos; } catch (error) { if (error.code !== 'CANCELLED') { status.textContent = gestionError(error); status.className = 'status error'; } return null; } }
   form(form) { return Object.fromEntries(new FormData(form).entries()); }
   sessionHeaders(session, assignment) { return { headers: { Authorization: `Bearer ${session.token}`, ...(assignment ? { 'X-Persona-Rol': assignment } : {}) } }; }
   async refreshSessions() {

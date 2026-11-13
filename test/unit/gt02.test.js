@@ -149,6 +149,32 @@ describe('GT02: controles con fixtures sintéticos', () => {
   });
 });
 describe('GT02: transporte Fetch simulado', () => {
+  it('muestra el error público de identificación sin mencionar campos de citas', async () => {
+    const http = new IdentidadAcademicaService({
+      baseUrl: 'http://localhost/',
+      fetchImpl: async () => Response.json({ mensaje: 'Formato de documento inválido' }, { status: 422 }),
+    });
+    try {
+      await http.identificar('empleado', { idTipoDocumento: uuid(1), valor: 'ABC-123' });
+      throw new Error('Se esperaba el rechazo de formato');
+    } catch (error) {
+      expect(error.status).to.equal(422);
+      expect(error.message).to.equal('Formato de documento inválido');
+    }
+  });
+  it('no muestra mensajes internos aunque lleguen dentro de JSON', async () => {
+    const http = new IdentidadAcademicaService({
+      baseUrl: 'http://localhost/',
+      fetchImpl: async () => Response.json({ mensaje: 'SQL java.internal.trace' }, { status: 422 }),
+    });
+    try {
+      await http.identificar('empleado', {});
+      throw new Error('Se esperaba un error HTTP');
+    } catch (error) {
+      expect(error.status).to.equal(422);
+      expect(error.message).to.equal('Revisa el tipo y el formato del número de documento.');
+    }
+  });
   it('distingue desconexión y reconexión sin convertirlo en lista vacía', async () => {
     let online = false;
     const http = new IdentidadAcademicaService({

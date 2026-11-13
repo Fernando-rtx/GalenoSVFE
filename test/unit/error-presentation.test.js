@@ -37,3 +37,11 @@ describe('Límites de respuesta', () => {
     expect(() => new DefaultResponse({ status: 500, datos: [] })).to.throw(DefaultError);
   });
 });
+
+describe('Errores de atención académica', () => {
+  it('distingue errores de datos, del servidor y de red sin mostrar detalles internos', () => {
+    expect(gestionError({ type: 'http', status: 422 })).to.include('Revisa el formulario');
+    expect(gestionError({ type: 'http', status: 500 })).to.include('error interno');
+    expect(gestionError({ type: 'connection' })).to.include('conexión');
+  });
+});

@@ -30,6 +30,7 @@ export function errorMessage(error) {
 
 /** Mensajes seguros de la frontera REST de gestión. */
 export function gestionError(error) {
+  if (error?.status >= 500) return 'El servidor tuvo un error interno. Intenta nuevamente.';
   if (error?.status === 422) return 'El servidor rechazó los datos. Revisa el formulario.';
   return errorMessage(error);
 }

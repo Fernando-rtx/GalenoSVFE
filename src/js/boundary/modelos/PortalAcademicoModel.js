@@ -10,7 +10,7 @@ export class PortalAcademicoModel extends HTMLElement {
   render() {
     const patient = this.portal === 'paciente';
     this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/resources/estilos/portal-academico.css"><h1>${patient ? 'Consulta tus citas' : 'Portal de empleados'}</h1><p>${patient ? 'Identifícate para consultar tus citas y descargar tu ticket.' : 'Identificación académica por documento, sin contraseña. Simulación para el examen.'}</p>
-    <p role="status" aria-live="polite"></p><button type="button" data-retry>Reintentar conexión</button>
+    <p role="status" aria-live="polite"></p><button type="button" data-retry hidden>Reintentar conexión</button>
     <form data-login novalidate><label for="tipo">Tipo de documento</label><select id="tipo" required><option value="">Selecciona un tipo</option></select><p id="documento-hint" data-hint></p><label for="valor">Número de documento</label><input id="valor" required disabled autocomplete="off" aria-describedby="documento-hint"><button type="submit">${patient ? 'Consultar paciente' : 'Iniciar sesión'}</button></form>
     <section data-context hidden><h2 data-name></h2><p data-context-note></p><ul data-assignments></ul>${patient ? '' : '<label for=asignacion>Asignación de trabajo</label><select id=asignacion></select>'}<button type="button" data-refresh>Actualizar contexto</button><button type="button" data-logout>Cerrar sesión</button></section>
     ${patient ? '<form data-search hidden novalidate><label for="clinica">Clínica</label><select id="clinica" required><option value="">Selecciona una clínica</option></select><label for="desde">Fecha inicial</label><input id="desde" type="date" required><label for="hasta">Fecha final</label><input id="hasta" type="date" required><button type="submit">Buscar citas</button></form><div data-results></div><button type="button" data-prev hidden>Anterior</button><button type="button" data-next hidden>Siguiente</button>' : ''}`;
@@ -48,6 +48,9 @@ export class PortalAcademicoModel extends HTMLElement {
   }
   status(message) {
     this.shadowRoot.querySelector('[role=status]').textContent = message;
+  }
+  retry(visible) {
+    this.shadowRoot.querySelector('[data-retry]').hidden = !visible;
   }
   busy(value) {
     this.shadowRoot.querySelector('form[data-login]').setAttribute('aria-busy', String(value));

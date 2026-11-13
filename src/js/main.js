@@ -28,11 +28,14 @@ async function start() {
     });
     environment = local.gestionConfig ?? local.config ?? defaults;
     const academicConfig = createApiConfig({ ...environment, routes: API_V2_ROUTES });
-    document.querySelector('galenos-academic-app')?.configure(academicConfig);
     appearance = mountAppearance(root);
     portals = [...document.querySelectorAll('busqueda-citas,inicio-sesion')].map((view) =>
       mountPortal(view, environment),
     );
+    document.querySelector('galenos-academic-app')?.configure(academicConfig, {
+      patient: () => portals.find((portal) => portal.identidad.portal === 'paciente')?.identidad.session ?? null,
+      employee: () => portals.find((portal) => portal.identidad.portal === 'empleado')?.identidad.session ?? null,
+    });
     navigate();
   } catch {
     document.querySelector('[data-ui="startupStatus"]').textContent =
@@ -41,6 +44,7 @@ async function start() {
 }
 function navigate() {
   const academic = location.hash === '#academico';
+  if (academic) document.querySelector('galenos-academic-app')?.refreshSessions();
   const portal = ['#pacientes', '#empleados', ''].includes(location.hash) || academic;
   const employee = location.hash === '#empleados';
   const context = obtenerContextoEmpleado();

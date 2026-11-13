@@ -22,24 +22,26 @@ describe('HU1–HU4: contratos académicos', () => {
     api.care.fetchImpl = fetchStub;
     api.ticket.fetchImpl = fetchStub;
   });
-  it('envía solo identidad y clínica para buscar citas, sin almacenar el documento', async () => {
+  it('envía clínica y sesión de paciente, sin repetir el documento en la URL', async () => {
     fetchStub.resolves(jsonResponse([], 200, { 'Total-registros': '0' }));
-    await api.findPatientAppointments(0, 20, { idTipoDocumento: id, numero: 'ABC', idClinica: id });
+    await api.findPatientAppointments(0, 20, { idClinica: id }, { headers: { Authorization: 'Bearer session-token' } });
     const url = new URL(fetchStub.firstCall.args[0]);
     expect(url.pathname).to.equal('/GalenosSV/resources/v2/paciente/citas');
-    expect(url.searchParams.get('numero')).to.equal('ABC');
+    expect(url.searchParams.has('numero')).to.equal(false);
+    expect(fetchStub.firstCall.args[1].headers.get('Authorization')).to.equal('Bearer session-token');
     expect(fetchStub.firstCall.args[1].cache).to.equal('no-store');
   });
   it('rechaza rangos invertidos antes de llamar al backend', async () => {
-    const error = await rejection(api.findPatientAppointments(0, 20, { idTipoDocumento: id, numero: 'ABC', idClinica: id, fechaDesde: '2026-12-02', fechaHasta: '2026-12-01' }));
+    const error = await rejection(api.findPatientAppointments(0, 20, { idClinica: id, fechaDesde: '2026-12-02', fechaHasta: '2026-12-01' }));
     expect(error.type).to.equal('validation');
     expect(fetchStub.called).to.equal(false);
   });
   it('publica descarga ticket PDF como Blob bajo contrato explícito', async () => {
     fetchStub.resolves(new Response(new Blob(['%PDF-demo']), { headers: { 'Content-Type': 'application/pdf' } }));
-    const response = await api.getTicket(id, { idTipoDocumento: id, numero: 'ABC', idClinica: id });
+    const response = await api.getTicket(id, { idClinica: id }, { headers: { Authorization: 'Bearer session-token' } });
     expect(response.datos).to.be.instanceOf(Blob);
     expect(new URL(fetchStub.firstCall.args[0]).pathname).to.include('/ticket');
+    expect(fetchStub.firstCall.args[1].headers.get('Authorization')).to.equal('Bearer session-token');
   });
   it('envía una atención transaccional con paso, acción y exámenes explícitos', async () => {
     fetchStub.resolves(jsonResponse({ idConsulta: id, accion: 'GUARDAR_PARCIAL', estado: 'EN_CURSO', idConsultaProcedimientoPaso: id, idPasoActual: id, finalizada: false }));

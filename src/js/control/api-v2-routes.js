@@ -203,7 +203,6 @@ const staffQuery = {
   fechaHasta: { validate: dateQuery },
 };
 const patientQuery = {
-  ...identityQuery,
   idClinica: { required: true, validate: isUuid },
   fechaDesde: { validate: dateQuery },
   fechaHasta: { validate: dateQuery },
@@ -211,13 +210,13 @@ const patientQuery = {
 routes.empleadoIdentidad = {
   status: 'verified', source, credentials: 'omit', operations: {
     get: { method: 'GET', path: 'v2/empleado/identidad', response: 'json', successStatuses: [200],
-      query: identityQuery, validateResponse: identitySchema },
+      query: {}, validateResponse: identitySchema },
   },
 };
 routes.pacienteClinicas = {
   status: 'verified', source, credentials: 'omit', operations: {
     get: { method: 'GET', path: 'v2/paciente/clinicas', response: 'json', successStatuses: [200],
-      query: identityQuery, validateResponse: identitySchema },
+      query: {}, validateResponse: identitySchema },
   },
 };
 routes.pacienteCitas = {
@@ -249,7 +248,7 @@ routes.atencion = {
 routes.pacienteTicket = {
   status: 'verified', source, credentials: 'omit', operations: {
     findById: { method: 'GET', path: 'v2/paciente/citas/{id}/ticket', response: 'blob', successStatuses: [200],
-      validateId: isUuid, query: { ...identityQuery, idClinica: { required: true, validate: isUuid } } },
+      validateId: isUuid, query: { idClinica: { required: true, validate: isUuid } } },
   },
 };
 export const API_V2_ROUTES = routes;

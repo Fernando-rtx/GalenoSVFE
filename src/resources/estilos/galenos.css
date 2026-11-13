@@ -56,6 +56,10 @@
 }
 
 /* Alias consumed by the original dashboard and Rodrigo's shadow components. */
+:root[data-theme='dark'] .layout-logo-image {
+  filter: brightness(0) invert(1);
+}
+
 :root {
   --ink: var(--gs-text);
   --muted: var(--gs-muted);

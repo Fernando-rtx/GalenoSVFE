@@ -8,12 +8,24 @@ import { API_V2_ROUTES, API_V2_DASHBOARD_ROUTES } from './control/api-v2-routes.
 import { ClinicaService, createApiConfig } from './index.js';
 import { obtenerContextoEmpleado } from './control/contexto-empleado.js';
 import { registerPwa } from './boundary/pwa.js';
+import { mountLanguage } from './boundary/language.js';
+mountLanguage();
 let portals = [];
 let appearance;
 let dashboard;
 let gestion;
 let environment;
 const root = document.querySelector('[data-dashboard]');
+document.querySelector('.brand').addEventListener('click', (event) => {
+  if (location.hash === '#academico') {
+    event.preventDefault();
+    navigate();
+  }
+});
+document.querySelector('.skip-link').addEventListener('click', (event) => {
+  event.preventDefault();
+  document.querySelector('#workspace').focus();
+});
 function closeGestion() {
   gestion?.destroy();
   dashboard?.destroy();
@@ -43,8 +55,19 @@ async function start() {
   }
 }
 function navigate() {
+  if (!location.hash) history.replaceState(null, '', '#academico');
   const academic = location.hash === '#academico';
-  if (academic) document.querySelector('galenos-academic-app')?.refreshSessions();
+  if (academic) document.title = 'Dashboard · GalenosSV';
+  else if (location.hash === '#empleados') document.title = 'Login · GalenosSV';
+  else if (location.hash === '#pacientes') document.title = 'Búsqueda de citas · GalenosSV';
+  const brand = document.querySelector('.brand');
+  if (academic) brand.setAttribute('aria-current', 'page');
+  else brand.removeAttribute('aria-current');
+  if (academic) {
+    const app = document.querySelector('galenos-academic-app');
+    app?.refreshSessions();
+    app?.show('dashboard');
+  }
   const portal = ['#pacientes', '#empleados', ''].includes(location.hash) || academic;
   const employee = location.hash === '#empleados';
   const context = obtenerContextoEmpleado();

@@ -7,7 +7,7 @@ const root = new URL('../../src/', import.meta.url);
 describe('PWA: recursos y límite de caché', () => {
   it('referencia iconos PNG existentes y un inicio dentro del scope', async () => {
     const manifest = JSON.parse(await readFile(new URL('manifest.webmanifest', root), 'utf8'));
-    expect(manifest.start_url).to.equal('/');
+    expect(manifest.start_url).to.equal('/#academico');
     expect(manifest.scope).to.equal('/');
     for (const size of ['192x192', '512x512']) {
       const icon = manifest.icons.find((item) => item.sizes === size);

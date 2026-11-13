@@ -1,5 +1,10 @@
 /** Traducción de textos de interfaz. Conserva los datos y los valores de formularios. */
 const english = new Map(Object.entries({
+  'Nombre del paciente': 'Patient name', 'Escribe el nombre o apellido': 'Enter a first or last name',
+  'Pacientes encontrados': 'Matching patients', 'Selecciona un paciente': 'Select a patient',
+  'Opcional · busca pacientes de la clínica seleccionada': 'Optional · search patients in the selected clinic',
+  'Se encontraron varios pacientes. Selecciona uno y aplica los filtros.': 'Several patients found. Select one and apply the filters.',
+  'No hay pacientes con ese nombre en la clínica seleccionada.': 'No patients with that name in the selected clinic.',
   'GalenosSV · Pacientes y empleados': 'GalenosSV · Patients and staff',
   'GalenosSV, dashboard': 'GalenosSV, dashboard',
   'Galenos SV — Clínica General': 'Galenos SV — General Clinic',

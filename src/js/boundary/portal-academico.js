@@ -21,10 +21,12 @@ export function mountPortal(view, config) {
     request?.abort();
     request = new AbortController();
     busy = true;
+    view.retry(false);
     view.busy(true);
     view.status('Cargando…');
     try {
       await work(request.signal);
+      view.retry(false);
     } catch (error) {
       if (error.name !== 'AbortError') {
         if ([401, 403].includes(error.status)) {
@@ -32,6 +34,9 @@ export function mountPortal(view, config) {
           view.context(null);
         }
         view.status(error.message);
+        view.retry(
+          ['network', 'connection', 'processing'].includes(error.type) || error.status >= 500,
+        );
       }
     } finally {
       busy = false;
@@ -108,7 +113,10 @@ export function mountPortal(view, config) {
   const online = () => {
     if (!busy) view.status('Conexión disponible. Puedes reintentar.');
   };
-  const offline = () => view.status('Sin conexión. Puedes reintentar al volver la conexión.');
+  const offline = () => {
+    view.retry(true);
+    view.status('Sin conexión. Puedes reintentar al volver la conexión.');
+  };
   window.addEventListener('online', online);
   window.addEventListener('offline', offline);
   load();

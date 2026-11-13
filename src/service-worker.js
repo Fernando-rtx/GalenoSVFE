@@ -1,11 +1,22 @@
 // Solo recursos públicos del shell. Ninguna ruta REST se guarda en Cache Storage.
-const CACHE = 'galenossv-shell-v10';
+const CACHE = 'galenossv-shell-v11';
 const PREFIX = 'galenossv-shell-';
 const ASSETS = new Set([
+  '/js/boundary/components/galenos-academic-app.js',
+  '/js/control/AcademicCareService.js',
+  '/js/boundary/portal-academico.js',
+  '/js/boundary/modelos/BusquedaCitasModel.js',
+  '/js/boundary/modelos/InicioSesionModel.js',
+  '/js/boundary/modelos/PortalAcademicoModel.js',
+  '/js/control/IdentidadAcademicaService.js',
+  '/js/control/CitasPacienteService.js',
+  '/js/control/contexto-empleado.js',
+  '/js/control/IdentificacionControl.js',
+  '/js/control/BusquedaCitasControl.js',
+
   '/js/boundary/modelos/form-validation.js',
   '/',
   '/js/boundary/appearance.js',
-  '/js/boundary/components/galenos-academic-app.js',
   '/js/boundary/components/galenos-notifications.js',
   '/js/boundary/components/tarjeta_consulta.js',
   '/js/boundary/components/tarjeta_simple.js',
@@ -31,7 +42,6 @@ const ASSETS = new Set([
   '/js/control/ConsultaService.js',
   '/js/control/DashboardControl.js',
   '/js/control/DefaultService.js',
-  '/js/control/AcademicCareService.js',
   '/js/control/DocumentoService.js',
   '/js/control/ExamenResultadoService.js',
   '/js/control/ExamenService.js',
@@ -66,6 +76,7 @@ const ASSETS = new Set([
   '/resources/estilos/dashboard.css',
   '/resources/estilos/galenos.css',
   '/resources/estilos/gestion.css',
+  '/resources/estilos/portal-academico.css',
   '/resources/estilos/tarjeta.css',
   '/resources/estilos/tarjeta_consulta.css',
   '/resources/imagenes/galenos-sv-logo.png',

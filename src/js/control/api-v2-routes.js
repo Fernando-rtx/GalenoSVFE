@@ -616,3 +616,10 @@ for (const [resource, path, schema, writable, parent] of [
     validateId: isUuid,
   };
 }
+
+// Contrato GT02 compartido con el backend; sin rutas de escritura para pacientes.
+export const GT02_ROUTES = Object.freeze({
+  tipos: 'v1/tipo_documento',
+  identidad: 'v2/identidad_academica',
+  citas: 'v2/citas_paciente',
+});

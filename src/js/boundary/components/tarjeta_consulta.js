@@ -65,30 +65,68 @@ export default class TarjetaConsulta extends HTMLElement {
       const idConsulta = this._consulta?.idConsulta;
       if (typeof idConsulta !== 'string' || !idConsulta.trim()) return;
       button.dispatchEvent(
-        new CustomEvent('consulta-seleccionada', {
-          detail: { idConsulta },
-          bubbles: true,
-          composed: true,
-        }),
+        new CustomEvent(
+          this._consulta?.portalPaciente ? 'descargar-ticket' : 'consulta-seleccionada',
+          {
+            detail: { idConsulta },
+            bubbles: true,
+            composed: true,
+          },
+        ),
       );
     });
 
-    card.append(title, content, button);
+    const procedures = document.createElement('ul');
+    procedures.slot = 'contenido';
+    procedures.hidden = true;
+    card.append(title, content, procedures, button);
     this.shadowRoot.append(stylesheet, card);
-    this._nodes = { title, values, button };
+    this._nodes = { title, values, button, procedures };
   }
 
   _render() {
     if (!this._nodes) return;
     const consulta = this._consulta || {};
-    const { title, values, button } = this._nodes;
-    title.textContent = displayText(consulta.personaNombre, 'Persona sin nombre');
+    const { title, values, button, procedures } = this._nodes;
+    const patient = consulta.portalPaciente === true;
+    title.textContent = displayText(
+      patient ? consulta.clinicaNombre : consulta.personaNombre,
+      patient ? 'Clínica' : 'Persona sin nombre',
+    );
     values.rolNombre.textContent = displayText(consulta.rolNombre);
     values.clinicaNombre.textContent = displayText(consulta.clinicaNombre);
     values.fechaInicio.textContent = formatUtcDate(consulta.fechaInicio);
     values.fechaFin.textContent = formatUtcDate(consulta.fechaFin);
+    if (patient) {
+      const formatter = new Intl.DateTimeFormat('es-SV', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+        timeZone: consulta.zonaHoraria,
+      });
+      for (const field of ['fechaInicio', 'fechaFin']) {
+        values[field].textContent = consulta[field]
+          ? `${formatter.format(new Date(consulta[field]))} · ${consulta.zonaHoraria}`
+          : 'Sin especificar';
+      }
+    }
+    procedures.hidden = !patient;
+    procedures.replaceChildren();
+    if (patient) {
+      const names = consulta.procedimientos?.length
+        ? consulta.procedimientos.map((p) => p.procedimientoNombre)
+        : ['Sin procedimientos asociados'];
+      for (const name of names) {
+        const li = document.createElement('li');
+        li.textContent = name;
+        procedures.append(li);
+      }
+    }
+    button.textContent = patient ? 'Descargar ticket PDF' : 'Ver detalle';
     button.disabled = typeof consulta.idConsulta !== 'string' || !consulta.idConsulta.trim();
-    button.setAttribute('aria-label', `Ver detalle de ${title.textContent}`);
+    button.setAttribute(
+      'aria-label',
+      `${patient ? 'Descargar ticket de' : 'Ver detalle de'} ${title.textContent}`,
+    );
   }
 }
 

@@ -128,15 +128,17 @@
                     ><input type="date" id="fechaHasta" data-ui="fechaHasta" />
                   </div>
                   <div class="role-filter">
-                    <label for="idPersonaRol">Asignación PersonaRol</label
+                    <label for="pacienteNombre">Nombre del paciente</label
                     ><input
                       type="text"
-                      id="idPersonaRol"
-                      data-ui="idPersonaRol"
-                      placeholder="UUID de la asignación"
+                      id="pacienteNombre"
+                      data-ui="pacienteNombre"
+                      placeholder="Escribe el nombre o apellido"
                       autocomplete="off"
                       spellcheck="false"
-                    /><span class="field-hint">Opcional · dentro de la clínica seleccionada</span>
+                    /><input type="hidden" data-ui="idPersonaRol" />
+                    <select data-ui="pacienteResultados" aria-label="Pacientes encontrados" hidden></select>
+                    <span class="field-hint">Opcional · busca pacientes de la clínica seleccionada</span>
                   </div>
                   <button class="primary-button" type="submit">
                     Aplicar filtros <span aria-hidden="true">→</span></button

@@ -6,7 +6,7 @@ const emptyRows = () => Object.freeze([]);
 
 /** Estado y coordinación del dashboard. No conoce DOM, tarjetas ni Fetch. */
 export default class DashboardControl {
-  constructor({ clinicaService, consultaService, pageSize = 10 }) {
+  constructor({ clinicaService, consultaService, pacienteService, pageSize = 10 }) {
     if (
       !clinicaService ||
       typeof clinicaService.findRange !== 'function' ||
@@ -22,6 +22,7 @@ export default class DashboardControl {
     this._validatePage(0, pageSize);
     this.clinicaService = clinicaService;
     this.consultaService = consultaService;
+    this.pacienteService = pacienteService;
     this._listeners = new Set();
     this._requests = {};
     this._disposed = false;
@@ -42,6 +43,12 @@ export default class DashboardControl {
       detalleStatus: 'idle',
       detalleError: null,
     });
+  }
+
+  async buscarPacientes(nombre) {
+    if (!this.state.idClinica || !nombre.trim()) return [];
+    const result = await this.pacienteService.get({ query: { idClinica: this.state.idClinica, buscar: nombre.trim() } });
+    return result.datos;
   }
 
   subscribe(listener) {

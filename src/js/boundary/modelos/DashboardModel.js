@@ -36,16 +36,56 @@ export default class DashboardModel extends HTMLElement {
     on(this.nodes.clinica, 'change', () =>
       perform(() => control.selectClinica(this.nodes.clinica.value || null)),
     );
+    const clearPatient = () => {
+      this.nodes.idPersonaRol.value = '';
+      this.nodes.pacienteResultados.replaceChildren();
+      this.nodes.pacienteResultados.hidden = true;
+    };
+    on(this.nodes.pacienteNombre, 'input', clearPatient);
+    on(this.nodes.clinica, 'change', () => {
+      clearPatient();
+      this.nodes.pacienteNombre.value = '';
+    });
+    on(this.nodes.pacienteResultados, 'change', () => {
+      this.nodes.idPersonaRol.value = this.nodes.pacienteResultados.value;
+    });
     on(this.nodes.filters, 'submit', (event) => {
       event.preventDefault();
+      const clinic = control.state.idClinica;
+      const name = this.nodes.pacienteNombre.value.trim();
+      perform(async () => {
+      if (name && !this.nodes.idPersonaRol.value) {
+        const patients = await control.buscarPacientes(name);
+        if (this._closed || clinic !== control.state.idClinica || name !== this.nodes.pacienteNombre.value.trim()) return;
+        const fullName = (p) => [p.nombres, p.apellidos].filter(Boolean).join(' ');
+        const normalize = (text) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        const exact = patients.filter((p) => normalize(fullName(p)) === normalize(name));
+        const candidates = exact.length ? exact : patients;
+        if (candidates.length !== 1) {
+          const select = this.nodes.pacienteResultados;
+          select.replaceChildren(new Option('Selecciona un paciente', ''));
+          candidates.forEach((p) => select.add(new Option(fullName(p), p.idPersonaRol)));
+          select.hidden = candidates.length === 0;
+          this.nodes.actionError.textContent = candidates.length ? 'Se encontraron varios pacientes. Selecciona uno y aplica los filtros.' : 'No hay pacientes con ese nombre en la clínica seleccionada.';
+          this.nodes.actionError.hidden = false;
+          if (candidates.length) select.focus();
+          return;
+        }
+        this.nodes.idPersonaRol.value = candidates[0].idPersonaRol;
+      }
       const filters = {};
       ['fechaDesde', 'fechaHasta', 'idPersonaRol'].forEach((key) => {
         const value = this.nodes[key].value.trim();
         if (value) filters[key] = value;
       });
-      perform(() => control.setFilters(filters));
+      await control.setFilters(filters);
+      });
     });
-    on(this.nodes.clearFilters, 'click', () => perform(() => control.setFilters({})));
+    on(this.nodes.clearFilters, 'click', () => {
+      clearPatient();
+      this.nodes.pacienteNombre.value = '';
+      perform(() => control.setFilters({}));
+    });
     on(this.nodes.previous, 'click', () =>
       perform(() => control.setPage(Math.max(0, control.state.first - control.state.max))),
     );

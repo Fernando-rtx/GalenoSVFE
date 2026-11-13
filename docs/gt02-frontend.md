@@ -18,8 +18,8 @@ las identidades y respuestas de la API permanecen únicamente en memoria.
 
 ## Preparación demo
 
-1. Inicia el backend con el runtime GT02 y los datos de presentación documentados en el backend (`docs/datos-presentacion.md`).
-2. Configura `src/js/control/environment.local.js`, ignorado por Git, con `export const gestionConfig = { baseUrl: 'http://localhost:19085/GalenosSV/resources/' };`. Autoriza el origen del frontend en CORS.
+1. Inicia el backend principal con `mvn -DskipTests liberty:run`, conectado a la base `clinica` de PostgreSQL en Docker y con `GALENOS_API_MODE=academic`.
+2. Configura `src/js/control/environment.local.js`, ignorado por Git, con `export const gestionConfig = { baseUrl: 'http://127.0.0.1:9080/GalenosSV/resources/' };`. Autoriza el origen del frontend en CORS.
 3. Ejecuta `npm run dev` y abre el origen local autorizado en CORS.
 
 La app shell PWA se precarga para abrir la interfaz sin conexión. Los datos clínicos requieren conexión y no se almacenan localmente; se comunica esta limitación al usuario.

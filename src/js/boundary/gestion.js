@@ -222,20 +222,23 @@ export function mountGestion({ config: api, dashboard: dashboardApp }) {
   brand?.addEventListener('click', navigate);
   nav.addEventListener('click', navigate);
   function openHash(moveFocus = true) {
+    if (['#pacientes', '#empleados', ''].includes(location.hash)) return;
     const anchor =
       Array.from(nav.querySelectorAll('a')).find((a) => a.getAttribute('href') === location.hash) ||
       nav.querySelector('a[href="#main"]');
     if (anchor) navigate({ target: anchor, preventDefault() {} }, false, moveFocus);
   }
-  window.addEventListener('hashchange', () => openHash(true));
-  window.addEventListener('popstate', () => openHash(true));
+  const onHashChange = () => openHash(true);
+  const onPopState = () => openHash(true);
+  window.addEventListener('hashchange', onHashChange);
+  window.addEventListener('popstate', onPopState);
   openHash(Boolean(location.hash));
   return {
     destroy() {
       brand?.removeEventListener('click', navigate);
       nav.removeEventListener('click', navigate);
-      window.removeEventListener('hashchange', openHash);
-      window.removeEventListener('popstate', openHash);
+      window.removeEventListener('hashchange', onHashChange);
+      window.removeEventListener('popstate', onPopState);
       control?.destroy();
       clinicalPage?.destroy();
       clinical?.destroy();

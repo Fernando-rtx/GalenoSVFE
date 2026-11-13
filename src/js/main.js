@@ -1,30 +1,90 @@
+import { mountPortal } from './boundary/portal-academico.js';
+import './boundary/components/galenos-academic-app.js';
 import { mountAppearance } from './boundary/appearance.js';
 import { mountGestion } from './boundary/gestion.js';
 import { mountDashboard } from './boundary/dashboard.js';
-import { gestionConfig as localDefault } from './control/environment.example.js';
-import { API_V2_DASHBOARD_ROUTES, API_V2_ROUTES } from './control/api-v2-routes.js';
+import { gestionConfig as defaults } from './control/environment.example.js';
+import { API_V2_ROUTES, API_V2_DASHBOARD_ROUTES } from './control/api-v2-routes.js';
 import { ClinicaService, createApiConfig } from './index.js';
-import './boundary/components/tarjeta_consulta.js';
-import './boundary/components/galenos-notifications.js';
+import { obtenerContextoEmpleado } from './control/contexto-empleado.js';
 import { registerPwa } from './boundary/pwa.js';
-
-const root = document.querySelector('[data-dashboard]');
+let portals = [];
 let appearance;
 let dashboard;
 let gestion;
-let closed = false;
-
+let environment;
+const root = document.querySelector('[data-dashboard]');
+function closeGestion() {
+  gestion?.destroy();
+  dashboard?.destroy();
+  gestion = null;
+  dashboard = null;
+}
 async function start() {
   try {
     const local = await import('./control/environment.local.js').catch((error) => {
       if (!(error instanceof TypeError)) throw error;
       return {};
     });
-    const environment = local.gestionConfig ?? local.config ?? localDefault;
-    if (closed) return;
-    appearance?.destroy();
+    environment = local.gestionConfig ?? local.config ?? defaults;
+    const academicConfig = createApiConfig({ ...environment, routes: API_V2_ROUTES });
     appearance = mountAppearance(root);
-    const config = createApiConfig({ ...environment, routes: API_V2_ROUTES });
+    portals = [...document.querySelectorAll('busqueda-citas,inicio-sesion')].map((view) =>
+      mountPortal(view, environment),
+    );
+    document.querySelector('galenos-academic-app')?.configure(academicConfig, {
+      patient: () => portals.find((portal) => portal.identidad.portal === 'paciente')?.identidad.session ?? null,
+      employee: () => portals.find((portal) => portal.identidad.portal === 'empleado')?.identidad.session ?? null,
+    });
+    navigate();
+  } catch {
+    document.querySelector('[data-ui="startupStatus"]').textContent =
+      'No se pudo iniciar la aplicación. Revisa la configuración.';
+  }
+}
+function navigate() {
+  const academic = location.hash === '#academico';
+  if (academic) document.querySelector('galenos-academic-app')?.refreshSessions();
+  const portal = ['#pacientes', '#empleados', ''].includes(location.hash) || academic;
+  const employee = location.hash === '#empleados';
+  const context = obtenerContextoEmpleado();
+  if (!portal && !context) {
+    location.hash = '#empleados';
+    return;
+  }
+  document.querySelector('[data-portales]').hidden = !portal || academic;
+  document.querySelector('#academic-care').hidden = !academic;
+  document.querySelector('busqueda-citas').hidden = employee;
+  document.querySelector('inicio-sesion').hidden = !employee;
+  document.querySelector('[data-clinic-header]').hidden = portal;
+  if (portal) {
+    closeGestion();
+    document.querySelector('#main').hidden = true;
+    document.querySelector('#gestion').hidden = true;
+    for (const link of document.querySelectorAll('[data-navigation] a')) {
+      const active = link.hash === (academic ? '#academico' : employee ? '#empleados' : '#pacientes');
+      link.classList.toggle('nav-current', active);
+      if (active) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    }
+  } else if (!dashboard && environment) {
+    // Servicios, controles, componentes y módulos de gestión originales.
+    // El servidor verifica permisos, aunque el usuario abra rutas manualmente.
+    const identificacion = portals.find((p) => p.identidad.portal === 'empleado').identidad;
+    const assignment =
+      context.asignaciones.find((a) => a.idPersonaRol === identificacion.asignacionActiva) ??
+      context.asignaciones[0];
+    const session = identificacion.session;
+    const config = createApiConfig({
+      ...environment,
+      routes: API_V2_ROUTES,
+      http: {
+        headers: {
+          Authorization: `Bearer ${session.token}`,
+          'X-Persona-Rol': assignment.idPersonaRol,
+        },
+      },
+    });
     const clinicConfig = createApiConfig({ ...config, routes: API_V2_DASHBOARD_ROUTES });
     dashboard = mountDashboard({
       root,
@@ -32,22 +92,29 @@ async function start() {
       clinicaService: new ClinicaService({ config: clinicConfig }),
     });
     gestion = mountGestion({ config, dashboard });
-    await dashboard.ready;
-  } catch (error) {
-    document.querySelector('[data-ui="startupStatus"]').textContent =
-      'No se pudo iniciar el dashboard. Revisa la configuración de conexión.';
+    const mounted = dashboard;
+    mounted.ready
+      .then(() => {
+        if (dashboard === mounted && mounted.control.state.clinicasStatus === 'ready')
+          return mounted.control.selectClinica(assignment.idClinica);
+      })
+      .catch(() => {
+        document.querySelector('[data-ui="startupStatus"]').textContent =
+          'No se pudo cargar la clínica asignada. Reintenta la conexión.';
+      });
   }
 }
+window.addEventListener('hashchange', navigate);
 window.addEventListener('pagehide', () => {
-  closed = true;
-  if (dashboard) dashboard.destroy();
-  gestion?.destroy();
+  closeGestion();
   appearance?.destroy();
+  portals.forEach((p) => p.destroy());
+  portals = [];
 });
-// Restaurar una página guardada en la caché de navegación crea solicitudes nuevas.
 window.addEventListener('pageshow', (event) => {
   if (event.persisted) {
-    closed = false;
+    for (const view of document.querySelectorAll('busqueda-citas,inicio-sesion'))
+      view.context(null);
     start();
   }
 });

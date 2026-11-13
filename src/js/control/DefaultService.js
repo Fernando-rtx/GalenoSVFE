@@ -79,7 +79,7 @@ function validateContract(contract, operation) {
     !contract.path ||
     /^(?:\/|[a-z][a-z0-9+.-]*:)/i.test(contract.path) ||
     /[?#\\]/.test(contract.path) ||
-    !['json', 'text', 'none'].includes(contract.response) ||
+    !['json', 'text', 'none', 'blob'].includes(contract.response) ||
     !Array.isArray(contract.successStatuses) ||
     contract.successStatuses.length === 0 ||
     contract.successStatuses.some(
@@ -412,6 +412,13 @@ export default class DefaultService {
         response.status,
         headers,
       );
+    if (contract.response === 'blob') {
+      if (!response.ok) return response.text().then((text) => {
+        throw new DefaultError({ type: 'http', code: 'HTTP_ERROR', message: `HTTP ${response.status}`, status: response.status, details: text || null, headers });
+      });
+      if (!contract.successStatuses.includes(response.status)) throw DefaultError.processing('Estado de éxito no contemplado por el contrato.', null, response.status, headers);
+      return response.blob().then((data) => new DefaultResponse({ datos: data, totalDatos: null, status: response.status, statusText: response.statusText, headers, url: response.url || requestedUrl, metadata: { resource: this.resource, operation, pagination: null } })).catch((cause) => { throw DefaultError.processing('No se pudo leer el archivo.', cause, response.status, headers); });
+    }
     return response
       .text()
       .catch((cause) => {

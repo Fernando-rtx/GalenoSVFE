@@ -1,5 +1,13 @@
 /** Traducción de textos de interfaz. Conserva los datos y los valores de formularios. */
 const english = new Map(Object.entries({
+  'Descarga tu ticket': 'Download your ticket',
+  'Para más información, descarga la app.': 'For more information, download the app.',
+  'Puedes instalar GalenosSV o continuar con tu ticket PDF.': 'You can install GalenosSV or continue with your PDF ticket.',
+  'Descargar app': 'Download app', 'App instalada': 'App installed',
+  'Instalación solicitada. Sigue las indicaciones del navegador.': 'Installation requested. Follow your browser instructions.',
+  'La app ya está instalada.': 'The app is already installed.',
+  'Instalación cancelada. Puedes descargar tu ticket PDF.': 'Installation cancelled. You can download your PDF ticket.',
+  'Para instalar la app, abre el menú del navegador y selecciona “Instalar aplicación” o “Añadir a pantalla de inicio”. Si esa opción no aparece, continúa usando la versión web y descarga tu ticket PDF.': 'To install the app, open your browser menu and select “Install app” or “Add to Home Screen”. If that option is unavailable, keep using the web version and download your PDF ticket.',
   'Nombre del paciente': 'Patient name', 'Escribe el nombre o apellido': 'Enter a first or last name',
   'Pacientes encontrados': 'Matching patients', 'Selecciona un paciente': 'Select a patient',
   'Opcional · busca pacientes de la clínica seleccionada': 'Optional · search patients in the selected clinic',

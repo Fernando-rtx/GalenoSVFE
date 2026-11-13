@@ -1,7 +1,8 @@
 // Solo recursos públicos del shell. Ninguna ruta REST se guarda en Cache Storage.
-const CACHE = 'galenossv-shell-v13';
+const CACHE = 'galenossv-shell-v14';
 const PREFIX = 'galenossv-shell-';
 const ASSETS = new Set([
+  '/js/boundary/ticket-options.js',
   '/js/boundary/language.js',
   '/js/boundary/components/galenos-academic-app.js',
   '/js/control/AcademicCareService.js',

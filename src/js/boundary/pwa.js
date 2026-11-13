@@ -1,5 +1,21 @@
 let installEvent = null;
 
+export const isAppInstalled = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+
+export async function requestInstallation() {
+  if (isAppInstalled()) return 'installed';
+  const prompt = installEvent;
+  if (!prompt) return 'unavailable';
+  installEvent = null;
+  document.querySelector('[data-install]')?.setAttribute('hidden', '');
+  try {
+    await prompt.prompt();
+    return (await prompt.userChoice).outcome;
+  } catch {
+    return 'unavailable';
+  }
+}
+
 // El listener se registra antes de esperar la configuración asíncrona.
 window.addEventListener('beforeinstallprompt', (event) => {
   event.preventDefault();
@@ -17,12 +33,7 @@ export function registerPwa() {
   if (button) {
     button.hidden = !installEvent || window.matchMedia('(display-mode: standalone)').matches;
     button.addEventListener('click', async () => {
-      const prompt = installEvent;
-      if (!prompt) return;
-      installEvent = null;
-      button.hidden = true;
-      await prompt.prompt();
-      await prompt.userChoice;
+      await requestInstallation();
     });
   }
   if ('serviceWorker' in navigator && window.isSecureContext) {

@@ -1,4 +1,4 @@
-import { bindFormValidation } from './form-validation.js';
+import { bindFormValidation, showAccessibleDialog } from './form-validation.js';
 import { editableRecord } from './editable-record.js';
 import { gestionError } from './dashboard-presentation.js';
 const node = (tag, text, className) => {
@@ -266,7 +266,7 @@ export default class PersonaModel extends HTMLElement {
     }
     if (state.editor && !this.dialog.open) {
       this.build(state);
-      this.dialog.showModal();
+      showAccessibleDialog(this.dialog);
     }
     if (!state.editor && this.dialog.open) this.dialog.close();
     if (state.editor)

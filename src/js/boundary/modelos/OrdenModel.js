@@ -1,4 +1,4 @@
-import { bindFormValidation } from './form-validation.js';
+import { bindFormValidation, showAccessibleDialog } from './form-validation.js';
 import { editableRecord } from './editable-record.js';
 import { gestionError } from './dashboard-presentation.js';
 const node = (tag, text, css) => {
@@ -140,7 +140,7 @@ export default class OrdenModel extends HTMLElement {
         } else input.value = s.editor.data?.[key] ?? '';
         this.fields.append(label, input);
       }
-      this.dialog.showModal();
+      showAccessibleDialog(this.dialog);
     }
     if (!s.editor && this.dialog.open) this.dialog.close();
     this.form.querySelectorAll('input,textarea,button').forEach((n) => (n.disabled = s.writing));

@@ -2,6 +2,16 @@ import { gestionError } from './dashboard-presentation.js';
 import { notify } from '../notifications.js';
 
 let nextErrorId = 0;
+let nextDialogTitleId = 0;
+
+/** Abre un diálogo modal con su encabezado visible como nombre accesible. */
+export function showAccessibleDialog(dialog) {
+  const heading = dialog.querySelector('h2');
+  if (!heading) throw new Error('El diálogo requiere un encabezado h2.');
+  if (!heading.id) heading.id = `galenos-dialog-title-${++nextDialogTitleId}`;
+  dialog.setAttribute('aria-labelledby', heading.id);
+  dialog.showModal();
+}
 
 /** Frontera de formularios: restricciones HTML y rechazo de operaciones asíncronas. */
 export function bindFormValidation(form, target) {

@@ -169,7 +169,7 @@ export function mountGestion({ config: api, dashboard: dashboardApp }) {
       flow.load();
     }
   });
-  function navigate(event, updateHistory = true) {
+  function navigate(event, updateHistory = true, moveFocus = true) {
     const anchor = event.target.closest('a');
     if (
       !anchor ||
@@ -216,27 +216,29 @@ export function mountGestion({ config: api, dashboard: dashboardApp }) {
     if (!isDashboard) {
       showModule(anchor.dataset.module);
     }
-    (isDashboard ? dashboard : root).focus();
+    if (moveFocus) (isDashboard ? dashboard : root).focus();
   }
   const brand = document.querySelector('.brand');
   brand?.addEventListener('click', navigate);
   nav.addEventListener('click', navigate);
-  function openHash() {
+  function openHash(moveFocus = true) {
     if (['#pacientes', '#empleados', ''].includes(location.hash)) return;
     const anchor =
       Array.from(nav.querySelectorAll('a')).find((a) => a.getAttribute('href') === location.hash) ||
       nav.querySelector('a[href="#main"]');
-    if (anchor) navigate({ target: anchor, preventDefault() {} }, false);
+    if (anchor) navigate({ target: anchor, preventDefault() {} }, false, moveFocus);
   }
-  window.addEventListener('hashchange', openHash);
-  window.addEventListener('popstate', openHash);
-  openHash();
+  const onHashChange = () => openHash(true);
+  const onPopState = () => openHash(true);
+  window.addEventListener('hashchange', onHashChange);
+  window.addEventListener('popstate', onPopState);
+  openHash(Boolean(location.hash));
   return {
     destroy() {
       brand?.removeEventListener('click', navigate);
       nav.removeEventListener('click', navigate);
-      window.removeEventListener('hashchange', openHash);
-      window.removeEventListener('popstate', openHash);
+      window.removeEventListener('hashchange', onHashChange);
+      window.removeEventListener('popstate', onPopState);
       control?.destroy();
       clinicalPage?.destroy();
       clinical?.destroy();

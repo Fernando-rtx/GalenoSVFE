@@ -1,4 +1,4 @@
-import { bindFormValidation } from './form-validation.js';
+import { bindFormValidation, showAccessibleDialog } from './form-validation.js';
 import { editableRecord } from './editable-record.js';
 import { gestionError } from './dashboard-presentation.js';
 const n = (tag, text) => {
@@ -172,7 +172,7 @@ export default class ProcedimientoModel extends HTMLElement {
         this.exams = this.field('idsExamenes', 'Exámenes asociados (opcional)', 'select');
         this.exams.multiple = true;
       }
-      this.dialog.showModal();
+      showAccessibleDialog(this.dialog);
     }
     if (s.editor) {
       const roleValue = s.editor.data?.idRol ?? this.roleSelect.value;

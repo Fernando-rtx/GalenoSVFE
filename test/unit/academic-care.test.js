@@ -43,11 +43,47 @@ describe('HU1–HU4: contratos académicos', () => {
     expect(new URL(fetchStub.firstCall.args[0]).pathname).to.include('/ticket');
     expect(fetchStub.firstCall.args[1].headers.get('Authorization')).to.equal('Bearer session-token');
   });
-  it('envía una atención transaccional con paso, acción y exámenes explícitos', async () => {
-    fetchStub.resolves(jsonResponse({ idConsulta: id, accion: 'GUARDAR_PARCIAL', estado: 'EN_CURSO', idConsultaProcedimientoPaso: id, idPasoActual: id, finalizada: false }));
-    const result = await api.register({ idConsulta: id, idPersona: id, idClinica: id, idRol: id, idConsultaProcedimientoPaso: id, accion: 'GUARDAR_PARCIAL', valor: 'Registro sintético', examenes: [] });
-    expect(fetchStub.firstCall.args[1].method).to.equal('POST');
-    expect(JSON.parse(fetchStub.firstCall.args[1].body).accion).to.equal('GUARDAR_PARCIAL');
-    expect(result.datos.estado).to.equal('EN_CURSO');
+  const careInput = (accion) => ({
+    idConsulta: id, idPersona: id, idClinica: id, idRol: id,
+    idConsultaProcedimientoPaso: id, accion, valor: 'Registro sintético', examenes: [id],
   });
+  for (const accion of ['GUARDAR_PARCIAL', 'AVANZAR', 'RETROCEDER', 'FINALIZAR']) {
+    it(`envía ${accion} con contexto, exámenes y sesión sin alterar el formulario`, async () => {
+      const expected = { idConsulta: id, accion, estado: 'EN_CURSO',
+        idConsultaProcedimientoPaso: id, idPasoActual: id, finalizada: false };
+      fetchStub.resolves(jsonResponse(expected));
+      const input = Object.freeze(careInput(accion));
+      const result = await api.register(input, { headers: { Authorization: 'Bearer synthetic' } });
+      sinon.assert.calledOnce(fetchStub);
+      const [url, options] = fetchStub.firstCall.args;
+      expect(new URL(url).pathname).to.equal('/GalenosSV/resources/v2/atencion/registrar');
+      expect(options.method).to.equal('POST');
+      expect(JSON.parse(options.body)).to.deep.equal(input);
+      expect(options.headers.get('Authorization')).to.equal('Bearer synthetic');
+      expect(options.cache).to.equal('no-store');
+      expect(result.datos).to.deep.equal(expected);
+    });
+  }
+  for (const [label, change] of [
+    ['acción desconocida', { accion: 'BORRAR' }],
+    ['examen inválido', { examenes: ['incorrecto'] }],
+    ['paso ausente', { idConsultaProcedimientoPaso: null }],
+    ['clínica ausente', { idClinica: null }],
+  ]) {
+    it(`rechaza ${label} antes de enviar la atención`, async () => {
+      const error = await rejection(api.register({ ...careInput('GUARDAR_PARCIAL'), ...change }));
+      expect(error.type).to.equal('validation');
+      sinon.assert.notCalled(fetchStub);
+    });
+  }
+  for (const status of [403, 409, 500]) {
+    it(`conserva HTTP ${status} sin simular una atención guardada`, async () => {
+      fetchStub.resolves(jsonResponse({ message: 'SQL privado' }, status));
+      const error = await rejection(api.register(careInput('AVANZAR')));
+      expect(error.status).to.equal(status);
+      expect(error.type).to.equal('http');
+      expect(error.message).not.to.include('SQL');
+      sinon.assert.calledOnce(fetchStub);
+    });
+  }
 });

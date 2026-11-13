@@ -199,6 +199,16 @@ describe('DefaultService con Fetch simulado', () => {
     );
   });
 
+  it('descarga archivos como Blob solo cuando el contrato declara respuesta blob', async () => {
+    const routes = fixtureRoutes();
+    Object.assign(routes.fixture.operations.findById, { response: 'blob' });
+    const expected = new Blob(['%PDF-1.4 fixture']);
+    fetchStub.resolves(new Response(expected, { headers: { 'Content-Type': 'application/pdf' } }));
+    const result = await fixtureService(fetchStub, { routes }).findById('ticket');
+    expect(result.datos).to.be.instanceOf(Blob);
+    expect(await result.datos.text()).to.equal('%PDF-1.4 fixture');
+  });
+
   it('rechaza un resultado paginado que no produce un arreglo', async () => {
     expect((await rejection(service.findRange(0, 3))).type).to.equal('processing');
   });

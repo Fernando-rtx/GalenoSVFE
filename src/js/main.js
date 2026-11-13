@@ -1,4 +1,5 @@
 import { mountPortal } from './boundary/portal-academico.js';
+import './boundary/components/galenos-academic-app.js';
 import { mountAppearance } from './boundary/appearance.js';
 import { mountGestion } from './boundary/gestion.js';
 import { mountDashboard } from './boundary/dashboard.js';
@@ -26,6 +27,8 @@ async function start() {
       return {};
     });
     environment = local.gestionConfig ?? local.config ?? defaults;
+    const academicConfig = createApiConfig({ ...environment, routes: API_V2_ROUTES });
+    document.querySelector('galenos-academic-app')?.configure(academicConfig);
     appearance = mountAppearance(root);
     portals = [...document.querySelectorAll('busqueda-citas,inicio-sesion')].map((view) =>
       mountPortal(view, environment),
@@ -37,14 +40,16 @@ async function start() {
   }
 }
 function navigate() {
-  const portal = ['#pacientes', '#empleados', ''].includes(location.hash);
+  const academic = location.hash === '#academico';
+  const portal = ['#pacientes', '#empleados', ''].includes(location.hash) || academic;
   const employee = location.hash === '#empleados';
   const context = obtenerContextoEmpleado();
   if (!portal && !context) {
     location.hash = '#empleados';
     return;
   }
-  document.querySelector('[data-portales]').hidden = !portal;
+  document.querySelector('[data-portales]').hidden = !portal || academic;
+  document.querySelector('#academic-care').hidden = !academic;
   document.querySelector('busqueda-citas').hidden = employee;
   document.querySelector('inicio-sesion').hidden = !employee;
   document.querySelector('[data-clinic-header]').hidden = portal;
@@ -53,7 +58,7 @@ function navigate() {
     document.querySelector('#main').hidden = true;
     document.querySelector('#gestion').hidden = true;
     for (const link of document.querySelectorAll('[data-navigation] a')) {
-      const active = link.hash === (employee ? '#empleados' : '#pacientes');
+      const active = link.hash === (academic ? '#academico' : employee ? '#empleados' : '#pacientes');
       link.classList.toggle('nav-current', active);
       if (active) link.setAttribute('aria-current', 'page');
       else link.removeAttribute('aria-current');

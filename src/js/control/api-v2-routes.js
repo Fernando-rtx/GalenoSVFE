@@ -183,6 +183,14 @@ const careSchema = recordSchema({
   siguientes: arrayOf(recordSchema({ idPaso: isUuid, nombre: stringOrNull, tipoSecuencia: stringOrNull })),
   puedeRetroceder: (v) => typeof v === 'boolean',
 });
+const careResultSchema = recordSchema({
+  idConsulta: isUuid,
+  accion: nonEmptyText,
+  estado: nonEmptyText,
+  idConsultaProcedimientoPaso: uuidOrNull,
+  idPasoActual: uuidOrNull,
+  finalizada: (v) => typeof v === 'boolean',
+});
 const identityQuery = {
   idTipoDocumento: { required: true, validate: isUuid },
   numero: { required: true, validate: nonEmptyText },
@@ -235,7 +243,7 @@ routes.atencion = {
         && isUuid(value.idClinica) && isUuid(value.idRol) && isUuid(value.idConsultaProcedimientoPaso)
         && ['GUARDAR_PARCIAL', 'AVANZAR', 'RETROCEDER', 'FINALIZAR'].includes(value.accion)
         && typeof value.valor === 'string' && (value.idPasoSiguiente == null || isUuid(value.idPasoSiguiente))
-        && Array.isArray(value.examenes) && value.examenes.every(isUuid), validateResponse: careSchema },
+        && Array.isArray(value.examenes) && value.examenes.every(isUuid), validateResponse: careResultSchema },
   },
 };
 routes.pacienteTicket = {

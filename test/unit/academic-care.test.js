@@ -42,10 +42,10 @@ describe('HU1–HU4: contratos académicos', () => {
     expect(new URL(fetchStub.firstCall.args[0]).pathname).to.include('/ticket');
   });
   it('envía una atención transaccional con paso, acción y exámenes explícitos', async () => {
-    const detail = { idConsulta: id, idConsultaProcedimientoPaso: id, paciente: 'Sintético', clinica: 'Demo', rol: 'Médico', procedimiento: 'Demo', idPasoActual: id, pasoActual: 'Atención', valorActual: null, pasoFinal: false, historial: [], examenes: [], siguientes: [], puedeRetroceder: false };
-    fetchStub.resolves(jsonResponse(detail));
-    await api.register({ idConsulta: id, idPersona: id, idClinica: id, idRol: id, idConsultaProcedimientoPaso: id, accion: 'GUARDAR_PARCIAL', valor: 'Registro sintético', examenes: [] });
+    fetchStub.resolves(jsonResponse({ idConsulta: id, accion: 'GUARDAR_PARCIAL', estado: 'EN_CURSO', idConsultaProcedimientoPaso: id, idPasoActual: id, finalizada: false }));
+    const result = await api.register({ idConsulta: id, idPersona: id, idClinica: id, idRol: id, idConsultaProcedimientoPaso: id, accion: 'GUARDAR_PARCIAL', valor: 'Registro sintético', examenes: [] });
     expect(fetchStub.firstCall.args[1].method).to.equal('POST');
     expect(JSON.parse(fetchStub.firstCall.args[1].body).accion).to.equal('GUARDAR_PARCIAL');
+    expect(result.datos.estado).to.equal('EN_CURSO');
   });
 });

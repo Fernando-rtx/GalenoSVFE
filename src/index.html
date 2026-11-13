@@ -7,6 +7,7 @@
     <meta name="description" content="Dashboard académico de consultas de GalenosSV." />
     <meta name="theme-color" content="#245a8e" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="/resources/imagenes/icon-192.png" />
     <title>GalenosSV · Pacientes y empleados</title>
     <script src="/resources/scripts/tema.js"></script>
     <link rel="stylesheet" href="/resources/estilos/dashboard.css" />
@@ -16,7 +17,7 @@
   </head>
   <body>
     <galenos-notifications></galenos-notifications>
-    <a class="skip-link" href="#main">Saltar al contenido</a>
+    <a class="skip-link" href="#workspace">Saltar al contenido</a>
     <galenos-dashboard class="app-shell" data-dashboard>
       <header class="layout-header">
         <div class="layout-logo">
@@ -28,7 +29,7 @@
             aria-controls="layoutNavigation"
           >
             ☰</button
-          ><a class="brand" href="#main" aria-label="GalenosSV, inicio"
+          ><a class="brand" href="#academico" aria-label="GalenosSV, dashboard"
             ><img
               src="/resources/imagenes/galenos-sv-logo.png"
               class="layout-logo-image"
@@ -54,9 +55,10 @@
             Instalar aplicación</button
           ><label for="idioma">Idioma</label
           ><select id="idioma" aria-describedby="language-note">
-            <option value="es">Español</option></select
+            <option value="es">Español</option>
+            <option value="en">English</option></select
           ><span class="sr-only" id="language-note"
-            >La interfaz JavaScript está disponible en español.</span
+            >Selecciona el idioma de la aplicación.</span
           ><button type="button" id="themeToggle" class="layout-theme-toggle">Modo claro</button>
         </div>
       </header>
@@ -65,12 +67,11 @@
         <nav aria-label="Principal" data-navigation>
           <a href="#pacientes">Búsqueda de citas</a>
           <a href="#empleados">Login</a>
-          <a href="#academico">Dashboard</a>
           <a href="#atencion">Consulta</a>
         </nav>
         <p class="sidebar-footer">Programación para Internet<br />Universidad de El Salvador</p>
       </aside>
-      <div class="workspace">
+      <div class="workspace" id="workspace" tabindex="-1">
         <section data-portales aria-label="Identificación académica">
           <busqueda-citas></busqueda-citas>
           <inicio-sesion hidden></inicio-sesion>

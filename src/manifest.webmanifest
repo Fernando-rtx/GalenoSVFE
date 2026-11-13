@@ -2,7 +2,7 @@
   "id": "/",
   "name": "GalenosSV",
   "short_name": "GalenosSV",
-  "start_url": "/",
+  "start_url": "/#academico",
   "scope": "/",
   "display": "standalone",
   "background_color": "#f2f5f8",

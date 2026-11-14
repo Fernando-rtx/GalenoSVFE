@@ -47,6 +47,14 @@ async function start() {
     );
     document.querySelector('galenos-academic-app')?.configure(academicConfig, {
       patient: () => portals.find((portal) => portal.identidad.portal === 'paciente')?.identidad.session ?? null,
+      assignment: () => portals.find((portal) => portal.identidad.portal === 'empleado')?.identidad.asignacionActiva,
+      selectAssignment: (id) => portals.find((portal) => portal.identidad.portal === 'empleado')?.identidad.seleccionarAsignacion(id),
+      logout: async () => {
+        const portal = portals.find((portal) => portal.identidad.portal === 'empleado');
+        await portal.identidad.salir();
+        document.querySelector('inicio-sesion').context(null);
+        navigate();
+      },
       employee: () => portals.find((portal) => portal.identidad.portal === 'empleado')?.identidad.session ?? null,
     });
     navigate();

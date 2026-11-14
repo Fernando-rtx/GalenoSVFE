@@ -43,6 +43,11 @@ export class IdentificacionControl {
     this.asignacionActiva = data.contexto.asignaciones[0].idPersonaRol;
     return data.contexto;
   }
+  seleccionarAsignacion(id) {
+    if (!this.session?.contexto.asignaciones.some((a) => a.idPersonaRol === id))
+      throw DefaultError.validation('Selecciona una asignación disponible.');
+    this.asignacionActiva = id;
+  }
   async salir(signal) {
     if (this.session) await this.http.cerrar(this.portal, this.session.token, signal);
     this.session = null;

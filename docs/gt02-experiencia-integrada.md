@@ -73,16 +73,18 @@ con procesos frontend/backend detenidos: se usó desconexión de Chromium.
 
 ## Bloqueos y alcance pendiente
 
-**No se declara terminada la implementación integral.** HU2 conserva la lista manual
-`GALENOS_EMPLEADO_ROLES`: los tres intentos de empleado en la comprobación real
-recibieron 403. Rol no tiene categoría empleado; PersonaRol no tiene estado propio.
-Está pendiente la decisión solicitada al usuario: unificar con HU3/HU4 (asignaciones
-activas no Paciente) o limitar a roles vinculados a pasos. No se implementó una regla
-sin confirmación ni se agregaron UUID a configuración.
+La identificación dinámica de HU2 quedó implementada: ya no se consulta
+`GALENOS_EMPLEADO_ROLES`. Se considera empleado a una asignación PersonaRol cuyo
+rol no sea Paciente y cuyo rol y clínica estén activos; una asignación debe existir
+para la persona identificada. El catálogo actual respalda la regla: Paciente es el
+único rol paciente; Enfermera está inactiva; Atención al público no tiene
+asignaciones; Doctor y Desarrollo tienen asignaciones activas. No se concede acceso
+a roles inactivos, sin asignación o a una persona con solo Paciente.
 
-HU3/HU4 y búsqueda/historial nuevos compilan y pasan regresiones, pero no tienen
-recorrido real completo de empleado por ese bloqueo. Faltan verificación de búsquedas
-con resultado, paginación real múltiple, historial con exámenes, y transacciones
+HU3 y la búsqueda de empleados ya fueron comprobadas en lectura real con sesión y
+`X-Persona-Rol`; el conjunto actual no contiene consultas asignadas al rol/fecha
+probados, por lo que no se afirma detalle real ni historial con resultados. Faltan
+verificación de búsquedas con resultado, paginación real múltiple, historial con exámenes, y transacciones
 concurrentes contra PostgreSQL. No se ejecutaron INSERT/UPDATE/DELETE ni migraciones.
 Las escrituras requieren autorización sobre una consulta y operación de prueba
 controladas antes de ejecutarlas. Mockito no certifica rollback real.

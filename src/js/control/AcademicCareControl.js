@@ -16,5 +16,9 @@ export default class AcademicCareControl {
       if (this.requests.get(scope) === controller) this.requests.delete(scope);
     }
   }
-  cancel() { for (const request of this.requests.values()) request.abort(); this.requests.clear(); }
+  cancel(scope) {
+    if (scope !== undefined) { this.requests.get(scope)?.abort(); this.requests.delete(scope); return; }
+    for (const request of this.requests.values()) request.abort();
+    this.requests.clear();
+  }
 }

@@ -21,6 +21,32 @@ describe('HU1–HU4: contratos académicos', () => {
     api.employeeAppointments.fetchImpl = fetchStub;
     api.care.fetchImpl = fetchStub;
     api.ticket.fetchImpl = fetchStub;
+    api.documentTypes.fetchImpl = fetchStub;
+  });
+  it('carga el catálogo público v1 aunque la configuración principal sea de gestión v2', async () => {
+    fetchStub.resolves(jsonResponse([], 200, { 'Total-registros': '0' }));
+    await api.findDocumentTypes(0, 100);
+    const [url, options] = fetchStub.firstCall.args;
+    expect(new URL(url).pathname).to.equal('/GalenosSV/resources/v1/tipo_documento');
+    expect(options.headers.has('Authorization')).to.equal(false);
+    expect(options.cache).to.equal('no-store');
+    expect(API_V2_ROUTES.tipoDocumento.operations.findRange.path).to.equal('v2/tipo_documento');
+  });
+  it('envía la asignación elegida en bandeja y detalle junto a la misma sesión', async () => {
+    const assignment = '00000000-0000-4000-8000-000000000099';
+    const query = { idPersona: id, idClinica: id, idRol: id };
+    const options = { headers: { Authorization: 'Bearer synthetic', 'X-Persona-Rol': assignment } };
+    fetchStub.resolves(jsonResponse([], 200, { 'Total-registros': '0' }));
+    await api.findEmployeeAppointments(0, 20, query, options);
+    const [url, init] = fetchStub.firstCall.args;
+    expect(new URL(url).searchParams.get('idPersona')).to.equal(id);
+    expect(init.headers.get('X-Persona-Rol')).to.equal(assignment);
+    expect(init.headers.get('Authorization')).to.equal('Bearer synthetic');
+    // Basta observar la solicitud de detalle: un 403 no debe convertirse en datos vacíos.
+    fetchStub.resolves(jsonResponse({ mensaje: 'Asignación no disponible' }, 403));
+    const error = await rejection(api.getCare(id, query, options));
+    expect(error.status).to.equal(403);
+    expect(fetchStub.lastCall.args[1].headers.get('X-Persona-Rol')).to.equal(assignment);
   });
   it('envía clínica y sesión de paciente, sin repetir el documento en la URL', async () => {
     fetchStub.resolves(jsonResponse([], 200, { 'Total-registros': '0' }));

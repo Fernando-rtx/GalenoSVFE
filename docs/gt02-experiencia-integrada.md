@@ -1,5 +1,39 @@
 # Integración de experiencia GT02 — avance verificable
 
+## Corrección del rechazo aparente en la bandeja (13/11/2026)
+
+Reproducción real: Gemely Itzep → Doctor → Clinica Central en BrowserSync3000 y
+Liberty9080, conectado a clinica. La petición `GET v2/empleado/consultas` devolvía
+200 con Bearer y X-Persona-Rol correctos. El mensaje de rechazo procedía de otra
+petición: `GET v2/tipo_documento?first=0&max=100` recibía **401**, sin Bearer,
+porque el filtro de documento utilizaba la configuración administrativa v2.
+El mensaje anterior de 401 era «El servidor rechazó el acceso a este recurso».
+No se reprodujo un 403 de la bandeja con la selección válida.
+
+AcademicCareService utiliza ahora el catálogo público existente v1 para el filtro;
+se mantienen los contratos de gestión y las autorizaciones de HU3/HU4. La interfaz
+distingue sesión inválida/expirada401 y acceso denegado403; al buscar limpia tarjetas,
+contadores y paginación, evitando presentar un resultado vacío tras un fallo.
+Service Worker pasa a shell-v16 para renovar módulos públicos. El fallo original
+también se reprodujo en un perfil Chromium nuevo: no era consecuencia del caché.
+
+Evidencia Chromium con Fetch real, sin respuestas REST simuladas:
+
+- Identificación/selección real y bandeja200; asignación enviada coincide con JPA.
+- Hoy, intervalo1900 y rango2000–2099:200 y lista vacía legítima para esa asignación.
+- PersonaRol de otra persona:403; idPersona ajeno:403. Tarjetas y contador vacíos,
+  mensaje de acceso denegado, sin «No hay consultas asignadas» tras estos errores.
+- Sesión revocada en Java:401 y mensaje específico de sesión expirada/inválida.
+- HU1: identificación, una cita real, descarga PDF Java y desconexión reconocida.
+- Hashes de las20tablas iguales antes/después; sin INSERT/UPDATE/DELETE PostgreSQL.
+- Despliegue9080 verificado: GalenosSV.war.xml apunta a webapp y target/classes de
+  GalenosSV_Actualizado. No fue necesario cambiar o reiniciar el backend.
+
+Captura local: `/private/tmp/gt02-bandeja-corregida.png` (sesión Gemely, Doctor,
+Clinica Central y estado vacío correcto; documento y token no visibles).
+Regresión:481Mocha aprobadas y106archivos con sintaxis válida. Esta corrección no
+modifica Java ni certifica nuevas operaciones de escritura HU4.
+
 Rama de ambos repositorios: `feat/gt02-experiencia-integrada`. La rama
 `test/gt02-calidad-pruebas` se conserva intacta. Frontend incorpora origin/main
 `f27d142`, incluida la oferta PWA antes de descargar tickets; backend parte de

@@ -1,4 +1,5 @@
 import DefaultService from './DefaultService.js';
+import { API_ROUTES } from './api-routes.js';
 
 export default class AcademicCareService {
   constructor(config) {
@@ -8,7 +9,11 @@ export default class AcademicCareService {
     this.employeeAppointments = new DefaultService({ resource: 'empleadoConsultas', config });
     this.care = new DefaultService({ resource: 'atencion', config });
     this.ticket = new DefaultService({ resource: 'pacienteTicket', config });
-    this.documentTypes = new DefaultService({ resource: 'tipoDocumento', config });
+    // El filtro necesita el catálogo público, no las operaciones de gestión v2.
+    this.documentTypes = new DefaultService({
+      resource: 'tipoDocumento',
+      config: { ...config, routes: { ...config.routes, tipoDocumento: API_ROUTES.tipoDocumento } },
+    });
   }
   verifyEmployee(query, options) { return this.identity.get({ ...options, query }); }
   findPatient(query, options) { return this.patientClinics.get({ ...options, query }); }

@@ -2,10 +2,45 @@
 
 import json
 import os
+import threading
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from playwright.sync_api import sync_playwright, expect
 
-BASE = os.environ.get("GALENOS_BROWSER_BASE_URL", "http://127.0.0.1:3000").rstrip("/")
+ROOT = Path(__file__).resolve().parents[2]
+
+
+class StaticFixtureHandler(SimpleHTTPRequestHandler):
+    """Servidor sintético: nunca conecta a Java ni a PostgreSQL."""
+    def log_message(self, *_args):
+        pass
+
+    def do_GET(self):
+        if self.path == "/js/control/environment.local.js":
+            body = b"export const gestionConfig = {baseUrl: location.origin + '/synthetic-api/'};"
+            self.send_response(200)
+            self.send_header("Content-Type", "text/javascript")
+            self.end_headers()
+            self.wfile.write(body)
+        elif self.path.startswith("/synthetic-api/"):
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Total-registros", "0")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(b"[]")
+        else:
+            super().do_GET()
+
+    def translate_path(self, path):
+        translated = Path(super().translate_path(path))
+        relative = translated.relative_to(Path.cwd())
+        return str(ROOT / relative if path.startswith("/test/") else ROOT / "src" / relative)
+
+
+server = ThreadingHTTPServer(("127.0.0.1", 0), StaticFixtureHandler)
+threading.Thread(target=server.serve_forever, daemon=True).start()
+BASE = f"http://127.0.0.1:{server.server_port}"
 TAGS = [
     "galenos-dashboard",
     "galenos-catalogos",
@@ -31,14 +66,14 @@ with sync_playwright() as playwright:
     page.goto(BASE)
     page.wait_for_function('() => !!customElements.get("galenos-relaciones")')
     registered = page.evaluate("(tags) => tags.every(tag => !!customElements.get(tag))", TAGS)
-    assert registered, "Falta registrar un Custom Element"
-    expect(page.locator("galenos-dashboard #main")).to_be_visible()
-    page.locator('[data-module="rol"]').click()
-    expect(page.locator("galenos-catalogos h1")).to_have_text("Roles")
-    assert page.evaluate("location.hash") == "#rol"
+    assert registered, page.evaluate("(tags) => tags.filter(tag => !customElements.get(tag))", TAGS)
+    expect(page.locator("#academic-care")).to_be_visible()
+    page.get_by_role("link", name="Login", exact=True).click()
+    expect(page.locator("inicio-sesion")).to_be_visible()
+    assert page.evaluate("location.hash") == "#empleados"
     page.go_back()
-    expect(page.locator("galenos-dashboard #main")).to_be_visible()
-    assert page.evaluate("location.hash") in ("", "#main")
+    expect(page.locator("#academic-care")).to_be_visible()
+    assert page.evaluate("location.hash") == "#academico"
     page.evaluate(
         """() => {
       const host = document.createElement('div');
@@ -109,7 +144,7 @@ with sync_playwright() as playwright:
     )
     context.set_offline(True)
     page.reload(wait_until="domcontentloaded")
-    expect(page.locator("galenos-dashboard #main h1")).to_have_text("Consultas")
+    expect(page.locator("#academic-care")).to_be_visible()
     assert not errors, errors
     evidence = {
         "cards_fixture": "PASS",
@@ -125,8 +160,12 @@ with sync_playwright() as playwright:
         "clinical_cache_entries": 0,
         "page_errors": errors,
     }
-    Path("test/evidence/webcomponents-pwa.json").write_text(
+    output = Path(os.environ.get("GALENOS_BROWSER_EVIDENCE", ROOT / "coverage/webcomponents-pwa.json"))
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(
         json.dumps(evidence, indent=2, ensure_ascii=False) + "\n"
     )
     print(json.dumps(evidence, ensure_ascii=False))
     browser.close()
+server.shutdown()
+server.server_close()

@@ -50,6 +50,8 @@ describe('Transporte HTTP real contra servidor sintético local', () => {
     service = fixtureService(globalThis.fetch, { baseUrl });
   });
 
+  beforeEach(() => { requests.length = 0; });
+
   after(async () => {
     if (server && server.listening) {
       server.closeAllConnections();

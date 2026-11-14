@@ -1,5 +1,6 @@
 import { mountPortal } from './boundary/portal-academico.js';
 import './boundary/components/galenos-academic-app.js';
+import './boundary/components/galenos-notifications.js';
 import { mountAppearance } from './boundary/appearance.js';
 import { mountGestion } from './boundary/gestion.js';
 import { mountDashboard } from './boundary/dashboard.js';

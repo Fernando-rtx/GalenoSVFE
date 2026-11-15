@@ -73,6 +73,20 @@ describe('HU1–HU4: contratos académicos', () => {
     idConsulta: id, idPersona: id, idClinica: id, idRol: id,
     idConsultaProcedimientoPaso: id, accion, valor: 'Registro sintético', examenes: [id],
   });
+  it('acepta el detalle HU4 ampliado con órdenes y predecesores reales del DTO', async () => {
+    const detail = { idConsulta: id, idConsultaProcedimientoPaso: id, paciente: 'Paciente sintético',
+      clinica: 'Clínica sintética', rol: 'Rol sintético', procedimiento: 'Procedimiento sintético',
+      idPasoActual: id, pasoActual: 'Paso sintético', valorActual: null, pasoFinal: false,
+      historial: [], examenes: [], siguientes: [], puedeRetroceder: true,
+      fechaConsulta: null, empleado: 'Empleado sintético', idPersonaRol: id,
+      idConsultaProcedimiento: id, estadoPasoActual: 'EN_CURSO',
+      anteriores: [{ idConsultaProcedimientoPaso: id, idPaso: id, nombre: null }],
+      ordenesActuales: [{ idOrdenExamen: id, examen: null, fechaCreacion: null, indicaciones: null,
+        resultados: [{ idExamenResultado: id, fechaCreacion: null, resultado: null, interpretacion: null }] }] };
+    fetchStub.resolves(jsonResponse(detail));
+    const result = await api.getCare(id, { idPersona: id, idClinica: id, idRol: id });
+    expect(result.datos).to.deep.equal(detail);
+  });
   for (const accion of ['GUARDAR_PARCIAL', 'AVANZAR', 'RETROCEDER', 'FINALIZAR']) {
     it(`envía ${accion} con contexto, exámenes y sesión sin alterar el formulario`, async () => {
       const expected = { idConsulta: id, accion, estado: 'EN_CURSO',
@@ -95,6 +109,7 @@ describe('HU1–HU4: contratos académicos', () => {
     ['examen inválido', { examenes: ['incorrecto'] }],
     ['paso ausente', { idConsultaProcedimientoPaso: null }],
     ['clínica ausente', { idClinica: null }],
+    ['ejecución anterior inválida', { idConsultaProcedimientoPasoAnterior: 'ajena' }],
   ]) {
     it(`rechaza ${label} antes de enviar la atención`, async () => {
       const error = await rejection(api.register({ ...careInput('GUARDAR_PARCIAL'), ...change }));

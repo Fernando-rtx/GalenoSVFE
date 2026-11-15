@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="es">
+  <meta charset="utf-8" /><title>HU4 — fixture sintético de componentes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/resources/estilos/galenos.css" />
+  <body>
+    <output id="resultado">EJECUTANDO</output>
+    <script type="module">
+      import '/js/boundary/components/galenos-academic-app.js';
+      import DefaultResponse from '/js/entity/DefaultResponse.js';
+      import DefaultError from '/js/entity/DefaultError.js';
+      const id = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+      const assert = (ok, message) => { if (!ok) throw new Error(message); };
+      const until = async (fn) => {
+        for (let n = 0; n < 150; n++) {
+          if (fn()) return;
+          await new Promise((resolve) => setTimeout(resolve, 20));
+        }
+        throw new Error('No llegó el estado esperado');
+      };
+      const response = (datos) => new DefaultResponse({ datos, status: 200, totalDatos: Array.isArray(datos) ? datos.length : null });
+      const session = { token: 'sintetico', contexto: { tipo: 'EMPLEADO', idPersona: id(1), personaNombre: 'Empleado sintético',
+        zonaHoraria: 'America/El_Salvador', asignaciones: [{ idPersonaRol: id(2), idRol: id(3), rolNombre: 'Rol sintético', idClinica: id(4), clinicaNombre: 'Clínica sintética' }] } };
+      const row = { idConsulta: id(5), paciente: 'Paciente sintético', clinica: 'Clínica sintética', fechaInicio: '2026-01-01T12:00:00Z', procedimientos: [] };
+      const detail = { idConsulta: id(5), idConsultaProcedimientoPaso: id(6), paciente: row.paciente, clinica: row.clinica, rol: 'Rol sintético',
+        procedimiento: 'Procedimiento sintético', idPasoActual: id(7), pasoActual: 'Paso sintético', valorActual: 'Nota previa', pasoFinal: false,
+        historial: [], examenes: [{ idExamen: id(8), nombre: 'Examen permitido sintético' }],
+        siguientes: [{ idPaso: id(9), nombre: 'Rama sintética', tipoSecuencia: 'SI' }], puedeRetroceder: false,
+        anteriores: [], ordenesActuales: [{ idOrdenExamen: id(20), examen: 'Examen registrado sintético',
+          fechaCreacion: '2026-01-01T12:00:00Z', indicaciones: 'Indicación previa sintética',
+          resultados: [{ idExamenResultado: id(21), fechaCreacion: '2026-01-01T12:30:00Z', resultado: 'Resultado previo sintético', interpretacion: 'Interpretación sintética' }] }],
+        empleado: 'Empleado sintético', fechaConsulta: row.fechaInicio, estadoPasoActual: 'EN_CURSO' };
+      const calls = [];
+      let detailReads = 0;
+      const app = document.createElement('galenos-academic-app');
+      document.body.append(app);
+      app.sessions = { employee: () => session, assignment: () => id(2), selectAssignment: () => {} };
+      app.api = {
+        findDocumentTypes: async () => response([]),
+        findEmployeeAppointments: async () => response([row]),
+        getCare: async () => { detailReads++; return response(structuredClone(detail)); },
+        register: async () => { throw new Error('Configura la respuesta de escritura sintética'); },
+      };
+      const submit = (action) => app.saveCare({ currentTarget: app.q('[data-care-form]'),
+        submitter: app.q(`[name=accion][value="${action}"]`) });
+      try {
+        await app.refreshSessions();
+        await until(() => app.control.queue.length === 1);
+        await app.openCare(row.idConsulta);
+        assert(app.q('textarea').value === 'Nota previa', 'No muestra el valor registrado');
+        assert(app.q('[data-care-content]').textContent.includes('Empleado sintético'), 'Falta contexto de empleado');
+        assert(app.q('[data-care-content]').textContent.includes('Resultado previo sintético'), 'No muestra órdenes/resultados existentes');
+        assert(!app.q('[value=RETROCEDER]') && !app.q('[value=FINALIZAR]'), 'Ofrece acciones no permitidas');
+        app.q('textarea').value = '  ';
+        await submit('GUARDAR_PARCIAL');
+        assert(app.q('[data-save-status]').textContent.includes('Registra la atención'), 'No valida nota vacía');
+        let finish;
+        app.api.register = (data, options) => {
+          calls.push({ data, options });
+          return new Promise((resolve) => { finish = resolve; });
+        };
+        app.q('textarea').value = 'Nota sintética actualizada';
+        app.q('[name=examenes]').checked = true;
+        const first = submit('GUARDAR_PARCIAL');
+        await submit('GUARDAR_PARCIAL');
+        assert(calls.length === 1, 'Dos envíos crearon dos escrituras');
+        assert(app.q('[data-back]').disabled && app.q('textarea').disabled, 'Permite cambios durante el guardado');
+        assert(calls[0].data.examenes[0] === id(8), 'No envió el examen seleccionado');
+        assert(calls[0].options.headers['X-Persona-Rol'] === id(2), 'Perdió la asignación');
+        detail.valorActual = calls[0].data.valor;
+        finish(response({ accion: 'GUARDAR_PARCIAL', finalizada: false }));
+        await first;
+        assert(detailReads === 2 && app.q('textarea').value === detail.valorActual, 'No actualizó desde el servicio');
+        assert(app.q('[data-care-notice]').textContent.includes('guardada'), 'Falta confirmación');
+        await submit('AVANZAR');
+        assert(calls.length === 1, 'Avanzó sin escoger una rama');
+        app.q('[name=idPasoSiguiente]').value = id(9);
+        app.api.register = async (data, options) => {
+          calls.push({ data, options }); return response({ accion: 'AVANZAR', finalizada: false });
+        };
+        await submit('AVANZAR');
+        assert(!app.q('[data-panel=dashboard]').hidden, 'No volvió al dashboard tras la transición');
+        assert(calls.at(-1).data.idPasoSiguiente === id(9), 'Avanzó a una rama distinta');
+        await app.openCare(row.idConsulta);
+        app.q('textarea').value = 'Borrador que debe conservarse';
+        app.api.register = async () => { throw new DefaultError({ type: 'http', status: 409, message: 'SQL privado' }); };
+        await submit('GUARDAR_PARCIAL');
+        assert(app.q('textarea').value === 'Borrador que debe conservarse', 'Conflicto perdió el borrador');
+        assert(!app.q('[data-save-status]').textContent.includes('SQL'), 'Expone detalles internos');
+        assert(!app.q('[data-retry-care]').hidden, 'No ofrece actualizar el paso');
+        assert(app.q('[value=GUARDAR_PARCIAL]').disabled, 'Permite reenviar un paso obsoleto');
+        await app.loadCare();
+        assert(!app.q('[value=GUARDAR_PARCIAL]').disabled, 'No recuperó tras actualizar');
+        app.api.register = async () => { throw new DefaultError({ type: 'connection', message: 'red' }); };
+        app.q('textarea').value = 'Borrador sin conexión';
+        await submit('GUARDAR_PARCIAL');
+        assert(app.q('textarea').value === 'Borrador sin conexión', 'Red perdió el borrador');
+        assert(app.q('[data-save-status]').textContent.includes('conexión'), 'No identifica la desconexión');
+        assert(!app.q('[data-care-notice]').textContent, 'Una confirmación anterior aparenta éxito del intento fallido');
+        detail.puedeRetroceder = true;
+        detail.anteriores = [{ idConsultaProcedimientoPaso: id(30), nombre: 'Predecesor A sintético' },
+          { idConsultaProcedimientoPaso: id(31), nombre: 'Predecesor B sintético' }];
+        detail.pasoFinal = true;
+        detail.siguientes = [];
+        await app.loadCare();
+        assert(app.q('[value=FINALIZAR]') && !app.q('[value=AVANZAR]'), 'No respeta el último paso');
+        const beforeBack = calls.length;
+        await submit('RETROCEDER');
+        assert(calls.length === beforeBack, 'Retrocedió sin elegir un predecesor');
+        app.q('[name=idConsultaProcedimientoPasoAnterior]').value = id(31);
+        app.api.register = async (data) => { calls.push({ data }); return response({ accion: 'RETROCEDER', finalizada: false }); };
+        await submit('RETROCEDER');
+        assert(calls.at(-1).data.idConsultaProcedimientoPasoAnterior === id(31), 'Cambió el predecesor elegido');
+        await app.openCare(row.idConsulta);
+        let late;
+        app.api.register = () => new Promise((resolve) => { late = resolve; });
+        const pending = submit('GUARDAR_PARCIAL');
+        app.clearEmployee();
+        late(response({ accion: 'GUARDAR_PARCIAL', finalizada: false }));
+        await pending;
+        assert(!app.q('[data-care-form]'), 'Respuesta tardía restauró datos del empleado anterior');
+        assert(!app.q('[data-care-notice]').textContent, 'Respuesta tardía mostró éxito ajeno');
+        // Volver a abrir explícitamente el fixture permite inspección visual; nunca consulta PostgreSQL.
+        await app.refreshSessions();
+        await until(() => app.control.queue.length === 1);
+        await app.openCare(row.idConsulta);
+        document.querySelector('#resultado').textContent = 'PASS: HU4 sintético — formulario, exámenes, guardado único, avance, conflictos, desconexión y limpieza de contexto';
+      } catch (error) {
+        document.querySelector('#resultado').textContent = 'FAIL: ' + error.message;
+        console.error(error);
+      }
+    </script>
+  </body>
+</html>

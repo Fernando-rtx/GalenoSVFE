@@ -157,18 +157,19 @@ const historyBaseSchema = recordSchema({
   estado: stringOrNull,
 });
 // Extensión compatible: backend anterior sin órdenes y backend integrado con historial completo.
+const examOrderSchema = recordSchema({
+  idOrdenExamen: isUuid, examen: stringOrNull, fechaCreacion: stringOrNull,
+  indicaciones: stringOrNull,
+  resultados: arrayOf(recordSchema({ idExamenResultado: isUuid, fechaCreacion: stringOrNull,
+    resultado: stringOrNull, interpretacion: stringOrNull })),
+});
 const historySchema = (value) => {
   if (!object(value)) return false;
   const { rol, ordenes, ...base } = value;
   return historyBaseSchema(base) && (rol === undefined || stringOrNull(rol))
-    && (ordenes === undefined || arrayOf(recordSchema({
-      idOrdenExamen: isUuid, examen: stringOrNull, fechaCreacion: stringOrNull,
-      indicaciones: stringOrNull,
-      resultados: arrayOf(recordSchema({ idExamenResultado: isUuid, fechaCreacion: stringOrNull,
-        resultado: stringOrNull, interpretacion: stringOrNull })),
-    }))(ordenes));
+    && (ordenes === undefined || arrayOf(examOrderSchema)(ordenes));
 };
-const appointmentSchema = recordSchema({
+const appointmentBaseSchema = recordSchema({
   idConsulta: isUuid,
   fechaInicio: stringOrNull,
   fechaFin: stringOrNull,
@@ -179,7 +180,21 @@ const appointmentSchema = recordSchema({
   pasoActual: stringOrNull,
   historial: arrayOf(historySchema),
 });
-const careSchema = recordSchema({
+const procedureHistorySchema = recordSchema({
+  idConsultaProcedimiento: isUuid, idProcedimiento: uuidOrNull, nombre: stringOrNull,
+  pasos: arrayOf(historySchema),
+  secuencias: arrayOf(recordSchema({ idPasoOrigen: isUuid, idPasoDestino: uuidOrNull, tipoSecuencia: stringOrNull })),
+});
+const appointmentSchema = (value) => {
+  if (!object(value)) return false;
+  const { idConsultaProcedimientoActual, idConsultaProcedimientoPasoActual, estadoPasoActual, procedimientos, ...base } = value;
+  return appointmentBaseSchema(base)
+    && (idConsultaProcedimientoActual === undefined || uuidOrNull(idConsultaProcedimientoActual))
+    && (idConsultaProcedimientoPasoActual === undefined || uuidOrNull(idConsultaProcedimientoPasoActual))
+    && (estadoPasoActual === undefined || stringOrNull(estadoPasoActual))
+    && (procedimientos === undefined || arrayOf(procedureHistorySchema)(procedimientos));
+};
+const careBaseSchema = recordSchema({
   idConsulta: isUuid,
   idConsultaProcedimientoPaso: isUuid,
   paciente: stringOrNull,
@@ -195,6 +210,18 @@ const careSchema = recordSchema({
   siguientes: arrayOf(recordSchema({ idPaso: isUuid, nombre: stringOrNull, tipoSecuencia: stringOrNull })),
   puedeRetroceder: (v) => typeof v === 'boolean',
 });
+const careSchema = (value) => {
+  if (!object(value)) return false;
+  const { fechaConsulta, empleado, idPersonaRol, idConsultaProcedimiento, estadoPasoActual, ordenesActuales, anteriores, ...base } = value;
+  return careBaseSchema(base)
+    && (fechaConsulta === undefined || stringOrNull(fechaConsulta))
+    && (empleado === undefined || stringOrNull(empleado))
+    && (idPersonaRol === undefined || isUuid(idPersonaRol))
+    && (idConsultaProcedimiento === undefined || isUuid(idConsultaProcedimiento))
+    && (estadoPasoActual === undefined || stringOrNull(estadoPasoActual))
+    && (ordenesActuales === undefined || arrayOf(examOrderSchema)(ordenesActuales))
+    && (anteriores === undefined || arrayOf(recordSchema({ idConsultaProcedimientoPaso: isUuid, idPaso: isUuid, nombre: stringOrNull }))(anteriores));
+};
 const careResultSchema = recordSchema({
   idConsulta: isUuid,
   accion: nonEmptyText,
@@ -254,6 +281,7 @@ routes.atencion = {
         && isUuid(value.idClinica) && isUuid(value.idRol) && isUuid(value.idConsultaProcedimientoPaso)
         && ['GUARDAR_PARCIAL', 'AVANZAR', 'RETROCEDER', 'FINALIZAR'].includes(value.accion)
         && typeof value.valor === 'string' && (value.idPasoSiguiente == null || isUuid(value.idPasoSiguiente))
+        && (value.idConsultaProcedimientoPasoAnterior == null || isUuid(value.idConsultaProcedimientoPasoAnterior))
         && Array.isArray(value.examenes) && value.examenes.every(isUuid), validateResponse: careResultSchema },
   },
 };

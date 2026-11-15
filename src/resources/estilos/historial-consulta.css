@@ -1,0 +1,51 @@
+:host {
+  display: block;
+  color: inherit;
+  font: inherit;
+  overflow-wrap: anywhere;
+}
+details {
+  margin: 0.6rem 0;
+}
+summary {
+  cursor: pointer;
+  font-weight: 650;
+  padding: 0.35rem 0;
+}
+ul {
+  padding-left: 1rem;
+  list-style: none;
+  border-left: 2px solid var(--gs-border, #bccbd8);
+}
+li {
+  margin: 0.75rem 0;
+  padding-left: 0.4rem;
+}
+h4,
+h5 {
+  margin: 0.5rem 0;
+  font-size: 1em;
+}
+p {
+  line-height: 1.6;
+  margin: 0.5rem 0;
+}
+article,
+section {
+  border: 1px solid var(--gs-border, #bccbd8);
+  border-radius: 0.4rem;
+  padding: 0.6rem;
+  margin: 0.5rem 0;
+}
+.registered {
+  white-space: pre-wrap;
+}
+:focus-visible {
+  outline: 3px solid var(--gs-accent, #126b9b);
+  outline-offset: 3px;
+}
+@media (max-width: 480px) {
+  ul {
+    padding-left: 0.6rem;
+  }
+}

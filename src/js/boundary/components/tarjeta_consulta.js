@@ -1,4 +1,5 @@
 import './tarjeta_simple.js';
+import './historial-consulta.js';
 import { formatUtcDate } from '../modelos/format-utc-date.js';
 
 const stylesheetUrl = new URL('../../../resources/estilos/tarjeta_consulta.css', import.meta.url);
@@ -66,7 +67,11 @@ export default class TarjetaConsulta extends HTMLElement {
       if (typeof idConsulta !== 'string' || !idConsulta.trim()) return;
       button.dispatchEvent(
         new CustomEvent(
-          this._consulta?.portalPaciente ? 'descargar-ticket' : 'consulta-seleccionada',
+          this._consulta?.portalPaciente
+            ? 'descargar-ticket'
+            : this._consulta?.portalEmpleado
+              ? 'consulta-atender'
+              : 'consulta-seleccionada',
           {
             detail: { idConsulta },
             bubbles: true,
@@ -79,25 +84,44 @@ export default class TarjetaConsulta extends HTMLElement {
     const procedures = document.createElement('ul');
     procedures.slot = 'contenido';
     procedures.hidden = true;
-    card.append(title, content, procedures, button);
+    const employeeContent = document.createElement('div');
+    employeeContent.slot = 'contenido';
+    employeeContent.hidden = true;
+    const staffValues = {};
+    for (const field of ['procedimiento', 'pasoActual', 'estadoPasoActual']) {
+      const paragraph = document.createElement('p');
+      staffValues[field] = paragraph;
+      employeeContent.append(paragraph);
+    }
+    const historyDetails = document.createElement('details');
+    const summary = document.createElement('summary');
+    summary.textContent = 'Historial de pasos anteriores';
+    const history = document.createElement('historial-consulta');
+    historyDetails.append(summary, history);
+    employeeContent.append(historyDetails);
+    card.append(title, content, procedures, employeeContent, button);
     this.shadowRoot.append(stylesheet, card);
-    this._nodes = { title, values, button, procedures };
+    this._nodes = { title, values, button, procedures, employeeContent, staffValues, history };
   }
 
   _render() {
     if (!this._nodes) return;
     const consulta = this._consulta || {};
-    const { title, values, button, procedures } = this._nodes;
+    const { title, values, button, procedures, employeeContent, staffValues, history } =
+      this._nodes;
     const patient = consulta.portalPaciente === true;
+    const employee = consulta.portalEmpleado === true;
     title.textContent = displayText(
-      patient ? consulta.clinicaNombre : consulta.personaNombre,
+      patient ? consulta.clinicaNombre : employee ? consulta.paciente : consulta.personaNombre,
       patient ? 'Clínica' : 'Persona sin nombre',
     );
     values.rolNombre.textContent = displayText(consulta.rolNombre);
-    values.clinicaNombre.textContent = displayText(consulta.clinicaNombre);
+    values.clinicaNombre.textContent = displayText(
+      employee ? consulta.clinica : consulta.clinicaNombre,
+    );
     values.fechaInicio.textContent = formatUtcDate(consulta.fechaInicio);
     values.fechaFin.textContent = formatUtcDate(consulta.fechaFin);
-    if (patient) {
+    if (patient || employee) {
       const formatter = new Intl.DateTimeFormat('es-SV', {
         dateStyle: 'medium',
         timeStyle: 'short',
@@ -108,6 +132,16 @@ export default class TarjetaConsulta extends HTMLElement {
           ? `${formatter.format(new Date(consulta[field]))} · ${consulta.zonaHoraria}`
           : 'Sin especificar';
       }
+    }
+    employeeContent.hidden = !employee;
+    if (employee) {
+      staffValues.procedimiento.textContent = `Procedimiento: ${displayText(consulta.procedimiento)}`;
+      staffValues.pasoActual.textContent = `Paso actual: ${displayText(consulta.pasoActual)}`;
+      staffValues.estadoPasoActual.textContent = `Estado del paso: ${displayText(consulta.estadoPasoActual, 'No informado')}`;
+      history.zonaHoraria = consulta.zonaHoraria;
+      history.procedimientos = consulta.procedimientos;
+    } else {
+      history.procedimientos = null;
     }
     procedures.hidden = !patient;
     procedures.replaceChildren();
@@ -121,11 +155,15 @@ export default class TarjetaConsulta extends HTMLElement {
         procedures.append(li);
       }
     }
-    button.textContent = patient ? 'Descargar ticket PDF' : 'Ver detalle';
+    button.textContent = patient
+      ? 'Descargar ticket PDF'
+      : employee
+        ? 'Atender consulta'
+        : 'Ver detalle';
     button.disabled = typeof consulta.idConsulta !== 'string' || !consulta.idConsulta.trim();
     button.setAttribute(
       'aria-label',
-      `${patient ? 'Descargar ticket de' : 'Ver detalle de'} ${title.textContent}`,
+      `${patient ? 'Descargar ticket de' : employee ? 'Atender consulta de' : 'Ver detalle de'} ${title.textContent}`,
     );
   }
 }

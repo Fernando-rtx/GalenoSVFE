@@ -18,11 +18,11 @@ export function errorMessage(error) {
     return 'Revisa los filtros, la clínica y la consulta seleccionada.';
   if (error.type === 'processing') return 'La respuesta del servidor no tiene el formato esperado.';
   if (error.status === 404) return 'El registro no está disponible en la clínica seleccionada.';
-  if (error.status === 401) return 'El servidor rechazó el acceso a este recurso.';
+  if (error.status === 401) return 'La sesión es inválida o ha expirado. Identifícate nuevamente.';
   if (error.status === 400) return 'Revisa los datos enviados.';
   if (error.status === 409)
     return 'Los cambios entran en conflicto con el estado actual del registro.';
-  if (error.status === 403) return 'El servidor no permite esta solicitud.';
+  if (error.status === 403) return 'El servidor no permite el acceso a este recurso.';
   if (error.status === 422)
     return 'El servidor rechazó los parámetros. Revisa los filtros y el tamaño de página.';
   return 'No se pudieron cargar los datos. Intenta nuevamente.';

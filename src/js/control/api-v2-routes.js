@@ -146,7 +146,7 @@ const identitySchema = recordSchema({
   clinicas: arrayOf(clinicSchema),
   roles: arrayOf(employeeRoleSchema),
 });
-const historySchema = recordSchema({
+const historyBaseSchema = recordSchema({
   idPaso: uuidOrNull,
   idConsultaProcedimientoPaso: isUuid,
   nombre: stringOrNull,
@@ -156,6 +156,18 @@ const historySchema = recordSchema({
   valor: stringOrNull,
   estado: stringOrNull,
 });
+// Extensión compatible: backend anterior sin órdenes y backend integrado con historial completo.
+const historySchema = (value) => {
+  if (!object(value)) return false;
+  const { rol, ordenes, ...base } = value;
+  return historyBaseSchema(base) && (rol === undefined || stringOrNull(rol))
+    && (ordenes === undefined || arrayOf(recordSchema({
+      idOrdenExamen: isUuid, examen: stringOrNull, fechaCreacion: stringOrNull,
+      indicaciones: stringOrNull,
+      resultados: arrayOf(recordSchema({ idExamenResultado: isUuid, fechaCreacion: stringOrNull,
+        resultado: stringOrNull, interpretacion: stringOrNull })),
+    }))(ordenes));
+};
 const appointmentSchema = recordSchema({
   idConsulta: isUuid,
   fechaInicio: stringOrNull,
@@ -230,7 +242,7 @@ routes.empleadoConsultas = {
   status: 'verified', source, credentials: 'omit', operations: {
     findRange: { method: 'GET', path: 'v2/empleado/consultas', response: 'json', successStatuses: [200],
       pagination: { firstParam: 'first', maxParam: 'max', totalHeader: 'Total-registros', requireTotal: true },
-      validateRange: restRange, validateResponse: arrayOf(appointmentSchema), query: staffQuery, validateQuery: orderedDates },
+      validateRange: restRange, validateResponse: arrayOf(appointmentSchema), query: { ...staffQuery, idTipoDocumento: { validate: isUuid }, numero: { validate: nonEmptyText } }, validateQuery: (query) => orderedDates(query) && Boolean(query.idTipoDocumento) === Boolean(query.numero) },
   },
 };
 routes.atencion = {

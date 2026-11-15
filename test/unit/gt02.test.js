@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { rejection } from '../helpers/http-fixture.js';
 import { IdentidadAcademicaService } from '../../src/js/control/IdentidadAcademicaService.js';
 import {
   IdentificacionControl,
@@ -42,15 +43,13 @@ const session = () => ({
   contexto: structuredClone(contexto),
 });
 async function reject(work, type, status) {
-  try {
-    await work();
-    throw new Error('Se esperaba error');
-  } catch (e) {
-    expect(e.type).to.equal(type);
-    if (status) expect(e.status).to.equal(status);
-  }
+  const error = await rejection(work());
+  expect(error.type).to.equal(type);
+  if (status) expect(error.status).to.equal(status);
+  return error;
 }
 describe('GT02: controles con fixtures sintéticos', () => {
+  afterEach(() => conectarEmpleado(null));
   it('exige tipo y documento no vacío', () => {
     for (const [id, valor] of [
       ['', 'ABC'],
@@ -108,11 +107,8 @@ describe('GT02: controles con fixtures sintéticos', () => {
       'empleado',
     );
     c.tipos = [tipo];
-    try {
-      await c.entrar(uuid(1), 'EMP', signal);
-    } catch (e) {
-      expect(e.name).to.equal('AbortError');
-    }
+    const error = await rejection(c.entrar(uuid(1), 'EMP', signal));
+    expect(error.name).to.equal('AbortError');
     expect(c.session).to.equal(null);
   });
   it('impide clínica ajena antes de Fetch y admite vacío y múltiples', async () => {
@@ -194,12 +190,8 @@ describe('GT02: transporte Fetch simulado', () => {
         baseUrl: 'http://localhost/',
         fetchImpl: async () => new Response('SQL java.internal.trace', { status }),
       });
-      await reject(() => http.identificar('empleado', {}), 'http', status);
-      try {
-        await http.identificar('empleado', {});
-      } catch (e) {
-        expect(e.message).not.to.include('SQL');
-      }
+      const error = await reject(() => http.identificar('empleado', {}), 'http', status);
+      expect(error.message).not.to.include('SQL');
     });
   it('pagína catálogo y oculta tipos inactivos', async () => {
     let count = 0;
@@ -241,10 +233,7 @@ describe('GT02: transporte Fetch simulado', () => {
         throw new DOMException('cancelado', 'AbortError');
       },
     });
-    try {
-      await http.tipos();
-    } catch (e) {
-      expect(e.name).to.equal('AbortError');
-    }
+    const error = await rejection(http.tipos());
+    expect(error.name).to.equal('AbortError');
   });
 });

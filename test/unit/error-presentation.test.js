@@ -3,6 +3,13 @@ import DefaultError from '../../src/js/entity/DefaultError.js';
 import { gestionError } from '../../src/js/boundary/modelos/dashboard-presentation.js';
 
 describe('Mensajes seguros de errores', () => {
+  it('distingue sesión expirada, acceso denegado y servidor desconectado', () => {
+    expect(gestionError({ status: 401 })).to.include('sesión');
+    expect(gestionError({ status: 403 })).to.include('no permite');
+    expect(gestionError({ type: 'connection' })).to.include('conectar');
+    for (const error of [{ status: 401 }, { status: 403 }, { type: 'connection' }])
+      expect(gestionError(error)).not.to.include('No hay consultas');
+  });
   it('presenta estados HTTP sin divulgar el cuerpo del servidor', () => {
     for (const status of [400, 401, 403, 404, 409, 422, 500]) {
       const error = new DefaultError({

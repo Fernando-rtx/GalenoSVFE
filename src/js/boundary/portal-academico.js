@@ -67,8 +67,13 @@ export function mountPortal(view, config) {
         view.status('Identificación completada.');
       }),
     'portal-asignacion': () => {
-      identidad.asignacionActiva = view.value('asignacion');
+      identidad.seleccionarAsignacion(view.value('asignacion'));
     },
+    'portal-continuar': () => run(async (signal) => {
+      identidad.seleccionarAsignacion(view.value('asignacion'));
+      view.context(await identidad.actualizar(signal));
+      location.hash = '#academico';
+    }),
     'portal-tipo': () =>
       view.hint(
         identidad.tipos.find((t) => t.idTipoDocumento === view.value('tipo'))?.indicaciones,

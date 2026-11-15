@@ -182,11 +182,9 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     const seen = [];
     const unsubscribe = control.subscribe((state) => seen.push(state));
     control.selectClinica(CLINICAS[1].idClinica);
-    expect(
-      seen
-        .filter((state) => state.idClinica === CLINICAS[1].idClinica)
-        .every((state) => state.consultas.length === 0),
-    ).to.equal(true);
+    const newClinicStates = seen.filter((state) => state.idClinica === CLINICAS[1].idClinica);
+    expect(newClinicStates).not.to.be.empty;
+    for (const state of newClinicStates) expect(state.consultas).to.deep.equal([]);
     unsubscribe();
   });
 

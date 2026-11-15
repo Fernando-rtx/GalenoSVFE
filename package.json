@@ -13,7 +13,10 @@
     "test:unit": "mocha",
     "test:transport": "mocha --no-config --timeout 5000 'test/transport/**/*.test.js'",
     "test:integration": "node scripts/run-integration.js",
-    "check": "node scripts/check-syntax.js"
+    "check": "node scripts/check-syntax.js",
+    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include='src/**/*.js' --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage/lcov.info scripts/test-coverage.js",
+    "pretest:coverage": "node -e \"require('node:fs').mkdirSync('coverage', { recursive: true })\"",
+    "posttest:coverage": "node scripts/coverage-scope.js"
   },
   "devDependencies": {
     "browser-sync": "3.0.4",

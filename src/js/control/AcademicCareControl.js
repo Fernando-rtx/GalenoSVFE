@@ -74,6 +74,42 @@ export default class AcademicCareControl {
     this.selected = row;
     return row;
   }
+  prepararAtencion(session, assignmentId, care, values) {
+    const { query, options } = this.prepararBandeja(session, assignmentId, {});
+    if (!care || care.idConsulta !== this.selected?.idConsulta)
+      throw DefaultError.validation('Abre una consulta de la bandeja antes de registrar atención.');
+    const valor = typeof values.valor === 'string' ? values.valor.trim() : '';
+    if (!valor || valor.length > 10000)
+      throw DefaultError.validation('Registra la atención: entre 1 y 10000 caracteres.');
+    const accion = values.accion;
+    if (!['GUARDAR_PARCIAL', 'AVANZAR', 'RETROCEDER', 'FINALIZAR'].includes(accion))
+      throw DefaultError.validation('Selecciona una acción disponible.');
+    const examenes = values.examenes || [];
+    if (new Set(examenes).size !== examenes.length
+      || examenes.some((id) => !care.examenes.some((exam) => exam.idExamen === id)))
+      throw DefaultError.validation('Selecciona únicamente los exámenes permitidos para este paso.');
+    const data = { ...query, idConsulta: care.idConsulta,
+      idConsultaProcedimientoPaso: care.idConsultaProcedimientoPaso, accion, valor, examenes };
+    if (accion === 'AVANZAR') {
+      if (!care.siguientes.some((step) => step.idPaso === values.idPasoSiguiente))
+        throw DefaultError.validation('Selecciona un siguiente paso permitido.');
+      data.idPasoSiguiente = values.idPasoSiguiente;
+    }
+    if (accion === 'FINALIZAR' && !care.pasoFinal)
+      throw DefaultError.validation('Este paso no permite finalizar el procedimiento.');
+    if (accion === 'RETROCEDER') {
+      if (!care.puedeRetroceder) throw DefaultError.validation('No hay un paso anterior permitido.');
+      const previous = care.anteriores;
+      if (previous) {
+        const selected = values.idConsultaProcedimientoPasoAnterior
+          ? previous.find((s) => s.idConsultaProcedimientoPaso === values.idConsultaProcedimientoPasoAnterior)
+          : (previous.length === 1 ? previous[0] : null);
+        if (!selected) throw DefaultError.validation('Selecciona el paso anterior al que deseas regresar.');
+        data.idConsultaProcedimientoPasoAnterior = selected.idConsultaProcedimientoPaso;
+      }
+    }
+    return { data, options };
+  }
   async read(scope, work) {
     this.requests.get(scope)?.abort();
     const controller = new AbortController();

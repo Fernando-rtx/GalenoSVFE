@@ -48,11 +48,15 @@ class GalenosAcademicApp extends HTMLElement {
       nav,.toolbar,.grid,.actions{display:flex;gap:.75rem;flex-wrap:wrap;align-items:end}nav{border-bottom:1px solid var(--gs-border);padding:.8rem 0;margin-bottom:1.25rem}button,.tab{font:inherit;border:0;border-radius:.55rem;padding:.75rem 1rem;background:var(--gs-raised);color:var(--gs-text);cursor:pointer;font-weight:650}.active,.primary{background:var(--gs-blue);color:var(--gs-on-blue)}button:disabled{opacity:.55;cursor:wait}
       section{background:var(--gs-surface);border:1px solid var(--gs-border);border-radius:1rem;padding:clamp(1rem,2.5vw,1.5rem);margin:1rem 0;box-shadow:0 8px 24px var(--gs-shadow-dialog)}label{display:grid;gap:.35rem;font-weight:600;min-width:min(100%,13rem);flex:1}input,select,textarea{font:inherit;padding:.7rem;border:1px solid var(--gs-border);border-radius:.45rem;background:var(--gs-surface);color:var(--gs-text)}a{color:var(--gs-accent)}input,select,textarea{background:var(--gs-input)}.card{background:var(--gs-raised)}textarea{min-height:8rem;width:100%;resize:vertical}.status{min-height:1.5rem;color:var(--gs-muted)}.error{color:var(--gs-error)}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:.8rem}.card{border:1px solid var(--gs-border);border-radius:.75rem;padding:1rem}.card h3{margin:.1rem 0 .5rem}.meta{color:var(--gs-muted);font-size:.94rem;line-height:1.6}details{margin-top:.6rem}summary{cursor:pointer;font-weight:650}ol{padding-left:1.3rem}.step{padding:.45rem 0;border-bottom:1px solid var(--gs-soft-border)}.sr{position:absolute;clip:rect(0,0,0,0)}[hidden]{display:none!important}:focus-visible{outline:3px solid var(--gs-accent);outline-offset:2px}
       @media(max-width:560px){main{padding:.8rem}.toolbar>*{width:100%}button{min-height:44px}.actions button{flex:1}}
+      [data-care-form] fieldset{min-width:0;margin:1rem 0;padding:1rem;border:1px solid var(--gs-border);border-radius:.55rem}
+      [data-care-form] fieldset label{display:flex;align-items:center;gap:.6rem;min-width:0;margin:.6rem 0;font-weight:400}
+      [data-care-form] input[type=checkbox]{width:1.15rem;height:1.15rem;flex:0 0 auto}
+      @media(max-width:560px){[data-care-form] .actions>*{width:100%;flex-basis:100%}}
     </style><main><p class="eyebrow">GalenosSV · atención académica</p><h1>Dashboard</h1><p class="lead">Consulta tus citas y atiende los casos asociados a la sesión académica que hayas iniciado.</p>
       <nav aria-label="Historias de usuario"><button class="tab active" data-tab="dashboard">Bandeja de consultas</button><button class="tab" data-tab="paciente">Mis citas</button></nav><p class="status" data-network role="status" aria-live="polite"></p>
     <section data-panel="paciente" hidden><h2>Mis citas</h2><p>La identidad se comparte de forma segura con el portal de paciente.</p><p class="status" data-patient-status role="status" aria-live="polite"></p><a href="#pacientes">Abrir portal de paciente</a><form data-patient hidden></form><button data-retry-types hidden>Reintentar carga</button><div data-clinic-area hidden><label>Clínica<select data-patient-clinic></select></label><form data-patient-dates class="toolbar"><label>Desde<input type="date" name="fechaDesde"></label><label>Hasta<input type="date" name="fechaHasta"></label><button class="primary">Consultar citas</button></form><div class="cards" data-patient-cards></div></div></section>
     <section data-panel="dashboard"><h2>Bandeja de consultas</h2><p data-employee-intro>Inicia sesión como empleado para ver las consultas asignadas a tu clínica y rol.</p><p class="status" data-employee-status role="status" aria-live="polite"></p><a data-employee-login-link href="#empleados">Abrir portal de empleado</a><form data-employee hidden></form><div data-employee-context hidden><p data-person-label></p><p data-clinic-date>Fecha clínica: ${today()}</p><div class="actions"><a href="#empleados">Cambiar asignación</a><button type="button" data-logout>Cerrar sesión</button></div><div class="grid"><label>Clínica<select data-staff-clinic></select></label><label>Asignación<select data-staff-role></select></label></div><div class="actions"><button type="button" data-period="today">Hoy</button><button type="button" data-period="past">Fechas pasadas</button><button type="button" data-period="future">Fechas futuras</button></div><form data-staff-dates class="toolbar"><label>Desde<input type="date" name="fechaDesde" value="${today()}"></label><label>Hasta<input type="date" name="fechaHasta" value="${today()}"></label><label>Tipo de documento del paciente<select name="idTipoDocumento"><option value="">Sin filtro de paciente</option></select></label><label>Número de documento<input name="numero" autocomplete="off" disabled></label><button class="primary">Buscar consultas</button><button type="button" data-clear-filters>Restablecer filtros</button></form><p class="status" data-queue-status role="status" aria-live="polite"></p><button type="button" data-retry-queue hidden>Reintentar conexión</button><div class="cards" data-queue aria-busy="false"></div><div class="actions"><button type="button" data-page-prev disabled>Anterior</button><p data-page-summary role="status"></p><button type="button" data-page-next disabled>Siguiente</button></div></div></section>
-    <section data-panel="atencion" hidden><button data-back>← Regresar a la bandeja</button><p class="status" data-care-status role="status" aria-live="polite"></p><div data-care-content></div></section></main>`;
+    <section data-panel="atencion" hidden><button data-back>← Regresar a la bandeja</button><p class="status" data-care-notice role="status" aria-live="polite"></p><p class="status" data-care-status role="status" aria-live="polite"></p><button type="button" data-retry-care hidden>Actualizar paso</button><div data-care-content aria-busy="false"></div></section></main>`;
     this.bind();
   }
   q(s) { return this.shadowRoot.querySelector(s); }
@@ -121,7 +125,13 @@ class GalenosAcademicApp extends HTMLElement {
       this.first += 20;
       this.loadQueue();
     });
-    this.q('[data-back]').addEventListener('click', () => this.show('dashboard'));
+    this.q('[data-back]').addEventListener('click', () => {
+      if (this.saving) return;
+      this.control.cancel(this.q('[data-care-status]'));
+      this.show('dashboard');
+      this.loadQueue();
+    });
+    this.q('[data-retry-care]').addEventListener('click', () => this.loadCare());
     this.q('[data-retry-types]').addEventListener('click', () => this.loadDocumentTypes());
     this.q('[data-logout]').addEventListener('click', async () => {
       if (this.saving) return;
@@ -138,7 +148,7 @@ class GalenosAcademicApp extends HTMLElement {
     });
     this.updateNetwork();
   }
-  show(name) { this.shadowRoot.querySelectorAll('[data-panel]').forEach((p) => { p.hidden = p.dataset.panel !== name; }); this.shadowRoot.querySelectorAll('[data-tab]').forEach((b) => b.classList.toggle('active', b.dataset.tab === name)); }
+  show(name) { this.q('h1').textContent = ({ dashboard: 'Dashboard', atencion: 'Atención activa', paciente: 'Mis citas' })[name] || 'Dashboard'; this.shadowRoot.querySelectorAll('[data-panel]').forEach((p) => { p.hidden = p.dataset.panel !== name; }); this.shadowRoot.querySelectorAll('[data-tab]').forEach((b) => b.classList.toggle('active', b.dataset.tab === name)); }
   async request(fn, status, complete = false) {
     if (!this.api) {
       status.textContent = 'Falta configurar la conexión con el backend.';
@@ -172,6 +182,7 @@ class GalenosAcademicApp extends HTMLElement {
       '[data-care-status]',
       '[data-employee-status]',
       '[data-save-status]',
+      '[data-care-notice]',
     ]) {
       const status = this.q(selector);
       if (status) {
@@ -181,6 +192,7 @@ class GalenosAcademicApp extends HTMLElement {
     }
     this.care = null;
     this.consultation = null;
+    this.q('[data-retry-care]').hidden = true;
     this.first = 0;
     this.q('[data-care-content]').replaceChildren();
     this.q('[data-queue]').replaceChildren();
@@ -331,8 +343,9 @@ class GalenosAcademicApp extends HTMLElement {
         : 'No hay consultas en esta página. Vuelve a la página anterior.';
   }
   history(items = []) { return items.length ? `<ol>${items.map((i) => `<li class="step"><strong>${esc(i.nombre || 'Paso')}</strong> · ${esc(i.estado || '')}<div class="meta">Responsable: ${esc(i.responsable || 'No registrado')} · Rol: ${esc(i.rol || 'No registrado')} · ${time(i.fechaInicio)}${i.fechaFin ? ` – ${time(i.fechaFin)}` : ''}<details><summary>Ver registro</summary><p>${esc(i.valor || 'Sin datos registrados')}</p>${(i.ordenes || []).map((order) => `<article><h4>${esc(order.examen || 'Examen')}</h4><p>${esc(order.indicaciones || '')} · ${time(order.fechaCreacion)}</p>${order.resultados.map((result) => `<p>${time(result.fechaCreacion)}<br>Resultado: ${esc(result.resultado || 'Pendiente')}<br>Interpretación: ${esc(result.interpretacion || 'No registrada')}</p>`).join('') || '<p>Sin resultados registrados.</p>'}</article>`).join('')}</details></div></li>`).join('')}</ol>` : '<p>Aún no hay pasos registrados.</p>'; }
-  context() { const assignment = this.person.roles.find((r) => r.idPersonaRol === this.q('[data-staff-role]').value); return { idPersona: this.person.idPersona, idClinica: this.q('[data-staff-clinic]').value, idRol: assignment?.idRol }; }
+  context() { return this.control.prepararBandeja(this.employeeSession, this.q('[data-staff-role]').value, {}).query; }
   async openCare(id) {
+    if (this.saving) return;
     if (!this.employeeSession) { this.sessions.invalidate?.(); return; }
     try {
       this.control.seleccionarConsulta(id);
@@ -344,11 +357,106 @@ class GalenosAcademicApp extends HTMLElement {
     this.show('atencion');
     await this.loadCare();
   }
-  async loadCare() { this.care = null; this.q('[data-care-content]').replaceChildren(); const assignment = this.person.roles.find((r) => r.idPersonaRol === this.q('[data-staff-role]').value); const options = this.sessionHeaders(this.employeeSession, assignment?.idPersonaRol); const data = await this.request((o) => this.api.getCare(this.consultation, this.context(), { ...o, ...options }), this.q('[data-care-status]')); if (!data) return; this.care = data; this.renderCare(); }
-  renderCare() { const d = this.care; this.q('[data-care-content]').innerHTML = `<h2>Atención de consulta</h2><p class="meta">Paciente: ${esc(d.paciente)} · Clínica: ${esc(d.clinica)} · Rol: ${esc(d.rol)}<br>Procedimiento: ${esc(d.procedimiento)} · Paso actual: ${esc(d.pasoActual)}</p><details open><summary>Historial</summary>${this.history(d.historial)}</details><form data-care-form><label>Registro de atención<textarea name="valor" required minlength="1" maxlength="10000">${esc(d.valorActual || '')}</textarea></label><fieldset><legend>Exámenes permitidos para este paso</legend>${d.examenes.map((e) => `<label><input type="checkbox" name="examenes" value="${esc(e.idExamen)}"> ${esc(e.nombre)}</label>`).join('') || '<p>No hay exámenes configurados.</p>'}</fieldset><div class="actions"><button class="primary" name="accion" value="GUARDAR_PARCIAL">Guardar avance</button>${d.siguientes.length ? `<label>Siguiente paso<select name="idPasoSiguiente">${d.siguientes.map((s) => `<option value="${esc(s.idPaso)}">${esc(s.nombre)}</option>`).join('')}</select></label><button class="primary" name="accion" value="AVANZAR">Guardar y avanzar</button>` : ''}${d.puedeRetroceder ? '<button name="accion" value="RETROCEDER">Retroceder</button>' : ''}${d.pasoFinal ? '<button name="accion" value="FINALIZAR">Finalizar procedimiento</button>' : ''}</div><p class="status" data-save-status role="status"></p></form>`; this.q('[data-care-form]').addEventListener('submit', (e) => { e.preventDefault(); this.saveCare(e); }); }
-  async saveCare(event) { if (this.saving) return; const form = event.currentTarget; const button = event.submitter; const status = this.q('[data-save-status]'); const value = form.elements.valor.value.trim(); if (!value) { status.textContent = 'Registra la atención antes de guardar.'; return; } const data = { ...this.context(), idConsulta: this.consultation, idConsultaProcedimientoPaso: this.care.idConsultaProcedimientoPaso, accion: button.value, valor: value, idPasoSiguiente: form.elements.idPasoSiguiente?.value || null, examenes: [...form.querySelectorAll('[name=examenes]:checked')].map((e) => e.value) };
-    if (!data.idConsultaProcedimientoPaso) { status.textContent = 'No se recibió el identificador del paso actual.'; return; }
-    const assignment = this.person.roles.find((r) => r.idPersonaRol === this.q('[data-staff-role]').value); const options = this.sessionHeaders(this.employeeSession, assignment?.idPersonaRol); this.saving = true; form.querySelectorAll('button').forEach((b) => { b.disabled = true; }); const result = await this.request((o) => this.api.register(data, { ...o, ...options }), status); this.saving = false; form.querySelectorAll('button').forEach((b) => { b.disabled = false; }); if (result) { if (button.value === 'GUARDAR_PARCIAL') { await this.loadCare(); this.q('[data-save-status]').textContent = 'Atención parcial guardada.'; } else { this.show('dashboard'); await this.loadQueue(); this.q('[data-queue-status]').textContent = result.finalizada ? 'Procedimiento finalizado correctamente.' : 'Transición guardada. La consulta ya puede corresponder a otro rol.'; } }
+  async loadCare(keepNotice = false) {
+    if (this.saving || !this.employeeSession || !this.consultation) return false;
+    this.care = null;
+    this.careConflicted = false;
+    this.q('[data-care-content]').replaceChildren();
+    this.q('[data-retry-care]').hidden = true;
+    if (!keepNotice) this.q('[data-care-notice]').textContent = '';
+    const assignment = this.q('[data-staff-role]').value;
+    this.q('[data-care-content]').setAttribute('aria-busy', 'true');
+    const data = await this.request((o) => this.api.getCare(this.consultation, this.context(),
+      { ...o, ...this.sessionHeaders(this.employeeSession, assignment) }), this.q('[data-care-status]'));
+    this.q('[data-care-content]').setAttribute('aria-busy', String(this.control.requests.has(this.q('[data-care-status]'))));
+    if (!data) {
+      this.q('[data-retry-care]').hidden = this.control.requests.has(this.q('[data-care-status]'))
+        || !this.employeeSession || !this.consultation;
+      return false;
+    }
+    this.care = data;
+    this.renderCare();
+    return true;
+  }
+  renderCare() {
+    const d = this.care;
+    this.q('[data-care-content]').innerHTML = `<h2>Atención de consulta</h2>
+      <p class="meta">Paciente: ${esc(d.paciente || 'Nombre no registrado')} · Clínica: ${esc(d.clinica || 'No registrada')}<br>
+      Empleado: ${esc(d.empleado || this.employeeSession.contexto.personaNombre)} · Rol: ${esc(d.rol)}<br>
+      Fecha de consulta: ${time(d.fechaConsulta)}<br>Procedimiento: ${esc(d.procedimiento)} · Paso actual: ${esc(d.pasoActual)}<br>
+      Estado del paso: ${esc(d.estadoPasoActual || 'No informado')}</p>
+      <details><summary>Historial previo</summary>${this.history(d.historial)}</details>
+      <details><summary>Órdenes y resultados de este paso</summary>${this.orders(d.ordenesActuales || [])}</details>
+      <form data-care-form><label>Registro de atención<textarea name="valor" required minlength="1" maxlength="10000">${esc(d.valorActual || '')}</textarea></label>
+      <fieldset><legend>Exámenes permitidos para este paso</legend>${d.examenes.map((e) => `<label><input type="checkbox" name="examenes" value="${esc(e.idExamen)}"> ${esc(e.nombre || 'Examen sin nombre')}</label>`).join('') || '<p>No hay exámenes configurados.</p>'}</fieldset>
+      <div class="actions"><button class="primary" name="accion" value="GUARDAR_PARCIAL">Guardar avance</button>
+      ${d.siguientes.length ? `<label>Siguiente paso<select name="idPasoSiguiente"><option value="">Selecciona un paso</option>${d.siguientes.map((s) => `<option value="${esc(s.idPaso)}">${esc(s.nombre)}${s.tipoSecuencia ? ` · ${esc(s.tipoSecuencia)}` : ''}</option>`).join('')}</select></label><button class="primary" name="accion" value="AVANZAR">Guardar y avanzar</button>` : ''}
+      ${d.puedeRetroceder ? `${d.anteriores?.length > 1 ? `<label>Paso anterior<select name="idConsultaProcedimientoPasoAnterior"><option value="">Selecciona un paso</option>${d.anteriores.map((s) => `<option value="${esc(s.idConsultaProcedimientoPaso)}">${esc(s.nombre)}</option>`).join('')}</select></label>` : ''}<button name="accion" value="RETROCEDER">Retroceder</button>` : ''}
+      ${d.pasoFinal ? '<button name="accion" value="FINALIZAR">Finalizar procedimiento</button>' : ''}</div>
+      <p class="status" data-save-status role="status" aria-live="polite"></p></form>`;
+    this.q('[data-care-form]').addEventListener('submit', (event) => { event.preventDefault(); this.saveCare(event); });
+  }
+  orders(orders) {
+    return orders.map((order) => `<article><h4>${esc(order.examen || 'Examen no identificado')}</h4><p>${esc(order.indicaciones || '')} · ${time(order.fechaCreacion)}</p>${(order.resultados || []).map((result) => `<p>${time(result.fechaCreacion)}<br>Resultado: ${esc(result.resultado || 'Pendiente')}<br>Interpretación: ${esc(result.interpretacion || 'No registrada')}</p>`).join('') || '<p>Sin resultados registrados.</p>'}</article>`).join('') || '<p>Sin órdenes registradas.</p>';
+  }
+  async saveCare(event) {
+    if (this.saving || this.careConflicted) return;
+    const form = event.currentTarget;
+    const care = this.care;
+    const session = this.employeeSession;
+    const assignment = this.q('[data-staff-role]').value;
+    const status = this.q('[data-save-status]');
+    this.q('[data-care-notice]').textContent = '';
+    let data, options;
+    try {
+      ({ data, options } = this.control.prepararAtencion(session, assignment, care, {
+        ...this.form(form), accion: event.submitter?.value || 'GUARDAR_PARCIAL',
+        examenes: [...form.querySelectorAll('[name=examenes]:checked')].map((input) => input.value),
+      }));
+    } catch (error) {
+      status.textContent = error.type === 'validation' ? error.message : gestionError(error);
+      status.className = 'status error';
+      return;
+    }
+    this.saving = true;
+    const controls = [...form.querySelectorAll('button,input,textarea,select'), this.q('[data-back]')];
+    controls.forEach((node) => { node.disabled = true; });
+    form.setAttribute('aria-busy', 'true');
+    status.textContent = 'Guardando atención…';
+    status.className = 'status';
+    let saved;
+    const current = () => this.care === care && this.consultation === care.idConsulta && this.employeeSession?.token === session?.token
+      && this.q('[data-staff-role]').value === assignment && form.isConnected;
+    try {
+      saved = (await this.api.register(data, options)).datos;
+    } catch (error) {
+      if (error.status === 401) this.sessions.invalidate?.();
+      if (!current()) return;
+      status.textContent = gestionError(error);
+      status.className = 'status error';
+      this.careConflicted = error.status === 409 || error.status === 403 || error.status >= 500
+        || ['connection', 'network'].includes(error.type);
+      if (this.careConflicted) {
+        status.textContent += ' No se confirmó el guardado. Actualiza el paso antes de reenviar; el texto permanece en el formulario.';
+        this.q('[data-retry-care]').hidden = false;
+      }
+    } finally {
+      this.saving = false;
+      form.setAttribute('aria-busy', 'false');
+      controls.forEach((node) => { node.disabled = false; });
+      if (this.careConflicted) form.querySelectorAll('button').forEach((node) => { node.disabled = true; });
+    }
+    if (!saved || !current()) return;
+    if (data.accion === 'GUARDAR_PARCIAL') {
+      this.q('[data-care-notice]').textContent = 'Atención guardada correctamente.';
+      await this.loadCare(true);
+    } else {
+      this.show('dashboard');
+      await this.loadQueue();
+      if (this.employeeSession?.token === session?.token)
+        this.q('[data-employee-status]').textContent = saved.finalizada
+          ? 'Procedimiento finalizado correctamente.' : 'Transición guardada. La consulta puede corresponder a otro rol.';
+    }
   }
 }
 if (!customElements.get('galenos-academic-app'))

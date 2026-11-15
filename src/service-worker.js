@@ -1,5 +1,5 @@
 // Solo recursos públicos del shell. Ninguna ruta REST se guarda en Cache Storage.
-const CACHE = 'galenossv-shell-v18';
+const CACHE = 'galenossv-shell-v20';
 const PREFIX = 'galenossv-shell-';
 const ASSETS = new Set([
   '/js/boundary/components/historial-consulta.js',

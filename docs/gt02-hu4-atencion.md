@@ -158,3 +158,15 @@ clinica. Para arrancarla si estuviera detenida: `npm run dev` desde
 `~/Desktop/GalenosSV_Actualizado`, utilizando su configuración JDBC existente.
 No iniciar una segunda instancia sobre un puerto ya ocupado ni ejecutar scripts
 de fixtures. Un reinicio o despliegue no autoriza operaciones clínicas de escritura.
+
+## Aclaración posterior de los bloqueos
+
+La inspección histórica y SQL detallada está en el backend,
+`docs/gt02-hu4-bloqueos.md`. OrdenExamen.idExamen es una ampliación de noviembre,
+no una relación del esquema original; su incorporación a clinica sigue pendiente
+de revisión y autorización. La FK de plantilla ya existe con otro nombre y no
+debe duplicarse. El nuevo informe contiene el plan mínimo SQL, su recuperación y
+las condiciones de la consulta candidata; no se ejecutó ese plan.
+El backend también impide que Paciente sea responsable del paso inicial
+(`8f9c485`);843 pruebas Java aprobadas. El frontend de producción no cambió en
+esta inspección y no se certifica persistencia real de HU4.

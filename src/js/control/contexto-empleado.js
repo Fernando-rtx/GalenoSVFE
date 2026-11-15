@@ -6,12 +6,22 @@ export function conectarEmpleado(value) {
 export function obtenerContextoEmpleado() {
   return control?.session ? structuredClone(control.session.contexto) : null;
 }
+export function obtenerAsignacionEmpleado() {
+  const assignment = control?.session?.contexto.asignaciones.find(
+    (a) => a.idPersonaRol === control.asignacionActiva,
+  );
+  return assignment ? structuredClone(assignment) : null;
+}
 export async function actualizarContextoEmpleado(signal) {
   if (!control?.session) throw new Error('Identifica al empleado primero.');
   await control.actualizar(signal);
   return obtenerContextoEmpleado();
 }
-export async function solicitudEmpleado(path, idPersonaRol, options = {}) {
+export async function solicitudEmpleado(
+  path,
+  idPersonaRol = control?.asignacionActiva,
+  options = {},
+) {
   const session = control?.session;
   const asignacion = session?.contexto.asignaciones.find((a) => a.idPersonaRol === idPersonaRol);
   if (!asignacion) throw new Error('Selecciona una asignación del empleado identificado.');

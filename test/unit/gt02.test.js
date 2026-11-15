@@ -10,6 +10,7 @@ import { CitasPacienteService } from '../../src/js/control/CitasPacienteService.
 import {
   conectarEmpleado,
   obtenerContextoEmpleado,
+  obtenerAsignacionEmpleado,
   solicitudEmpleado,
 } from '../../src/js/control/contexto-empleado.js';
 // Todos los datos de este archivo son sintéticos; Fetch simulado, sin PostgreSQL.
@@ -50,6 +51,55 @@ async function reject(work, type, status) {
 }
 describe('GT02: controles con fixtures sintéticos', () => {
   afterEach(() => conectarEmpleado(null));
+  it('valida el formato del tipo seleccionado sin convertir Pasaporte en DUI', () => {
+    const dui = { ...tipo, expresionRegular: '^[0-9]{8}-[0-9]$', nombre: 'DUI' };
+    const passport = { ...tipo, idTipoDocumento: uuid(9), nombre: 'Pasaporte', expresionRegular: '^[A-Za-z0-9]+$' };
+    expect(validarDocumento([dui, passport], dui.idTipoDocumento, '12345678-9').valor).to.equal('12345678-9');
+    expect(() => validarDocumento([dui, passport], passport.idTipoDocumento, '12345678-9')).to.throw('Pasaporte');
+    expect(() => validarDocumento([dui], dui.idTipoDocumento, '123456789')).to.throw('formato');
+    // No reinterpretar sintaxis exclusiva de Java como un rechazo del navegador.
+    expect(validarDocumento([{ ...tipo, expresionRegular: '^\\p{L}+$' }], tipo.idTipoDocumento, 'Ána').valor).to.equal('Ána');
+  });
+  it('comparte solo asignaciones propias y limpia la selección al cerrar sesión', async () => {
+    const c = new IdentificacionControl({ identificar: async () => ({ data: session() }), cerrar: async () => {} }, 'empleado');
+    c.tipos = [tipo]; const reasons = []; const unsubscribe = c.subscribe((reason) => reasons.push(reason));
+    await c.entrar(tipo.idTipoDocumento, 'EMP');
+    conectarEmpleado(c);
+    c.seleccionarAsignacion(uuid(6)); expect(c.asignacionActiva).to.equal(uuid(6));
+    expect(obtenerAsignacionEmpleado()).to.deep.equal(contexto.asignaciones[1]);
+    const copied = obtenerAsignacionEmpleado(); copied.idClinica = uuid(99);
+    expect(obtenerAsignacionEmpleado().idClinica).to.equal(uuid(8));
+    expect(() => c.seleccionarAsignacion(uuid(99))).to.throw('asignación');
+    expect(c.asignacionActiva).to.equal(uuid(6));
+    await c.salir(); expect(c.asignacionActiva).to.equal(null); expect(c.session).to.equal(null);
+    expect(obtenerAsignacionEmpleado()).to.equal(null);
+    expect(reasons).to.include('asignacion'); unsubscribe();
+  });
+  it('rechaza un contexto actualizado de otra persona sin reemplazar la sesión', async () => {
+    const c = new IdentificacionControl({ contexto: async () => ({ data: { ...contexto, idPersona: uuid(99) } }) }, 'empleado');
+    c.session = session(); const previous = c.session.contexto;
+    await reject(() => c.actualizar(), 'processing'); expect(c.session.contexto).to.equal(previous);
+  });
+  it('no restaura un contexto tardío después del cierre de sesión', async () => {
+    let resolve;
+    const c = new IdentificacionControl({ contexto: () => new Promise((done) => { resolve = done; }), cerrar: async () => {} }, 'empleado');
+    c.session = session(); c.asignacionActiva = uuid(3);
+    const pending = c.actualizar(); await c.salir(); resolve({ data: contexto });
+    expect((await rejection(pending)).name).to.equal('AbortError'); expect(c.session).to.equal(null);
+  });
+  it('borra identidad y selección si no puede confirmar el cierre por desconexión', async () => {
+    const error = { type: 'network' };
+    const c = new IdentificacionControl({ cerrar: async () => { throw error; } }, 'empleado');
+    c.session = session(); c.asignacionActiva = uuid(3);
+    expect(await rejection(c.salir())).to.equal(error);
+    expect(c.session).to.equal(null); expect(c.asignacionActiva).to.equal(null);
+  });
+  for (const status of [401, 403]) it(`descarta el contexto al revalidar con HTTP ${status}`, async () => {
+    const c = new IdentificacionControl({ contexto: async () => { throw { status }; } }, 'empleado');
+    c.session = session(); c.asignacionActiva = uuid(3);
+    expect((await rejection(c.actualizar())).status).to.equal(status);
+    expect(c.session).to.equal(null); expect(c.asignacionActiva).to.equal(null);
+  });
   it('exige tipo y documento no vacío', () => {
     for (const [id, valor] of [
       ['', 'ABC'],

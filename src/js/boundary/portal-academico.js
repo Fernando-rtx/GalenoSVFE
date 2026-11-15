@@ -24,6 +24,7 @@ export function mountPortal(view, config) {
     busy = true;
     view.retry(false);
     view.busy(true);
+    view.clearValidation();
     view.status('Cargando…');
     try {
       await work(request.signal);
@@ -31,10 +32,11 @@ export function mountPortal(view, config) {
     } catch (error) {
       if (error.name !== 'AbortError') {
         if ([401, 403].includes(error.status)) {
-          identidad.session = null;
+          identidad.invalidar();
           view.context(null);
         }
         view.status(error.message);
+        view.validation(error);
         view.retry(
           ['network', 'connection', 'processing'].includes(error.type) || error.status >= 500,
         );
@@ -42,6 +44,7 @@ export function mountPortal(view, config) {
     } finally {
       busy = false;
       view.busy(false);
+      view.focusPending();
     }
   };
   const load = () =>
@@ -53,40 +56,68 @@ export function mountPortal(view, config) {
     const result = await citas.buscar(...lastQuery, first, signal);
     view.results(result.data, result.total, first, identidad.session.contexto.zonaHoraria);
   };
+  const showContext = (context) => view.context(context, identidad.asignacionActiva);
   const handlers = {
     'portal-reintentar': () =>
       identidad.session
         ? run(async (signal) => {
-            view.context(await identidad.actualizar(signal));
+            showContext(await identidad.actualizar(signal));
             view.status('Conexión restablecida.');
           })
         : load(),
     'portal-identificar': () =>
       run(async (signal) => {
-        view.context(await identidad.entrar(view.value('tipo'), view.value('valor'), signal));
-        view.status('Identificación completada.');
+        showContext(await identidad.entrar(view.value('tipo'), view.value('valor'), signal));
+        view.status(
+          view.portal === 'empleado'
+            ? 'Identificación completada. Selecciona tu rol y clínica.'
+            : 'Identificación completada.',
+        );
       }),
     'portal-asignacion': () => {
-      identidad.seleccionarAsignacion(view.value('asignacion'));
+      try {
+        identidad.seleccionarAsignacion(view.value('asignacion'));
+      } catch (error) {
+        view.status(error.message);
+      }
     },
-    'portal-continuar': () => run(async (signal) => {
-      identidad.seleccionarAsignacion(view.value('asignacion'));
-      view.context(await identidad.actualizar(signal));
-      location.hash = '#academico';
-    }),
+    'portal-continuar': () =>
+      run(async (signal) => {
+        const selected = view.value('asignacion');
+        identidad.seleccionarAsignacion(selected);
+        showContext(await identidad.actualizar(signal));
+        if (identidad.asignacionActiva !== selected)
+          throw new Error(
+            'La asignación ya no está disponible. Selecciona una asignación vigente.',
+          );
+        location.hash = '#academico';
+      }),
     'portal-tipo': () =>
       view.hint(
-        identidad.tipos.find((t) => t.idTipoDocumento === view.value('tipo'))?.indicaciones,
+        (() => {
+          const tipo = identidad.tipos.find((t) => t.idTipoDocumento === view.value('tipo'));
+          return tipo
+            ? `Seleccionaste ${tipo.nombre}. ${tipo.indicaciones || 'Ingresa el número tal como aparece en ese documento.'}`
+            : 'Selecciona el tipo que corresponde a tu documento.';
+        })(),
       ),
     'portal-salir': () =>
       run(async (signal) => {
-        await identidad.salir(signal);
-        view.context(null);
+        try {
+          await identidad.salir(signal);
+        } catch (error) {
+          view.context(null);
+          if (error.type === 'network')
+            error.message =
+              'La sesión se borró de este dispositivo, pero no se pudo confirmar el cierre en el servidor. Revisa la conexión.';
+          throw error;
+        }
+        showContext(null);
         view.status('Sesión cerrada.');
       }),
     'portal-actualizar': () =>
       run(async (signal) => {
-        view.context(await identidad.actualizar(signal));
+        showContext(await identidad.actualizar(signal));
         view.status('Contexto actualizado.');
       }),
     'portal-buscar': () => {
@@ -104,7 +135,7 @@ export function mountPortal(view, config) {
       run(search);
     },
     'descargar-ticket': async (event) => {
-      if (!await offerTicketDownload()) return;
+      if (!(await offerTicketDownload())) return;
       return run(async (signal) => {
         const blob = await citas.ticket(event.detail.idConsulta, signal);
         const url = URL.createObjectURL(blob);
@@ -133,7 +164,7 @@ export function mountPortal(view, config) {
     identidad,
     destroy() {
       request?.abort();
-      identidad.session = null;
+      identidad.invalidar();
       if (view.portal === 'empleado') conectarEmpleado(null);
       for (const [type, handler] of Object.entries(handlers))
         view.removeEventListener(type, handler);

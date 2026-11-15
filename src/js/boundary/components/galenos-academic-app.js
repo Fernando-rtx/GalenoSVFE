@@ -82,12 +82,36 @@ class GalenosAcademicApp extends HTMLElement {
       status.textContent = '';
       return complete ? result : result.datos;
     } catch (error) {
+      if (error.status === 401) this.sessions.invalidate?.();
       status.textContent = gestionError(error); status.className = 'status error';
       return null;
     }
   }
   form(form) { return Object.fromEntries(new FormData(form).entries()); }
   sessionHeaders(session, assignment) { return { headers: { Authorization: `Bearer ${session.token}`, ...(assignment ? { 'X-Persona-Rol': assignment } : {}) } }; }
+  clearEmployee(clearIdentity = true) {
+    for (const selector of ['[data-queue-status]', '[data-care-status]', '[data-employee-status]', '[data-save-status]']) {
+      const status = this.q(selector);
+      if (status) { this.control.cancel(status); status.textContent = ''; }
+    }
+    this.care = null;
+    this.consultation = null;
+    this.first = 0;
+    this.q('[data-care-content]').replaceChildren();
+    this.q('[data-queue]').replaceChildren();
+    this.q('[data-page-summary]').textContent = '';
+    this.q('[data-page-prev]').disabled = this.q('[data-page-next]').disabled = true;
+    if (clearIdentity) {
+      this.person = null;
+      this.employeeSession = null;
+      this.q('[data-person-label]').textContent = '';
+      this.q('[data-staff-clinic]').replaceChildren();
+      this.q('[data-staff-role]').replaceChildren();
+      this.q('[data-staff-dates]').reset();
+      this.q('[data-staff-dates]').elements.numero.disabled = true;
+      this.q('[data-employee-context]').hidden = true;
+    }
+  }
   async refreshSessions() {
     if (!this.api || !this.sessions) return;
     const patient = this.sessions.patient?.();

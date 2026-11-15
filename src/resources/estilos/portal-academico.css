@@ -6,6 +6,83 @@
   font: inherit;
   color: var(--gs-text, #243746);
 }
+:host([data-employee]) {
+  max-width: 640px;
+  padding: 0 1rem;
+}
+.portal-logo {
+  display: block;
+  width: 220px;
+  max-width: 75%;
+  height: auto;
+  background: #fff;
+  border-radius: 0.5rem;
+  padding: 0.4rem;
+}
+.eyebrow {
+  color: var(--gs-muted, #50677a);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  margin-top: 1.5rem;
+}
+.academic-note,
+#asignacion-note {
+  color: var(--gs-muted, #50677a);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.field-error {
+  color: var(--gs-error, #a72536);
+  margin: 0.3rem 0;
+}
+[aria-invalid='true'] {
+  border-color: var(--gs-error, #a72536);
+}
+.assignment-summary {
+  padding: 0.9rem;
+  margin: 1rem 0;
+  border-left: 3px solid var(--gs-blue, #126b9b);
+  background: var(--gs-raised, #eef4f8);
+}
+button.secondary {
+  color: var(--gs-text, #243746);
+  background: var(--gs-raised, #eef4f8);
+}
+.loading::before {
+  content: '';
+  display: inline-block;
+  width: 0.8rem;
+  height: 0.8rem;
+  margin-right: 0.6rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: loading 0.8s linear infinite;
+}
+@keyframes loading {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading::before {
+    animation: none;
+  }
+}
+@media (max-width: 480px) {
+  :host {
+    margin: 1rem auto;
+  }
+  form,
+  section {
+    padding: 1rem;
+  }
+  button {
+    width: 100%;
+    min-height: 44px;
+  }
+}
 * {
   box-sizing: border-box;
 }

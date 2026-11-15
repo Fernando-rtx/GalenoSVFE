@@ -7,7 +7,7 @@ import { mountDashboard } from './boundary/dashboard.js';
 import { gestionConfig as defaults } from './control/environment.example.js';
 import { API_V2_ROUTES, API_V2_DASHBOARD_ROUTES } from './control/api-v2-routes.js';
 import { ClinicaService, createApiConfig } from './index.js';
-import { obtenerContextoEmpleado } from './control/contexto-empleado.js';
+import { obtenerContextoEmpleado, obtenerAsignacionEmpleado } from './control/contexto-empleado.js';
 import { registerPwa } from './boundary/pwa.js';
 import { mountLanguage } from './boundary/language.js';
 mountLanguage();
@@ -16,6 +16,7 @@ let appearance;
 let dashboard;
 let gestion;
 let environment;
+let unsubscribeEmployee;
 const root = document.querySelector('[data-dashboard]');
 document.querySelector('.brand').addEventListener('click', (event) => {
   if (location.hash === '#academico') {
@@ -47,15 +48,35 @@ async function start() {
     );
     document.querySelector('galenos-academic-app')?.configure(academicConfig, {
       patient: () => portals.find((portal) => portal.identidad.portal === 'paciente')?.identidad.session ?? null,
-      assignment: () => portals.find((portal) => portal.identidad.portal === 'empleado')?.identidad.asignacionActiva,
+      assignment: () => obtenerAsignacionEmpleado()?.idPersonaRol,
       selectAssignment: (id) => portals.find((portal) => portal.identidad.portal === 'empleado')?.identidad.seleccionarAsignacion(id),
+      invalidate: () => {
+        const portal = portals.find((portal) => portal.identidad.portal === 'empleado');
+        portal.identidad.invalidar();
+        document.querySelector('inicio-sesion').status('La sesión expiró o ya no es válida. Identifícate de nuevo.');
+      },
       logout: async () => {
         const portal = portals.find((portal) => portal.identidad.portal === 'empleado');
-        await portal.identidad.salir();
-        document.querySelector('inicio-sesion').context(null);
-        navigate();
+        try { await portal.identidad.salir(); }
+        catch (error) {
+          document.querySelector('inicio-sesion').status(error.message);
+          throw error;
+        } finally {
+          document.querySelector('inicio-sesion').context(null);
+          location.hash = '#empleados';
+        }
       },
       employee: () => portals.find((portal) => portal.identidad.portal === 'empleado')?.identidad.session ?? null,
+    });
+    const empleado = portals.find((portal) => portal.identidad.portal === 'empleado').identidad;
+    unsubscribeEmployee?.();
+    unsubscribeEmployee = empleado.subscribe((motivo) => {
+      closeGestion();
+      document.querySelector('galenos-academic-app')?.clearEmployee(motivo !== 'asignacion');
+      if (!empleado.session) {
+        document.querySelector('inicio-sesion').context(null);
+        if (!['#empleados', '#pacientes'].includes(location.hash)) location.hash = '#empleados';
+      }
     });
     navigate();
   } catch {
@@ -138,6 +159,8 @@ function navigate() {
 }
 window.addEventListener('hashchange', navigate);
 window.addEventListener('pagehide', () => {
+  unsubscribeEmployee?.();
+  document.querySelector('galenos-academic-app')?.clearEmployee();
   closeGestion();
   appearance?.destroy();
   portals.forEach((p) => p.destroy());

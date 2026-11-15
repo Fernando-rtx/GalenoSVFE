@@ -13,6 +13,8 @@ const mensajesIdentidad = new Set([
   'Persona no encontrada',
   'Documento ambiguo; contacte a la clínica',
   'No tiene asignaciones disponibles para este portal',
+  'No hay asignaciones de empleado activas. Revisa el rol y la clínica.',
+  'La persona no tiene asignaciones de empleado.',
   'Identifíquese para continuar',
   'Sesión no válida para este portal',
 ]);
@@ -72,7 +74,7 @@ export class IdentidadAcademicaService {
         status: response.status,
         cause,
         message:
-          mensaje ??
+          (response.status === 401 ? 'La sesión expiró o ya no es válida. Identifícate de nuevo.' : mensaje) ??
           {
             400: 'Solicitud inválida.',
             401: 'La sesión expiró. Identifícate de nuevo.',

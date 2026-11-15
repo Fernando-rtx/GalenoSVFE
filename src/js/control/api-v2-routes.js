@@ -168,7 +168,7 @@ const historySchema = (value) => {
         resultado: stringOrNull, interpretacion: stringOrNull })),
     }))(ordenes));
 };
-const appointmentSchema = recordSchema({
+const appointmentBaseSchema = recordSchema({
   idConsulta: isUuid,
   fechaInicio: stringOrNull,
   fechaFin: stringOrNull,
@@ -179,6 +179,20 @@ const appointmentSchema = recordSchema({
   pasoActual: stringOrNull,
   historial: arrayOf(historySchema),
 });
+const procedureHistorySchema = recordSchema({
+  idConsultaProcedimiento: isUuid, idProcedimiento: uuidOrNull, nombre: stringOrNull,
+  pasos: arrayOf(historySchema),
+  secuencias: arrayOf(recordSchema({ idPasoOrigen: isUuid, idPasoDestino: uuidOrNull, tipoSecuencia: stringOrNull })),
+});
+const appointmentSchema = (value) => {
+  if (!object(value)) return false;
+  const { idConsultaProcedimientoActual, idConsultaProcedimientoPasoActual, estadoPasoActual, procedimientos, ...base } = value;
+  return appointmentBaseSchema(base)
+    && (idConsultaProcedimientoActual === undefined || uuidOrNull(idConsultaProcedimientoActual))
+    && (idConsultaProcedimientoPasoActual === undefined || uuidOrNull(idConsultaProcedimientoPasoActual))
+    && (estadoPasoActual === undefined || stringOrNull(estadoPasoActual))
+    && (procedimientos === undefined || arrayOf(procedureHistorySchema)(procedimientos));
+};
 const careSchema = recordSchema({
   idConsulta: isUuid,
   idConsultaProcedimientoPaso: isUuid,

@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="es">
+  <meta charset="utf-8" /><title>HU3 — datos sintéticos de pruebas</title>
+  <body>
+    <output id="resultado">EJECUTANDO</output>
+    <script type="module">
+      import '/js/boundary/components/galenos-academic-app.js';
+      import DefaultResponse from '/js/entity/DefaultResponse.js';
+      import DefaultError from '/js/entity/DefaultError.js';
+      import { fechaClinica } from '/js/control/AcademicCareControl.js';
+      const id = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+      const assert = (ok, message) => {
+        if (!ok) throw new Error(message);
+      };
+      const until = async (fn) => {
+        for (let n = 0; n < 150; n++) {
+          if (fn()) return;
+          await new Promise((r) => setTimeout(r, 20));
+        }
+        throw new Error('No llegó el estado esperado');
+      };
+      const page = (rows) =>
+        new DefaultResponse({ datos: rows, status: 200, totalDatos: rows.length });
+      const session = {
+        token: 'A'.repeat(43),
+        contexto: {
+          tipo: 'EMPLEADO',
+          idPersona: id(1),
+          personaNombre: 'Empleado sintético',
+          zonaHoraria: 'America/El_Salvador',
+          asignaciones: [
+            {
+              idPersonaRol: id(2),
+              idClinica: id(3),
+              clinicaNombre: 'Clínica A sintética',
+              idRol: id(4),
+              rolNombre: 'Rol A sintético',
+            },
+            {
+              idPersonaRol: id(5),
+              idClinica: id(6),
+              clinicaNombre: 'Clínica B sintética',
+              idRol: id(7),
+              rolNombre: 'Rol B sintético',
+            },
+          ],
+        },
+      };
+      const history = (n) => ({
+        idPaso: id(n),
+        idConsultaProcedimientoPaso: id(n + 20),
+        nombre: `Paso ${n} sintético`,
+        fechaInicio: '2026-01-01T12:00:00Z',
+        fechaFin: '2026-01-01T12:30:00Z',
+        responsable: 'Responsable sintético',
+        rol: 'Rol sintético',
+        valor: `Registro ${n} <img src=x>`,
+        estado: 'COMPLETADO',
+        ordenes: n === 11 ? [{ idOrdenExamen: id(50), examen: 'Examen sintético', fechaCreacion: '2026-01-01T12:00:00Z', indicaciones: 'Indicación sintética',
+          resultados: [{ idExamenResultado: id(51), fechaCreacion: '2026-01-01T12:30:00Z', resultado: 'Resultado sintético', interpretacion: 'Interpretación sintética' }] }] : [],
+      });
+      const row = {
+        idConsulta: id(10),
+        paciente: 'Paciente sintético A',
+        clinica: 'Clínica A sintética',
+        fechaInicio: '2026-01-01T14:00:00Z',
+        fechaFin: null,
+        procedimiento: 'Procedimiento sintético',
+        idPasoActual: id(14),
+        pasoActual: 'Paso actual sintético',
+        estadoPasoActual: 'EN_CURSO',
+        idConsultaProcedimientoActual: id(15),
+        idConsultaProcedimientoPasoActual: id(16),
+        historial: [],
+        procedimientos: [
+          {
+            idConsultaProcedimiento: id(15),
+            idProcedimiento: id(17),
+            nombre: 'Procedimiento sintético',
+            pasos: [history(11), history(12), history(13), { ...history(14), estado: 'PENDIENTE' }],
+            secuencias: [
+              { idPasoOrigen: id(11), idPasoDestino: id(12), tipoSecuencia: 'SI' },
+              { idPasoOrigen: id(11), idPasoDestino: id(13), tipoSecuencia: 'NO' },
+            ],
+          },
+        ],
+      };
+      const requests = [];
+      let writes = 0,
+        details = 0,
+        selected = id(2);
+      const app = document.createElement('galenos-academic-app');
+      document.body.append(app);
+      app.sessions = {
+        employee: () => session,
+        assignment: () => selected,
+        selectAssignment: (value) => {
+          if (selected !== value) {
+            selected = value;
+            app.clearEmployee(false);
+          }
+        },
+      };
+      app.api = {
+        findDocumentTypes: async () => page([]),
+        findEmployeeAppointments: async (first, max, query, options) => {
+          requests.push({ first, max, query, options });
+          return page([row]);
+        },
+        getCare: async (idConsulta, query) => {
+          details++;
+          assert(query.idClinica === id(3), 'HU4 perdió clínica');
+          return page({
+            idConsulta,
+            idConsultaProcedimientoPaso: id(16),
+            paciente: row.paciente,
+            clinica: row.clinica,
+            rol: 'Rol A sintético',
+            procedimiento: row.procedimiento,
+            idPasoActual: id(14),
+            pasoActual: row.pasoActual,
+            valorActual: 'Atención previa sintética',
+            pasoFinal: false,
+            historial: [],
+            examenes: [],
+            siguientes: [],
+            puedeRetroceder: false,
+          });
+        },
+        register: async () => {
+          writes++;
+          throw new Error('No debe escribir al abrir HU4');
+        },
+      };
+      try {
+        await app.refreshSessions();
+        await until(() => app.q('[data-queue]').querySelector('tarjeta-consulta'));
+        assert(
+          requests[0].query.fechaDesde === fechaClinica(),
+          'Hoy no usa fecha clínica dinámica',
+        );
+        const card = app.q('[data-queue]').querySelector('tarjeta-consulta');
+        assert(card.shadowRoot.textContent.includes(row.paciente), 'Falta paciente');
+        assert(
+          card.shadowRoot.textContent.includes('Estado del paso: EN_CURSO'),
+          'Falta estado real del paso',
+        );
+        const historyView = card.shadowRoot.querySelector('historial-consulta');
+        assert(
+          historyView.shadowRoot.querySelectorAll('[data-execution]').length === 3,
+          'Se mostró un paso futuro o faltó historial',
+        );
+        assert(
+          historyView.shadowRoot.querySelector('ul > li > ul').children.length === 2,
+          'No representó la bifurcación',
+        );
+        const record = [...historyView.shadowRoot.querySelectorAll('summary')].find(
+          (s) => s.textContent === 'Ver registro',
+        );
+        record.click();
+        assert(record.parentElement.open, 'No abrió Ver registro');
+        assert(
+          record.parentElement.textContent.includes('Registro 11 <img src=x>'),
+          'No muestra el contenido literal',
+        );
+        assert(!historyView.shadowRoot.querySelector('img'), 'Interpretó HTML clínico como código');
+        assert(record.parentElement.textContent.includes('Resultado sintético'), 'No mostró el resultado del examen');
+        assert(!historyView.shadowRoot.querySelector('input,textarea,select'), 'El historial permite editar datos');
+        app.q('[data-staff-dates]').elements.fechaDesde.value = '2026-01-01';
+        app.q('[data-staff-dates]').elements.fechaHasta.value = '2026-01-01';
+        card.shadowRoot.querySelector('button').click();
+        await until(() => app.q('[data-care-form]'));
+        assert(details === 1 && writes === 0, 'Abrir atención escribió o no leyó el detalle');
+        assert(
+          app.control.selected.idConsultaProcedimientoActual === id(15),
+          'Se perdió el procedimiento seleccionado',
+        );
+        app.q('[data-back]').click();
+        assert(!app.q('[data-panel=dashboard]').hidden, 'No volvió al dashboard');
+        assert(
+          app.q('[data-staff-dates]').elements.fechaDesde.value === '2026-01-01',
+          'Perdió filtros al volver',
+        );
+        let resolve;
+        app.api.findEmployeeAppointments = (first, max, query) =>
+          query.idClinica === id(3)
+            ? new Promise((r) => {
+                resolve = r;
+              })
+            : Promise.resolve(
+                page([
+                  { ...row, paciente: 'Paciente sintético B', clinica: 'Clínica B sintética' },
+                ]),
+              );
+        const old = app.loadQueue();
+        app.q('[data-staff-clinic]').value = id(6);
+        app.q('[data-staff-clinic]').dispatchEvent(new Event('change'));
+        await until(() => app.control.queue[0]?.paciente === 'Paciente sintético B');
+        resolve(page([row]));
+        await old;
+        assert(
+          app.control.queue[0].paciente === 'Paciente sintético B',
+          'Respuesta obsoleta de otra clínica sobrescribió la nueva',
+        );
+        assert(
+          app.q('[data-staff-role]').value === id(5),
+          'Se mezcló PersonaRol al cambiar clínica',
+        );
+        app.q('[data-clear-filters]').click();
+        await until(() => app.q('[data-queue]').getAttribute('aria-busy') === 'false');
+        assert(
+          app.q('[data-staff-dates]').elements.fechaDesde.value === fechaClinica(),
+          'No restableció hoy',
+        );
+        // La paginación solicita otra página al servicio, sin descargar todos los registros.
+        const pages = [];
+        app.api.findEmployeeAppointments = async (first, max, query, options) => {
+          pages.push({ first, max, query, options });
+          const length = first === 0 ? 20 : 1;
+          return new DefaultResponse({
+            datos: Array.from({ length }, (_, n) => ({ ...row, idConsulta: id(100 + first + n) })),
+            status: 200,
+            totalDatos: 21,
+          });
+        };
+        await app.loadQueue();
+        assert(!app.q('[data-page-next]').disabled, 'No habilitó la siguiente página');
+        app.q('[data-page-next]').click();
+        await until(() => app.control.queue.length === 1);
+        assert(pages.at(-1).first === 20 && pages.at(-1).max === 20, 'No paginó en REST');
+        assert(app.q('[data-page-next]').disabled, 'Permite avanzar después de la última página');
+        assert(app.q('[data-page-summary]').textContent.includes('21–21'), 'Resumen de página incorrecto');
+        app.q('[data-page-prev]').click();
+        await until(() => app.control.queue.length === 20);
+        assert(pages.at(-1).first === 0, 'Anterior no consultó la página inicial');
+        const form = app.q('[data-staff-dates]');
+        const countBefore = pages.length;
+        form.elements.fechaDesde.value = '2026-12-02';
+        form.elements.fechaHasta.value = '2026-12-01';
+        form.elements.fechaDesde.dispatchEvent(new Event('change'));
+        assert(pages.length === countBefore, 'Envió un rango de fechas inválido');
+        assert(!app.control.queue.length, 'Conservó consultas después de un filtro inválido');
+        form.elements.fechaHasta.value = '2026-12-03';
+        form.elements.fechaHasta.dispatchEvent(new Event('change'));
+        await until(() => app.control.queue.length === 20);
+        assert(pages.at(-1).query.fechaDesde === '2026-12-02', 'No envió el nuevo rango');
+        assert(pages.at(-1).options.headers['X-Persona-Rol'] === id(5), 'Paginación perdió asignación');
+        app.api.findEmployeeAppointments = async () => {
+          throw new DefaultError({ type: 'http', status: 403, message: 'Acceso no permitido' });
+        };
+        await app.loadQueue();
+        assert(app.q('[data-queue-status]').classList.contains('error'), '403 no muestra error');
+        assert(!app.q('[data-queue]').textContent.includes('No hay consultas'), '403 tratado como lista vacía');
+        assert(!app.q('[data-queue]').children.length, '403 conserva datos anteriores');
+        assert(app.q('[data-retry-queue]').hidden, '403 se presenta como error de conexión');
+        app.api.findEmployeeAppointments = async () => page([]);
+        await app.loadQueue();
+        assert(app.q('[data-queue]').textContent === 'No hay consultas asignadas para este rango de fechas', 'No distingue 200 vacío de 403');
+        document.querySelector('#resultado').textContent =
+          'PASS: tarjetas, jerarquía, Ver registro, HU4 sin escritura, filtros, paginación, 403 y cancelación entre clínicas (sintético)';
+      } catch (error) {
+        document.querySelector('#resultado').textContent = 'FAIL: ' + error.message;
+        console.error(error);
+      }
+    </script>
+  </body>
+</html>

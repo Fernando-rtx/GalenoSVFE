@@ -1,6 +1,53 @@
-// Solo recursos públicos del shell. Ninguna ruta REST se guarda en Cache Storage.
-const CACHE = 'galenossv-shell-v20';
+// Solo recursos estáticos allowlisted; nunca se guarda una respuesta REST.
+const CACHE = 'galenossv-shell-v23';
 const PREFIX = 'galenossv-shell-';
+// Estos recursos solo se guardan después de que un empleado los solicite.
+const ON_DEMAND_ASSETS = new Set([
+  '/resources/estilos/dashboard.css',
+  '/resources/estilos/gestion.css',
+  '/js/boundary/components/galenos-academic-app.js',
+  '/js/boundary/ticket-options.js',
+  '/js/control/AcademicCareControl.js',
+  '/js/control/AcademicCareService.js',
+  '/js/boundary/modelos/dashboard-presentation.js',
+  '/js/boundary/modelos/form-validation.js',
+  '/js/boundary/dashboard.js',
+  '/js/boundary/gestion.js',
+  '/js/boundary/modelos/CatalogoModel.js',
+  '/js/boundary/modelos/ConsultaGestionModel.js',
+  '/js/boundary/modelos/DashboardModel.js',
+  '/js/boundary/modelos/OrdenModel.js',
+  '/js/boundary/modelos/PersonaModel.js',
+  '/js/boundary/modelos/ProcedimientoModel.js',
+  '/js/boundary/modelos/RelacionModel.js',
+  '/js/boundary/modelos/editable-record.js',
+  '/js/control/CatalogoControl.js',
+  '/js/control/ClinicaService.js',
+  '/js/control/ConsultaGestionControl.js',
+  '/js/control/ConsultaProcedimientoPasoService.js',
+  '/js/control/ConsultaProcedimientoService.js',
+  '/js/control/ConsultaService.js',
+  '/js/control/DashboardControl.js',
+  '/js/control/DocumentoService.js',
+  '/js/control/ExamenResultadoService.js',
+  '/js/control/ExamenService.js',
+  '/js/control/ExamenTipoExamenService.js',
+  '/js/control/MedioContactoService.js',
+  '/js/control/OrdenControl.js',
+  '/js/control/OrdenExamenService.js',
+  '/js/control/PersonaControl.js',
+  '/js/control/PersonaRolService.js',
+  '/js/control/PersonaService.js',
+  '/js/control/ProcedimientoControl.js',
+  '/js/control/ProcedimientoPasoExamenService.js',
+  '/js/control/ProcedimientoPasoSecuenciaService.js',
+  '/js/control/ProcedimientoPasoService.js',
+  '/js/control/ProcedimientoService.js',
+  '/js/control/RelacionControl.js',
+  '/js/control/RolService.js',
+  '/js/control/TipoExamenService.js',
+  '/js/control/TipoMedioContactoService.js',
+]);
 const ASSETS = new Set([
   '/js/boundary/components/historial-consulta.js',
   '/js/boundary/modelos/historial-presentacion.js',
@@ -79,19 +126,24 @@ const ASSETS = new Set([
   '/js/index.js',
   '/js/main.js',
   '/manifest.webmanifest',
-  '/resources/estilos/dashboard.css',
   '/resources/estilos/galenos.css',
+  '/resources/estilos/dashboard.css',
   '/resources/estilos/gestion.css',
   '/resources/estilos/portal-academico.css',
   '/resources/estilos/tarjeta.css',
   '/resources/estilos/tarjeta_consulta.css',
-  '/resources/imagenes/galenos-sv-logo.png',
+  '/resources/imagenes/galenos-sv-logo.webp',
   '/resources/imagenes/icon-192.png',
   '/resources/imagenes/icon-512.png',
   '/resources/scripts/tema.js',
+  '/resources/iconos/login.svg',
+  '/resources/iconos/traductor.svg',
+  '/resources/iconos/temasoscuro.svg',
+  '/resources/iconos/temasclaro.svg',
 ]);
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll([...ASSETS])));
+  const shellAssets = [...ASSETS].filter((path) => !ON_DEMAND_ASSETS.has(path));
+  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(shellAssets)));
   self.skipWaiting();
 });
 self.addEventListener('activate', (event) => {
@@ -118,8 +170,9 @@ self.addEventListener('fetch', (event) => {
   if (url.search) return;
   const path = request.mode === 'navigate' ? '/' : url.pathname;
   if (!ASSETS.has(path)) return;
-  event.respondWith(
-    fetch(request)
+  event.respondWith((async () => {
+    const cached = await caches.match(path);
+    const update = fetch(request)
       .then((response) => {
         const policy = response.headers?.get('Cache-Control') || '';
         if (
@@ -132,11 +185,15 @@ self.addEventListener('fetch', (event) => {
           event.waitUntil(caches.open(CACHE).then((cache) => cache.put(path, copy)));
         }
         return response;
-      })
-      .catch(async () => {
-        const cached = await caches.match(path);
-        if (cached) return cached;
-        throw new Error('Sin conexión para este recurso');
-      }),
-  );
+      });
+    if (cached) {
+      event.waitUntil(update.catch(() => {}));
+      return cached;
+    }
+    return update;
+  })().catch(async () => {
+    const cached = await caches.match(path);
+    if (cached) return cached;
+    throw new Error('Sin conexión para este recurso');
+  }));
 });

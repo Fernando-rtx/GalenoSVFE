@@ -3,14 +3,18 @@ export function mountAppearance(root) {
   const menu = root.querySelector('.sidebar');
   const toggle = root.querySelector('.layout-menu-toggle');
   const theme = root.querySelector('#themeToggle');
+  const themeIcon = theme.querySelector('[data-theme-icon]');
   function toggleMenu() {
     menu.hidden = !menu.hidden;
     root.classList.toggle('menu-closed', menu.hidden);
     toggle.setAttribute('aria-expanded', String(!menu.hidden));
   }
   function updateTheme() {
-    theme.textContent =
-      document.documentElement.dataset.theme === 'dark' ? 'Modo claro' : 'Modo oscuro';
+    const dark = document.documentElement.dataset.theme === 'dark';
+    const label = dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
+    themeIcon.src = `/resources/iconos/temas${dark ? 'oscuro' : 'claro'}.svg`;
+    theme.setAttribute('aria-label', label);
+    theme.title = label;
   }
   const observer = new MutationObserver(updateTheme);
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });

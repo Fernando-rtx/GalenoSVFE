@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="256" cy="256" r="190" />
+  <path d="M66 256h380M256 66c58 53 91 119 91 190s-33 137-91 190M256 66c-58 53-91 119-91 190s33 137 91 190M99 164h314M99 348h314" />
+  <path d="M46 44h198a31 31 0 0 1 31 31v76a31 31 0 0 1-31 31h-54l-42 39v-39H46a31 31 0 0 1-31-31V75a31 31 0 0 1 31-31Z" />
+  <text x="63" y="143" fill="currentColor" stroke="none" font-family="system-ui, sans-serif" font-size="74" font-weight="700">A</text>
+  <path d="M268 330h198a31 31 0 0 1 31 31v76a31 31 0 0 1-31 31h-52l-43 39v-39H268a31 31 0 0 1-31-31v-76a31 31 0 0 1 31-31Z" />
+  <text x="284" y="430" fill="currentColor" stroke="none" font-family="system-ui, sans-serif" font-size="68" font-weight="700">文</text>
+</svg>

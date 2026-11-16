@@ -35,8 +35,8 @@ export function mountPortal(view, config) {
           identidad.invalidar();
           view.context(null);
         }
-        view.status(error.message);
-        view.validation(error);
+        const shownOnField = view.validation(error);
+        view.status(shownOnField ? '' : error.message, shownOnField ? '' : 'error');
         view.retry(
           ['network', 'connection', 'processing'].includes(error.type) || error.status >= 500,
         );
@@ -78,7 +78,7 @@ export function mountPortal(view, config) {
       try {
         identidad.seleccionarAsignacion(view.value('asignacion'));
       } catch (error) {
-        view.status(error.message);
+        view.status(error.message, 'error');
       }
     },
     'portal-continuar': () =>
@@ -158,7 +158,14 @@ export function mountPortal(view, config) {
   };
   window.addEventListener('online', online);
   window.addEventListener('offline', offline);
-  load();
+  // El formulario se renderiza desde HTML inmediatamente; cargar el catálogo
+  // en el siguiente turno evita bloquear el primer pintado del portal.
+  if (view.portal === 'paciente') {
+    view.status('Preparando tipos de documento…');
+    setTimeout(() => load(), 0);
+  } else {
+    load();
+  }
   return {
     // API en memoria para la composición HU3/HU4, sin persistencia ni evento con token.
     identidad,

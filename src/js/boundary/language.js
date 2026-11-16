@@ -19,7 +19,9 @@ const english = new Map(Object.entries({
   'Saltar al contenido': 'Skip to content', 'Menú de navegación': 'Navigation menu',
   'NAVEGACIÓN': 'NAVIGATION', 'Principal': 'Main navigation',
   'Búsqueda de citas': 'Appointment search', 'Login': 'Login', 'Consulta': 'Consultation',
-  'Idioma': 'Language', 'Selecciona el idioma de la aplicación.': 'Select the application language.',
+  'Idioma': 'Language', 'Cambiar idioma': 'Change language',
+  'Selecciona el idioma de la aplicación.': 'Select the application language.',
+  'Cambiar a modo claro': 'Switch to light mode', 'Cambiar a modo oscuro': 'Switch to dark mode',
   'Instalar aplicación': 'Install application', 'Modo claro': 'Light mode', 'Modo oscuro': 'Dark mode',
   'Programación para Internet': 'Internet Programming', 'Universidad de El Salvador': 'University of El Salvador',
   'Clínica de trabajo': 'Working clinic', 'Selecciona una clínica': 'Select a clinic',
@@ -63,6 +65,8 @@ const english = new Map(Object.entries({
   'Rol y clínica de trabajo': 'Work role and clinic', 'Entrar al dashboard': 'Open dashboard',
   'Identifícate con tu documento y elige el rol y la clínica donde vas a trabajar.': 'Identify yourself with your document and choose your work role and clinic.',
   'Selecciona el tipo que corresponde a tu documento.': 'Select the type that matches your document.',
+  'Escribe para buscar un tipo...': 'Type to search document types...',
+  'No hay tipos de documento coincidentes.': 'No matching document types.',
   'Asignación de trabajo': 'Work assignment', 'Actualizar contexto': 'Refresh session',
   'Fecha inicial': 'Start date', 'Fecha final': 'End date', 'Buscar citas': 'Search appointments',
   'Anterior': 'Previous', 'Siguiente': 'Next', 'Cargando…': 'Loading…',
@@ -176,7 +180,9 @@ export function translate(text, targetLanguage = language) {
 }
 
 export function mountLanguage() {
-  const select = document.querySelector('#idioma');
+  const toggle = document.querySelector('#languageToggle');
+  const menu = document.querySelector('#languageOptions');
+  const options = [...menu.querySelectorAll('[data-language]')];
   const originals = new WeakMap();
   const attributes = new WeakMap();
   const roots = new Map();
@@ -232,7 +238,8 @@ export function mountLanguage() {
   function change(next) {
     language = next === 'en' ? 'en' : 'es';
     document.documentElement.lang = language;
-    select.value = language;
+    for (const option of options)
+      option.setAttribute('aria-pressed', String(option.dataset.language === language));
     try { localStorage.setItem('galenos-language', language); } catch { /* Preferencia opcional. */ }
     // Recorre también los ShadowRoots ya descubiertos, sin recrear formularios ni sesiones.
     for (const root of roots.keys()) visit(root);
@@ -242,7 +249,38 @@ export function mountLanguage() {
   let saved;
   try { saved = localStorage.getItem('galenos-language'); } catch { /* Usa español por defecto. */ }
   change(saved);
-  const onChange = () => change(select.value);
-  select.addEventListener('change', onChange);
-  return { destroy() { select.removeEventListener('change', onChange); for (const observer of roots.values()) observer.disconnect(); } };
+  function setOpen(open, returnFocus = false) {
+    menu.hidden = !open;
+    toggle.setAttribute('aria-expanded', String(open));
+    if (returnFocus) toggle.focus();
+    else if (open) options.find((option) => option.dataset.language === language)?.focus();
+  }
+  function onToggle() {
+    setOpen(menu.hidden);
+  }
+  function onMenuClick(event) {
+    const option = event.target.closest?.('[data-language]');
+    if (!option || !menu.contains(option)) return;
+    change(option.dataset.language);
+    setOpen(false, true);
+  }
+  function onDocumentClick(event) {
+    if (!toggle.parentElement.contains(event.target)) setOpen(false);
+  }
+  function onKeyDown(event) {
+    if (event.key === 'Escape' && !menu.hidden) setOpen(false, true);
+  }
+  toggle.addEventListener('click', onToggle);
+  menu.addEventListener('click', onMenuClick);
+  document.addEventListener('click', onDocumentClick);
+  document.addEventListener('keydown', onKeyDown);
+  return {
+    destroy() {
+      toggle.removeEventListener('click', onToggle);
+      menu.removeEventListener('click', onMenuClick);
+      document.removeEventListener('click', onDocumentClick);
+      document.removeEventListener('keydown', onKeyDown);
+      for (const observer of roots.values()) observer.disconnect();
+    },
+  };
 }

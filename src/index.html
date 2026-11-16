@@ -10,33 +10,35 @@
     <link rel="icon" type="image/png" href="/resources/imagenes/icon-192.png" />
     <title>GalenosSV · Pacientes y empleados</title>
     <script src="/resources/scripts/tema.js"></script>
-    <link rel="stylesheet" href="/resources/estilos/dashboard.css" />
-    <link rel="stylesheet" href="/resources/estilos/gestion.css" />
     <link rel="stylesheet" href="/resources/estilos/galenos.css" />
     <script type="module" src="/js/main.js"></script>
   </head>
   <body>
     <galenos-notifications></galenos-notifications>
     <a class="skip-link" href="#workspace">Saltar al contenido</a>
-    <galenos-dashboard class="app-shell" data-dashboard>
+    <galenos-dashboard class="app-shell public-portal" data-dashboard>
       <header class="layout-header">
         <div class="layout-logo">
           <button
             type="button"
             class="layout-menu-toggle"
+            hidden
             aria-label="Menú de navegación"
             aria-expanded="true"
             aria-controls="layoutNavigation"
           >
             ☰</button
           ><a class="brand" href="#academico" aria-label="GalenosSV, dashboard"
-            ><img
-              src="/resources/imagenes/galenos-sv-logo.png"
-              class="layout-logo-image"
-              alt="Galenos SV — Clínica General"
-              width="2048"
-              height="768"
-          /></a>
+            ><picture>
+              <source srcset="/resources/imagenes/galenos-sv-logo.webp" type="image/webp" />
+              <img
+                src="/resources/imagenes/galenos-sv-logo.png"
+                class="layout-logo-image"
+                alt="Galenos SV — Clínica General"
+                width="2048"
+                height="768"
+              />
+            </picture></a>
         </div>
         <div class="layout-clinic" data-clinic-header>
           <div class="clinic-select">
@@ -52,21 +54,62 @@
         </div>
         <div class="layout-tools">
           <button type="button" class="secondary-button" data-install hidden>
-            Instalar aplicación</button
-          ><label for="idioma">Idioma</label
-          ><select id="idioma" aria-describedby="language-note">
-            <option value="es">Español</option>
-            <option value="en">English</option></select
-          ><span class="sr-only" id="language-note"
-            >Selecciona el idioma de la aplicación.</span
-          ><button type="button" id="themeToggle" class="layout-theme-toggle">Modo claro</button>
+            Instalar aplicación
+          </button>
+          <div class="language-control">
+            <button
+              type="button"
+              id="languageToggle"
+              class="header-icon-button"
+              aria-label="Cambiar idioma"
+              aria-describedby="language-note"
+              title="Cambiar idioma"
+              aria-haspopup="true"
+              aria-expanded="false"
+              aria-controls="languageOptions"
+            >
+              <img src="/resources/iconos/traductor.svg" alt="" class="header-icon-image" />
+            </button>
+            <div
+              id="languageOptions"
+              class="language-options"
+              role="group"
+              aria-label="Idioma"
+              hidden
+            >
+              <button type="button" class="language-option" data-language="es" aria-pressed="true">
+                Español
+              </button>
+              <button type="button" class="language-option" data-language="en" aria-pressed="false">
+                English
+              </button>
+            </div>
+          </div>
+          <span class="sr-only" id="language-note">Selecciona el idioma de la aplicación.</span>
+          <button
+            type="button"
+            id="themeToggle"
+            class="header-icon-button layout-theme-toggle"
+            aria-label="Cambiar a modo claro"
+            title="Cambiar a modo claro"
+          >
+            <img src="/resources/iconos/temasoscuro.svg" alt="" class="theme-icon-image" data-theme-icon />
+          </button>
+          <a
+            href="#empleados"
+            class="header-icon-button header-login"
+            aria-label="Iniciar sesión"
+            title="Iniciar sesión"
+          >
+            <img src="/resources/iconos/login.svg" alt="" class="header-icon-image" />
+          </a>
         </div>
       </header>
-      <aside class="sidebar" id="layoutNavigation">
+      <aside class="sidebar" id="layoutNavigation" hidden>
         <p class="nav-label">NAVEGACIÓN</p>
         <nav aria-label="Principal" data-navigation>
+          <a href="#academico">Dashboard</a>
           <a href="#pacientes">Búsqueda de citas</a>
-          <a href="#empleados">Login</a>
           <a href="#atencion">Consulta</a>
         </nav>
         <p class="sidebar-footer">Programación para Internet<br />Universidad de El Salvador</p>

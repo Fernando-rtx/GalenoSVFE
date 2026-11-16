@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <defs>
+    <linearGradient id="night" x1="48" y1="256" x2="464" y2="256" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0875d1" />
+      <stop offset="1" stop-color="#00c6e4" />
+    </linearGradient>
+  </defs>
+  <g stroke="url(#night)" stroke-width="24">
+    <circle cx="256" cy="256" r="166" />
+    <path d="M256 16v43M256 453v43M16 256h43M453 256h43M86.3 86.3l30.4 30.4M395.3 395.3l30.4 30.4M425.7 86.3l-30.4 30.4M116.7 395.3l-30.4 30.4" />
+    <path d="M268 121c-72 39-96 125-53 190 42 65 127 87 197 49-25 42-70 70-121 70-83 0-150-67-150-150 0-77 58-140 127-159Z" />
+  </g>
+</svg>

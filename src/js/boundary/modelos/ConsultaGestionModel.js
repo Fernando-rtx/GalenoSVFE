@@ -1,6 +1,7 @@
 import { bindFormValidation, showAccessibleDialog } from './form-validation.js';
 import { editableRecord } from './editable-record.js';
 import { gestionError } from './dashboard-presentation.js';
+import { obtenerAsignacionEmpleado } from '../../control/contexto-empleado.js';
 const node = (tag, text, className) => {
   const n = document.createElement(tag);
   if (text !== undefined) n.textContent = text;
@@ -14,6 +15,9 @@ const localDate = (iso) => {
   return d.toISOString().slice(0, 16);
 };
 const instant = (value) => (value ? new Date(value).toISOString() : null);
+const normalizarRol = (value) => String(value ?? '')
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .trim().replace(/\s+/g, ' ').toLocaleLowerCase();
 
 /** Formularios anidados en el dashboard; conserva los componentes originales. */
 export default class ConsultaGestionModel extends HTMLElement {
@@ -197,6 +201,7 @@ export default class ConsultaGestionModel extends HTMLElement {
   }
   render(state) {
     this.notice.textContent = state.error ? gestionError(state.error) : state.message;
+    this.create.hidden = normalizarRol(obtenerAsignacionEmpleado()?.rolNombre) !== 'atencion al publico';
     this.create.disabled = state.writing || !state.clinic;
     this.add.disabled = state.writing || !state.consulta;
     editableRecord(

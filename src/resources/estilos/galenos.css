@@ -1,4 +1,33 @@
 /* Tema compartido. Se carga después de los estilos de cada pantalla. */
+* {
+  box-sizing: border-box;
+}
+:where([hidden]) {
+  display: none !important;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.skip-link {
+  position: absolute;
+  top: -80px;
+  left: 20px;
+  z-index: 1200;
+  padding: 12px;
+  background: var(--gs-surface, #fff);
+  color: var(--gs-text, #243746);
+}
+.skip-link:focus {
+  top: 10px;
+}
 :root {
   color-scheme: var(--gs-scheme);
   --gs-scheme: dark;
@@ -75,6 +104,7 @@
   font-family: 'Segoe UI', Arial, sans-serif;
 }
 body {
+  margin: 0;
   background: var(--gs-page);
   color: var(--gs-text);
   font-size: 14px;
@@ -85,8 +115,10 @@ body {
   outline-offset: 2px;
 }
 .app-shell {
+  display: grid;
   grid-template-columns: 224px minmax(0, 1fr);
   grid-template-rows: auto 1fr;
+  min-height: 100vh;
   gap: 20px;
   padding: 0 20px 20px;
   align-items: start;
@@ -291,6 +323,54 @@ body {
   font-size: 0.7rem;
   color: var(--gs-muted);
   margin: 18px 8px 4px;
+}
+/* The employee CSS is loaded on demand after this file. Keep navigation tied
+   to the active theme even when its legacy base rules load later. */
+.app-shell .sidebar {
+  color: var(--gs-text);
+  background: var(--gs-nav);
+  border-color: var(--gs-border);
+}
+.app-shell .sidebar .nav-label,
+.app-shell .sidebar .sidebar-footer {
+  color: var(--gs-muted);
+}
+.app-shell .sidebar nav a {
+  color: var(--gs-muted);
+  text-decoration: none;
+}
+.app-shell .sidebar nav a:hover,
+.app-shell .sidebar nav a:focus-visible {
+  color: var(--gs-text);
+  background: var(--gs-raised);
+}
+.app-shell .sidebar nav a.nav-current {
+  color: var(--gs-text);
+  background: var(--gs-selected);
+  border-left-color: var(--gs-accent);
+}
+.app-shell input,
+.app-shell select,
+.app-shell textarea,
+.app-shell .gestion input,
+.app-shell .gestion select,
+.app-shell .gestion textarea {
+  background: var(--gs-input);
+  color: var(--gs-text);
+  border-color: var(--gs-border);
+}
+.app-shell input::placeholder,
+.app-shell textarea::placeholder {
+  color: var(--gs-placeholder);
+}
+.app-shell input:disabled,
+.app-shell select:disabled,
+.app-shell textarea:disabled {
+  background: var(--gs-raised);
+  color: var(--gs-muted);
+}
+.app-shell .layout-clinic label {
+  color: var(--gs-text);
 }
 .workspace {
   min-width: 0;

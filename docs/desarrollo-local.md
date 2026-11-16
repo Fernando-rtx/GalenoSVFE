@@ -21,8 +21,10 @@ módulos de gestión ofrecen las operaciones publicadas por REST v2.
    el backend. Maven crea y usa `GalenosSVAcademico` y despliega el contexto
    `/GalenosSV`. Mantén los overrides y claves del servidor anterior en su instancia.
 4. En el frontend ejecuta `npm ci` y `npm run dev`. Abre http://localhost:3000/.
-   Si cambias el puerto de Liberty, ajusta la URL del frontend mediante
-   `src/js/control/environment.local.js` y el valor `gestionConfig.baseUrl`.
+   La app usa por defecto `src/js/control/environment.example.js`. Si cambias
+   el puerto de Liberty, define `window.GALENOS_CONFIG` en `src/index.html`,
+   antes del módulo `main.js`, por ejemplo:
+   `<script>window.GALENOS_CONFIG = { gestionConfig: { baseUrl: 'http://127.0.0.1:9080/GalenosSV/resources/' } };</script>`.
 
 Liberty y BrowserSync escuchan en `127.0.0.1`. Usa únicamente los orígenes de
 loopback configurados en CORS. Evita publicar el servidor, compartirlo mediante un

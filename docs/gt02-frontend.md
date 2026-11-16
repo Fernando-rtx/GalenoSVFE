@@ -19,8 +19,9 @@ La preferencia de idioma se conserva como `galenos-language` en localStorage;
 las identidades y respuestas de la API permanecen únicamente en memoria.
 
 En Consultas, solo la asignación de Atención al público puede dar de alta pacientes
-y programar citas. Recepción primero busca por nombre o documento; si no hay
-coincidencias, registra nombres, apellidos, nacimiento y documento. El guardado de
+y programar citas. El botón «Registrar paciente» está visible junto a «Nueva consulta»;
+también puede darse de alta desde el flujo de cita si la búsqueda no encuentra
+coincidencias. El registro solicita nombres, apellidos, nacimiento y documento. El guardado de
 cita asocia de forma atómica el procedimiento activo y su primer paso. La pantalla
 indica abrir la bandeja para registrar el resultado de recepción y usar «Avanzar»;
 el siguiente rol y responsable provienen de la secuencia configurada del procedimiento.

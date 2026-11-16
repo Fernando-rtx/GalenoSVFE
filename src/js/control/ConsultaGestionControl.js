@@ -145,12 +145,21 @@ export default class ConsultaGestionControl {
     });
     if (create) await Promise.all([this.loadPatientDocumentTypes(), this.loadProcedures(0)]);
   }
+  async editPatient() {
+    if (this.state.writing) return;
+    if (!this.state.clinic || normalizarRol(obtenerAsignacionEmpleado()?.rolNombre) !== 'atencion al publico') {
+      this.set({ error: DefaultError.validation('El registro de pacientes está disponible para Atención al público en una clínica seleccionada.') });
+      return;
+    }
+    this.set({ editor: 'paciente', selected: null, error: null, message: '' });
+    await this.loadPatientDocumentTypes();
+  }
   async loadPatientDocumentTypes() {
     if (!this.tipoDocumentoService) return;
     await this.read('tiposDocumento', (signal) => this.tipoDocumentoService.findRange(0, 100, { signal }),
       (result) => this.set({ tiposDocumento: result.datos.filter((row) => row.activo) }));
   }
-  async registerPatient(data) {
+  async registerPatient(data, { closeEditor = false } = {}) {
     if (this.state.writing || !this.state.clinic) return;
     const assignment = obtenerAsignacionEmpleado();
     const session = obtenerSesionEmpleado();
@@ -164,7 +173,11 @@ export default class ConsultaGestionControl {
         query: { idClinica: this.state.clinic },
         headers: { Authorization: `Bearer ${session.token}`, 'X-Persona-Rol': assignment.idPersonaRol },
       });
-      this.set({ writing: false, pacientes: [...this.state.pacientes, result.datos], message: 'Paciente registrado. Ya puedes seleccionarlo para asignar su cita.' });
+      this.set({ writing: false, editor: closeEditor ? null : this.state.editor,
+        pacientes: [...this.state.pacientes, result.datos],
+        message: closeEditor
+          ? 'Paciente registrado. Para asignarle una cita, elige Nueva consulta y búscalo por nombre o documento.'
+          : 'Paciente registrado. Ya puedes seleccionarlo para asignar su cita.' });
     } catch (error) {
       this.set({ writing: false, error });
     }
@@ -278,6 +291,7 @@ export default class ConsultaGestionControl {
   async save(data) {
     if (this.state.writing || !this.state.editor) return;
     const { editor, selected, clinic, consulta } = this.state;
+    if (editor === 'paciente') return this.registerPatient(data, { closeEditor: true });
     this.set({ writing: true, error: null, message: '' });
     try {
       const options = this.employeeOptions(clinic, { query: { idClinica: clinic } });

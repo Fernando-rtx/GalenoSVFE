@@ -226,6 +226,9 @@ class GalenosAcademicApp extends HTMLElement {
     }
     const employee = this.sessions.employee?.();
     this.employeeSession = employee?.contexto?.tipo === 'EMPLEADO' ? employee : null;
+    const patientTab = this.q('[data-tab="paciente"]');
+    patientTab.hidden = Boolean(this.employeeSession);
+    if (this.employeeSession && patientTab.classList.contains('active')) this.show('dashboard');
     this.q('[data-employee-intro]').hidden = !!this.employeeSession;
     this.q('[data-employee-login-link]').hidden = !!this.employeeSession;
     if (this.employeeSession) {

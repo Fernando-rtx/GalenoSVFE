@@ -6,8 +6,10 @@ Los documentos se cargan desde `GET /v1/tipo_documento`; clínicas y roles proce
 
 La apertura de la aplicación sin ruta y el inicio de la PWA llevan a `#academico`.
 El logo regresa a la bandeja, incluso desde el detalle de atención en la misma
-ruta. El menú lateral contiene Búsqueda de citas, Login y Consulta. La bandeja
-muestra una invitación a iniciar sesión cuando no existe identidad de empleado.
+ruta. Búsqueda de citas pertenece al portal de pacientes y se oculta para una
+sesión de empleado. La bandeja conserva las acciones de atención del rol y la
+clínica seleccionados; el tab «Mis citas» no se ofrece dentro de la sesión de
+empleado y permanece en el portal de pacientes.
 
 El dashboard usa las variables `--gs-*` del tema compartido en sus estilos de
 Shadow DOM. El selector permite español e inglés; `boundary/language.js`

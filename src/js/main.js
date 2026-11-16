@@ -101,6 +101,12 @@ function navigate() {
   root.classList.toggle('public-portal', !contractedEmployee);
   document.querySelector('#layoutNavigation').hidden = !contractedEmployee;
   document.querySelector('.layout-menu-toggle').hidden = !contractedEmployee;
+  const patientAppointmentsLink = document.querySelector('[data-navigation] a[href="#pacientes"]');
+  if (patientAppointmentsLink) patientAppointmentsLink.hidden = contractedEmployee;
+  if (contractedEmployee && location.hash === '#pacientes') {
+    location.hash = '#academico';
+    return;
+  }
   if (academic && !contractedEmployee) {
     location.hash = '#pacientes';
     return;

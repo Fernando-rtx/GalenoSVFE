@@ -1,54 +1,10 @@
 // Solo recursos estáticos allowlisted; nunca se guarda una respuesta REST.
-const CACHE = 'galenossv-shell-v32';
+const CACHE = 'galenossv-shell-v33';
 const PREFIX = 'galenossv-shell-';
-// Estos recursos solo se guardan después de que un empleado los solicite.
-const ON_DEMAND_ASSETS = new Set([
-  '/resources/estilos/dashboard.css',
-  '/resources/estilos/gestion.css',
-  '/js/boundary/components/galenos-academic-app.js',
-  '/js/boundary/ticket-options.js',
-  '/js/control/AcademicCareControl.js',
-  '/js/control/AcademicCareService.js',
-  '/js/boundary/modelos/dashboard-presentation.js',
-  '/js/boundary/modelos/form-validation.js',
-  '/js/boundary/dashboard.js',
-  '/js/boundary/gestion.js',
-  '/js/boundary/modelos/CatalogoModel.js',
-  '/js/boundary/modelos/ConsultaGestionModel.js',
-  '/js/boundary/modelos/DashboardModel.js',
-  '/js/boundary/modelos/OrdenModel.js',
-  '/js/boundary/modelos/PersonaModel.js',
-  '/js/boundary/modelos/ProcedimientoModel.js',
-  '/js/boundary/modelos/RelacionModel.js',
-  '/js/boundary/modelos/editable-record.js',
-  '/js/control/CatalogoControl.js',
-  '/js/control/ClinicaService.js',
-  '/js/control/ConsultaGestionControl.js',
-  '/js/control/ConsultaProcedimientoPasoService.js',
-  '/js/control/ConsultaProcedimientoService.js',
-  '/js/control/ConsultaService.js',
-  '/js/control/DashboardControl.js',
-  '/js/control/DocumentoService.js',
-  '/js/control/ExamenResultadoService.js',
-  '/js/control/ExamenService.js',
-  '/js/control/ExamenTipoExamenService.js',
-  '/js/control/MedioContactoService.js',
-  '/js/control/OrdenControl.js',
-  '/js/control/OrdenExamenService.js',
-  '/js/control/PersonaControl.js',
-  '/js/control/PersonaRolService.js',
-  '/js/control/PersonaService.js',
-  '/js/control/ProcedimientoControl.js',
-  '/js/control/ProcedimientoPasoExamenService.js',
-  '/js/control/ProcedimientoPasoSecuenciaService.js',
-  '/js/control/ProcedimientoPasoService.js',
-  '/js/control/ProcedimientoService.js',
-  '/js/control/RelacionControl.js',
-  '/js/control/RolService.js',
-  '/js/control/TipoExamenService.js',
-  '/js/control/TipoMedioContactoService.js',
-]);
+// Lista cerrada: incluye todas las dependencias de arranque, incluso componentes de empleados.
 const ASSETS = new Set([
+  '/js/control/AtencionCitaService.js',
+  '/js/control/AtencionPacienteService.js',
   '/js/boundary/components/galenos-application.js',
   '/js/boundary/components/historial-consulta.js',
   '/js/boundary/modelos/historial-presentacion.js',
@@ -142,9 +98,11 @@ const ASSETS = new Set([
   '/resources/iconos/temasclaro.svg',
 ]);
 self.addEventListener('install', (event) => {
-  const shellAssets = [...ASSETS].filter((path) => !ON_DEMAND_ASSETS.has(path));
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(shellAssets)));
-  self.skipWaiting();
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE);
+    await cache.addAll([...ASSETS]);
+    await self.skipWaiting();
+  })());
 });
 self.addEventListener('activate', (event) => {
   event.waitUntil(
@@ -167,8 +125,11 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET' || request.headers.has('Authorization')) return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
-  if (url.search) return;
-  const path = request.mode === 'navigate' ? '/' : url.pathname;
+  const navigation = request.mode === 'navigate';
+  // La SPA usa fragmentos; ninguna URL REST puede recibir el HTML de inicio.
+  if (navigation && !['/', '/index.html'].includes(url.pathname)) return;
+  if (url.search && !navigation) return;
+  const path = navigation ? '/' : url.pathname;
   if (!ASSETS.has(path)) return;
   event.respondWith((async () => {
     const cached = await caches.match(path);

@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { readFile, access } from 'node:fs/promises';
+import { posix } from 'node:path';
 import vm from 'node:vm';
 
 const root = new URL('../../src/', import.meta.url);
@@ -58,6 +59,8 @@ suite('PWA: recursos y límite de caché', () => {
       return intercepted;
     };
     expect(caught(request('/api/consultas'))).to.equal(false);
+    expect(caught({ ...request('/api/consultas'), mode: 'navigate' })).to.equal(false);
+    expect(caught({ ...request('/?inicio=1'), mode: 'navigate' })).to.equal(true);
     expect(caught(request('/js/main.js', true))).to.equal(false);
     expect(caught(request('/js/control/environment.local.js'))).to.equal(false);
     expect(caught(request('/js/main.js'))).to.equal(true);
@@ -109,6 +112,21 @@ suite('PWA: almacenamiento y recuperación del shell público', () => {
       expect(path).not.to.match(/environment\.local|\/v[12]\/|\.pdf|\?/);
       await access(new URL(path === '/' ? 'index.html' : path.slice(1), root));
     }
+  });
+  test('instala todas las dependencias de módulos antes de depender del servidor apagado', async () => {
+    handlers.install({ waitUntil: (promise) => pending.push(promise) });
+    await Promise.all(pending);
+    const visited = new Set();
+    async function checkModule(path) {
+      if (visited.has(path)) return;
+      visited.add(path);
+      expect(assets, `Falta precargar ${path}`).to.include(path);
+      const source = await readFile(new URL(path.slice(1), root), 'utf8');
+      for (const match of source.matchAll(/(?:import|export)\s+(?:[^'";]*?\s+from\s*)?['"](\.[^'"]+)['"]/g)) {
+        await checkModule(posix.normalize(posix.join(posix.dirname(path), match[1])));
+      }
+    }
+    await checkModule('/js/main.js');
   });
   test('elimina versiones antiguas sin borrar cachés de otras aplicaciones', async () => {
     handlers.activate({ waitUntil: (promise) => pending.push(promise) });

@@ -139,6 +139,41 @@ const english = new Map(Object.entries({
   'Acceso limitado a usuarios autorizados.': 'Access restricted to authorized users.',
   'Activa JavaScript para utilizar el dashboard de consultas.': 'Enable JavaScript to use the consultation dashboard.',
   'Nueva consulta': 'New consultation', 'Asociar procedimiento': 'Add procedure',
+  'Crear cita': 'Create appointment', 'Abrir bandeja de atención': 'Open care inbox',
+  'Atender consulta': 'Open consultation',
+  'Recepción del paciente': 'Patient check-in',
+  'Confirma la llegada e identidad del paciente. La consulta médica la registra el médico en su paso.': 'Confirm the patient’s arrival and identity. The physician records the medical consultation in their step.',
+  'Los exámenes y resultados se registran durante los pasos clínicos.': 'Tests and results are recorded during the clinical steps.',
+  'Registro de recepción': 'Reception record', 'Registro de atención': 'Care record',
+  'Ejemplo: paciente llegó y se confirmó su identidad.': 'Example: patient arrived and identity was confirmed.',
+  'Guardar registro de recepción': 'Save reception record', 'Confirmar recepción y avanzar': 'Confirm reception and advance',
+  'Esta ruta no tiene un paso posterior a recepción. Solicita que revisen la ruta antes de finalizar.': 'This pathway has no step after reception. Ask for the pathway to be reviewed before finishing.',
+  'Cita creada. La primera actividad quedó asignada a recepción.': 'Appointment created. The first activity is assigned to reception.',
+  'Esta pantalla sirve para programar y revisar citas. Para registrar la recepción y avanzar la atención, abre la Bandeja de consultas del Dashboard.': 'Use this screen to schedule and review appointments. To register reception and continue care, open the Dashboard consultation inbox.',
+  'Primero identifica al paciente. Después defines la cita y su ruta de atención.': 'First identify the patient. Then set the appointment and care pathway.',
+  'Paso 1 de 2 · Paciente': 'Step 1 of 2 · Patient', 'Paso 2 de 2 · Cita y recepción': 'Step 2 of 2 · Appointment and reception',
+  '1. Paciente': '1. Patient', '2. Cita y recepción': '2. Appointment and reception',
+  'Busca a la persona antes de crear un registro nuevo.': 'Search for the person before creating a new record.',
+  'Buscar por nombre o número de documento': 'Search by name or document number', 'Buscar paciente': 'Search patient',
+  'Resultados': 'Results', 'Busca para ver pacientes disponibles': 'Search to view available patients',
+  'Busca por nombre o documento antes de registrar a una persona nueva.': 'Search by name or document before registering a new patient.',
+  'No aparece · Registrar paciente': 'Not listed · Register patient', 'Registrar paciente nuevo': 'Register new patient',
+  'Guardar paciente y continuar': 'Save patient and continue', 'Volver al paciente': 'Back to patient',
+  'Continuar a la cita': 'Continue to appointment', 'Busca y selecciona un paciente, o regístralo aquí para continuar.': 'Search and select a patient, or register one here to continue.',
+  'Paciente seleccionado. Continúa para programar la cita.': 'Patient selected. Continue to schedule the appointment.',
+  'Paciente:': 'Patient:', 'La primera actividad de la ruta se asignará a recepción.': 'The first activity in the pathway will be assigned to reception.',
+  'Ruta de atención': 'Care pathway', 'Cargando rutas de atención…': 'Loading care pathways…',
+  'Rutas anteriores': 'Previous pathways', 'Más rutas': 'More pathways',
+  'Fecha y hora de la cita': 'Appointment date and time', 'Fin (opcional)': 'End (optional)',
+  'Indicaciones para recepción (opcional)': 'Notes for reception (optional)',
+  'Cargando procedimientos…': 'Loading procedures…', 'Reintentar carga': 'Retry loading',
+  'No se pudieron cargar las rutas. Revisa tu conexión y vuelve a intentar.': 'Care pathways could not be loaded. Check your connection and try again.',
+  'No hay rutas activas para esta clínica. Revisa la configuración de procedimientos.': 'There are no active pathways for this clinic. Check procedure setup.',
+  'Las rutas disponibles aparecerán aquí.': 'Available pathways will appear here.',
+  'El primer paso de la ruta se asigna al personal de recepción.': 'The first step in the pathway is assigned to reception staff.',
+  'La primera actividad de la ruta se asignará a recepción.': 'The first activity in the pathway will be assigned to reception.',
+  'El paciente se registrará con el rol Paciente en la clínica seleccionada.': 'The patient will be registered with the Patient role at the selected clinic.',
+  'Referencia externa (opcional)': 'External reference (optional)',
   'Procedimientos y pasos de la consulta': 'Consultation procedures and steps',
   'Editar paso': 'Edit step', 'Procedimiento de consulta': 'Consultation procedure', 'Editar consulta': 'Edit consultation',
   'Buscar paciente por nombre o DUI': 'Search patients by name or DUI', 'Buscar pacientes': 'Search patients',
@@ -170,6 +205,8 @@ export function translate(text, targetLanguage = language) {
   if (detail) return `View details for ${detail[1]}`;
   const page = text.match(/^(\d+)–(\d+) de (\d+) consultas$/);
   if (page) return `${page[1]}–${page[2]} of ${page[3]} consultations`;
+  const pathways = text.match(/^(\d+) rutas? disponibles?\. La primera actividad se asigna a recepción\.$/);
+  if (pathways) return `${pathways[1]} ${Number(pathways[1]) === 1 ? 'pathway' : 'pathways'} available. The first activity is assigned to reception.`;
   const state = text.match(/^· (PENDIENTE|EN_CURSO|COMPLETADO|RETROCEDIDO)$/);
   if (state) return `· ${english.get(state[1])}`;
   let result = text;
@@ -179,9 +216,10 @@ export function translate(text, targetLanguage = language) {
   return result;
 }
 
-export function mountLanguage() {
-  const toggle = document.querySelector('#languageToggle');
-  const menu = document.querySelector('#languageOptions');
+export function mountLanguage(scope) {
+  const toggle = scope.querySelector('#languageToggle');
+  const menu = scope.querySelector('#languageOptions');
+  if (!toggle || !menu) return { destroy() {} };
   const options = [...menu.querySelectorAll('[data-language]')];
   const originals = new WeakMap();
   const attributes = new WeakMap();
@@ -243,9 +281,9 @@ export function mountLanguage() {
     try { localStorage.setItem('galenos-language', language); } catch { /* Preferencia opcional. */ }
     // Recorre también los ShadowRoots ya descubiertos, sin recrear formularios ni sesiones.
     for (const root of roots.keys()) visit(root);
-    document.dispatchEvent(new CustomEvent('galenos:idioma', { detail: { language } }));
+    scope.dispatchEvent(new CustomEvent('galenos:idioma', { detail: { language } }));
   }
-  observe(document.documentElement);
+  observe(scope);
   let saved;
   try { saved = localStorage.getItem('galenos-language'); } catch { /* Usa español por defecto. */ }
   change(saved);
@@ -272,14 +310,14 @@ export function mountLanguage() {
   }
   toggle.addEventListener('click', onToggle);
   menu.addEventListener('click', onMenuClick);
-  document.addEventListener('click', onDocumentClick);
-  document.addEventListener('keydown', onKeyDown);
+  scope.addEventListener('click', onDocumentClick);
+  scope.addEventListener('keydown', onKeyDown);
   return {
     destroy() {
       toggle.removeEventListener('click', onToggle);
       menu.removeEventListener('click', onMenuClick);
-      document.removeEventListener('click', onDocumentClick);
-      document.removeEventListener('keydown', onKeyDown);
+      scope.removeEventListener('click', onDocumentClick);
+      scope.removeEventListener('keydown', onKeyDown);
       for (const observer of roots.values()) observer.disconnect();
     },
   };

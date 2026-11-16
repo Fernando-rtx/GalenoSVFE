@@ -1,4 +1,5 @@
 let installEvent = null;
+let installButton = null;
 
 export const isAppInstalled = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 
@@ -7,7 +8,7 @@ export async function requestInstallation() {
   const prompt = installEvent;
   if (!prompt) return 'unavailable';
   installEvent = null;
-  document.querySelector('[data-install]')?.setAttribute('hidden', '');
+  installButton?.setAttribute('hidden', '');
   try {
     await prompt.prompt();
     return (await prompt.userChoice).outcome;
@@ -20,16 +21,15 @@ export async function requestInstallation() {
 window.addEventListener('beforeinstallprompt', (event) => {
   event.preventDefault();
   installEvent = event;
-  document.querySelector('[data-install]')?.removeAttribute('hidden');
+  installButton?.removeAttribute('hidden');
 });
 window.addEventListener('appinstalled', () => {
   installEvent = null;
-  const button = document.querySelector('[data-install]');
-  if (button) button.hidden = true;
+  if (installButton) installButton.hidden = true;
 });
 
-export function registerPwa() {
-  const button = document.querySelector('[data-install]');
+export function registerPwa(scope = document) {
+  const button = (installButton = scope.querySelector('[data-install]'));
   if (button) {
     button.hidden = !installEvent || window.matchMedia('(display-mode: standalone)').matches;
     button.addEventListener('click', async () => {

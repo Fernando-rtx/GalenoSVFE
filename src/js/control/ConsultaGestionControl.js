@@ -43,6 +43,7 @@ export default class ConsultaGestionControl {
       busquedaRealizada: false,
       tiposDocumento: [],
       procedimientos: [],
+      procedimientosStatus: 'idle',
       asociaciones: [],
       pasos: [],
       firstAsociaciones: 0,
@@ -103,10 +104,13 @@ export default class ConsultaGestionControl {
     this.requests[key] = request;
     try {
       const result = await action(request.signal);
-      if (!this.closed && this.requests[key] === request && !request.signal.aborted)
-        success(result);
+      if (this.closed || this.requests[key] !== request || request.signal.aborted) return null;
+      success(result);
+      return true;
     } catch (error) {
-      if (!request.signal.aborted && !this.closed) this.set({ error });
+      if (request.signal.aborted || this.closed) return null;
+      this.set({ error });
+      return false;
     }
   }
   async searchPatients(buscar) {
@@ -142,6 +146,11 @@ export default class ConsultaGestionControl {
       error: null,
       message: '',
       pacientes: [],
+      busquedaRealizada: false,
+      procedimientos: [],
+      procedimientosStatus: 'idle',
+      firstProcedimientos: 0,
+      totalProcedimientos: 0,
     });
     if (create) await Promise.all([this.loadPatientDocumentTypes(), this.loadProcedures(0)]);
   }
@@ -200,7 +209,8 @@ export default class ConsultaGestionControl {
     await this.loadProcedures(0);
   }
   async loadProcedures(first) {
-    await this.read(
+    this.set({ procedimientosStatus: 'loading', error: null, procedimientos: [], firstProcedimientos: first, totalProcedimientos: 0 });
+    const loaded = await this.read(
       'catalogo',
       (signal) =>
         this.procedimientoService.findRange(first, 20, this.employeeOptions(this.state.clinic, { signal, query: { idClinica: this.state.clinic, activo: true } })),
@@ -209,8 +219,10 @@ export default class ConsultaGestionControl {
           procedimientos: result.datos,
           firstProcedimientos: first,
           totalProcedimientos: result.totalDatos,
+            procedimientosStatus: result.datos.length ? 'ready' : 'empty',
         }),
     );
+    if (loaded === false && !this.closed) this.set({ procedimientosStatus: 'error' });
   }
   editProcedure(row) {
     if (!this.state.writing && normalizarRol(obtenerAsignacionEmpleado()?.rolNombre) === 'atencion al publico')
@@ -311,7 +323,7 @@ export default class ConsultaGestionControl {
       if (editor === 'paso')
         saved = await this.pasoService.update(selected.idConsultaProcedimientoPaso, data, options);
       this.set({ writing: false, editor: null, message: nuevaCita
-        ? 'Cita creada con su procedimiento. Registra el resultado de recepción y avanza al siguiente paso.'
+        ? 'Cita creada. La primera actividad quedó asignada a recepción.'
         : 'Cambios guardados en PostgreSQL.' });
       if (clinic !== this.state.clinic) return;
       if (editor === 'consulta') {

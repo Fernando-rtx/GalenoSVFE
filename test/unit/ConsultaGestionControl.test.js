@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import ConsultaGestionControl from '../../src/js/control/ConsultaGestionControl.js';
 import { DefaultResponse } from '../../src/js/index.js';
+import { conectarEmpleado } from '../../src/js/control/contexto-empleado.js';
 const id = '00000000-0000-4000-8000-000000001001';
 const response = (datos) =>
   new DefaultResponse({
@@ -12,6 +13,19 @@ const response = (datos) =>
 describe('Consulta de gestión — coordinación unitaria sintética', () => {
   let dashboard, service, control;
   beforeEach(() => {
+    conectarEmpleado({
+      session: {
+        token: 'sesion-sintetica',
+        contexto: {
+          asignaciones: [{
+            idPersonaRol: id,
+            idClinica: 'clinica-sintetica',
+            rolNombre: 'Atención al público',
+          }],
+        },
+      },
+      asignacionActiva: id,
+    });
     dashboard = {
       state: { consultas: [] },
       subscribe: (listener) => {
@@ -34,16 +48,23 @@ describe('Consulta de gestión — coordinación unitaria sintética', () => {
       pasoService: service,
       pacienteService: service,
       procedimientoService: service,
+      atencionCitaService: service,
     });
   });
-  afterEach(() => control.destroy());
+  afterEach(() => {
+    control.destroy();
+    conectarEmpleado(null);
+  });
   it('crea y recupera por UUID la consulta guardada sin eliminar los filtros del dashboard', async () => {
     await control.editConsulta(true);
     await control.save({ idPersonaRol: 'paciente' });
     sinon.assert.calledOnceWithExactly(
       service.create,
       { idPersonaRol: 'paciente' },
-      { query: { idClinica: 'clinica-sintetica' } },
+      {
+        query: { idClinica: 'clinica-sintetica' },
+        headers: { Authorization: 'Bearer sesion-sintetica', 'X-Persona-Rol': id },
+      },
     );
     sinon.assert.calledOnce(dashboard.loadConsultas);
     sinon.assert.calledOnceWithExactly(dashboard.openConsulta, id);
@@ -66,7 +87,10 @@ describe('Consulta de gestión — coordinación unitaria sintética', () => {
       service.update,
       id,
       { estado: 'EN_CURSO' },
-      { query: { idClinica: 'clinica-sintetica' } },
+      {
+        query: { idClinica: 'clinica-sintetica' },
+        headers: { Authorization: 'Bearer sesion-sintetica', 'X-Persona-Rol': id },
+      },
     );
     sinon.assert.notCalled(service.create);
   });
@@ -78,7 +102,10 @@ describe('Consulta de gestión — coordinación unitaria sintética', () => {
     sinon.assert.calledOnceWithExactly(service.update, id, {
       idConsultaProcedimiento: id, idPersonaRol: id, fechaInicio: step.fechaInicio,
       fechaFin: null, estado: 'EN_CURSO',
-    }, { query: { idClinica: 'clinica-sintetica' } });
+    }, {
+      query: { idClinica: 'clinica-sintetica' },
+      headers: { Authorization: 'Bearer sesion-sintetica', 'X-Persona-Rol': id },
+    });
     expect(control.state.message).to.equal('Actividad iniciada.');
     sinon.assert.calledTwice(service.findRange);
   });

@@ -25,6 +25,8 @@ const fmt = (value) =>
 
 const time = (value) =>
   value ? `<time datetime="${esc(value)}">${esc(fmt(value))}</time>` : 'Pendiente';
+const receptionRole = (value) => String(value ?? '').normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '').trim().replace(/\s+/g, ' ').toLocaleLowerCase() === 'atencion al publico';
 
 class GalenosAcademicApp extends HTMLElement {
   constructor() {
@@ -383,19 +385,32 @@ class GalenosAcademicApp extends HTMLElement {
   }
   renderCare() {
     const d = this.care;
-    this.q('[data-care-content]').innerHTML = `<h2>Atención de consulta</h2>
+    const reception = receptionRole(d.rol);
+    const title = reception ? 'Recepción del paciente' : 'Atención de consulta';
+    const guidance = reception
+      ? '<p>Confirma la llegada e identidad del paciente. La consulta médica la registra el médico en su paso.</p>'
+      : '';
+    const examSection = reception
+      ? '<p>Los exámenes y resultados se registran durante los pasos clínicos.</p>'
+      : `<fieldset><legend>Exámenes permitidos para este paso</legend>${d.examenes.map((e) => `<label><input type="checkbox" name="examenes" value="${esc(e.idExamen)}"> ${esc(e.nombre || 'Examen sin nombre')}</label>`).join('') || '<p>No hay exámenes configurados.</p>'}</fieldset>`;
+    const advanceLabel = reception ? 'Confirmar recepción y avanzar' : 'Guardar y avanzar';
+    const saveLabel = reception ? 'Guardar registro de recepción' : 'Guardar avance';
+    const noNextStep = reception && !d.siguientes.length
+      ? '<p class="status error">Esta ruta no tiene un paso posterior a recepción. Solicita que revisen la ruta antes de finalizar.</p>'
+      : '';
+    this.q('[data-care-content]').innerHTML = `<h2>${title}</h2>${guidance}
       <p class="meta">Paciente: ${esc(d.paciente || 'Nombre no registrado')} · Clínica: ${esc(d.clinica || 'No registrada')}<br>
       Empleado: ${esc(d.empleado || this.employeeSession.contexto.personaNombre)} · Rol: ${esc(d.rol)}<br>
       Fecha de consulta: ${time(d.fechaConsulta)}<br>Procedimiento: ${esc(d.procedimiento)} · Paso actual: ${esc(d.pasoActual)}<br>
       Estado del paso: ${esc(d.estadoPasoActual || 'No informado')}</p>
       <details><summary>Historial previo</summary>${this.history(d.historial)}</details>
-      <details><summary>Órdenes y resultados de este paso</summary>${this.orders(d.ordenesActuales || [])}</details>
-      <form data-care-form><label>Registro de atención<textarea name="valor" required minlength="1" maxlength="10000">${esc(d.valorActual || '')}</textarea></label>
-      <fieldset><legend>Exámenes permitidos para este paso</legend>${d.examenes.map((e) => `<label><input type="checkbox" name="examenes" value="${esc(e.idExamen)}"> ${esc(e.nombre || 'Examen sin nombre')}</label>`).join('') || '<p>No hay exámenes configurados.</p>'}</fieldset>
-      <div class="actions"><button class="primary" name="accion" value="GUARDAR_PARCIAL">Guardar avance</button>
-      ${d.siguientes.length ? `<label>Siguiente paso<select name="idPasoSiguiente"><option value="">Selecciona un paso</option>${d.siguientes.map((s) => `<option value="${esc(s.idPaso)}">${esc(s.nombre)}${s.tipoSecuencia ? ` · ${esc(s.tipoSecuencia)}` : ''}</option>`).join('')}</select></label><button class="primary" name="accion" value="AVANZAR">Guardar y avanzar</button>` : ''}
+      ${reception ? '' : `<details><summary>Órdenes y resultados de este paso</summary>${this.orders(d.ordenesActuales || [])}</details>`}
+      <form data-care-form><label>${reception ? 'Registro de recepción' : 'Registro de atención'}<textarea name="valor" required minlength="1" maxlength="10000" placeholder="${reception ? 'Ejemplo: paciente llegó y se confirmó su identidad.' : ''}">${esc(d.valorActual || '')}</textarea></label>
+      ${examSection}
+      <div class="actions"><button class="primary" name="accion" value="GUARDAR_PARCIAL">${saveLabel}</button>
+      ${d.siguientes.length ? `<label>Siguiente paso<select name="idPasoSiguiente"><option value="">Selecciona un paso</option>${d.siguientes.map((s) => `<option value="${esc(s.idPaso)}">${esc(s.nombre)}${s.tipoSecuencia ? ` · ${esc(s.tipoSecuencia)}` : ''}</option>`).join('')}</select></label><button class="primary" name="accion" value="AVANZAR">${advanceLabel}</button>` : ''}
       ${d.puedeRetroceder ? `${d.anteriores?.length > 1 ? `<label>Paso anterior<select name="idConsultaProcedimientoPasoAnterior"><option value="">Selecciona un paso</option>${d.anteriores.map((s) => `<option value="${esc(s.idConsultaProcedimientoPaso)}">${esc(s.nombre)}</option>`).join('')}</select></label>` : ''}<button name="accion" value="RETROCEDER">Retroceder</button>` : ''}
-      ${d.pasoFinal ? '<button name="accion" value="FINALIZAR">Finalizar procedimiento</button>' : ''}</div>
+      ${d.pasoFinal && !reception ? '<button name="accion" value="FINALIZAR">Finalizar procedimiento</button>' : ''}</div>${noNextStep}
       <p class="status" data-save-status role="status" aria-live="polite"></p></form>`;
     this.q('[data-care-form]').addEventListener('submit', (event) => { event.preventDefault(); this.saveCare(event); });
   }

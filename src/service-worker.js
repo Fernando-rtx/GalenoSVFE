@@ -1,5 +1,5 @@
 // Solo recursos estáticos allowlisted; nunca se guarda una respuesta REST.
-const CACHE = 'galenossv-shell-v26';
+const CACHE = 'galenossv-shell-v31';
 const PREFIX = 'galenossv-shell-';
 // Estos recursos solo se guardan después de que un empleado los solicite.
 const ON_DEMAND_ASSETS = new Set([
@@ -49,6 +49,7 @@ const ON_DEMAND_ASSETS = new Set([
   '/js/control/TipoMedioContactoService.js',
 ]);
 const ASSETS = new Set([
+  '/js/boundary/components/galenos-application.js',
   '/js/boundary/components/historial-consulta.js',
   '/js/boundary/modelos/historial-presentacion.js',
   '/resources/estilos/historial-consulta.css',
@@ -135,7 +136,6 @@ const ASSETS = new Set([
   '/resources/imagenes/galenos-sv-logo.webp',
   '/resources/imagenes/icon-192.png',
   '/resources/imagenes/icon-512.png',
-  '/resources/scripts/tema.js',
   '/resources/iconos/login.svg',
   '/resources/iconos/traductor.svg',
   '/resources/iconos/temasoscuro.svg',

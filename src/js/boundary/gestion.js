@@ -44,16 +44,16 @@ function mountPage(container, tag, ...args) {
 }
 
 /** Compone los módulos de gestión del dashboard académico. */
-export function mountGestion({ config: api, dashboard: dashboardApp }) {
-  const root = document.querySelector('#gestion');
+export function mountGestion({ config: api, dashboard: dashboardApp, scope = document }) {
+  const root = scope.querySelector('#gestion');
   const hint = document.createElement('p');
   hint.className = 'record-hint';
   hint.textContent =
     'Doble clic en un registro para abrirlo. Con teclado, utiliza Enter o la barra espaciadora.';
   root.append(hint);
-  const dashboard = document.querySelector('#main');
-  const nav = document.querySelector('[data-navigation]');
-  const ordersRoot = document.querySelector('[data-ordenes]');
+  const dashboard = scope.querySelector('#main');
+  const nav = scope.querySelector('[data-navigation]');
+  const ordersRoot = scope.querySelector('[data-ordenes]');
   const relationsRoot = document.createElement('div');
   relationsRoot.hidden = true;
   root.append(relationsRoot);
@@ -85,7 +85,7 @@ export function mountGestion({ config: api, dashboard: dashboardApp }) {
     }
     page.open(target);
   }
-  const clinicalRoot = document.querySelector('[data-consulta-gestion]');
+  const clinicalRoot = scope.querySelector('[data-consulta-gestion]');
   const page = mountPage(catalogRoot, 'galenos-catalogos', {
     onRelations(parent, kind) {
       if (kind === 'examen') {
@@ -197,13 +197,13 @@ export function mountGestion({ config: api, dashboard: dashboardApp }) {
       history.pushState(null, '', anchor.getAttribute('href'));
     const isDashboard = !anchor.dataset.module;
     const isClinical = anchor.getAttribute('href') === '#atencion';
-    document.querySelector('[data-workspace-title]').textContent = isClinical
+    scope.querySelector('[data-workspace-title]').textContent = isClinical
       ? 'Atención clínica'
       : 'Consultas';
-    document.querySelector('[data-workspace-subtitle]').textContent = isClinical
+    scope.querySelector('[data-workspace-subtitle]').textContent = isClinical
       ? 'Selecciona una consulta para revisar procedimientos, actividades, órdenes y resultados.'
       : 'Consulta los registros de tu clínica de trabajo.';
-    document.querySelector('[data-workspace-hint]').textContent = isClinical
+    scope.querySelector('[data-workspace-hint]').textContent = isClinical
       ? 'Selecciona una tarjeta para consultar el seguimiento de la atención.'
       : 'Selecciona una tarjeta para consultar su detalle.';
     document.title = `${isClinical ? 'Atención clínica' : 'Consultas'} · GalenosSV`;
@@ -223,7 +223,7 @@ export function mountGestion({ config: api, dashboard: dashboardApp }) {
     }
     if (moveFocus) (isDashboard ? dashboard : root).focus();
   }
-  const brand = document.querySelector('.brand');
+    const brand = scope.querySelector('.brand');
   brand?.addEventListener('click', navigate);
   nav.addEventListener('click', navigate);
   function openHash(moveFocus = true) {

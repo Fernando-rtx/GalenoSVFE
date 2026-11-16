@@ -499,6 +499,7 @@ routes.atencionCita = {
   },
 };
 routes.procedimiento.operations.findRange.query = {
+  ...clinicQuery,
   nombre: { validate: (v) => typeof v === 'string' },
   activo: { validate: (v) => typeof v === 'boolean' },
 };

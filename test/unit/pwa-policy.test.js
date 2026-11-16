@@ -32,7 +32,10 @@ describe('PWA: recursos y límite de caché', () => {
       fetch() {
         return Promise.resolve({ ok: false, type: 'error' });
       },
-      caches: {},
+      caches: {
+        match: async () => undefined,
+        open: async () => ({ put: async () => {} }),
+      },
     });
     const request = (path, authorization = false) => ({
       method: 'GET',

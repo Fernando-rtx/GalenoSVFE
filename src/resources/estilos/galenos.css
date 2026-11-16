@@ -1,4 +1,9 @@
 /* Tema compartido. Se carga después de los estilos de cada pantalla. */
+galenos-application {
+  display: block;
+  min-height: 100vh;
+}
+
 * {
   box-sizing: border-box;
 }

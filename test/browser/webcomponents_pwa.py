@@ -42,6 +42,7 @@ server = ThreadingHTTPServer(("127.0.0.1", 0), StaticFixtureHandler)
 threading.Thread(target=server.serve_forever, daemon=True).start()
 BASE = f"http://127.0.0.1:{server.server_port}"
 TAGS = [
+    "galenos-application",
     "galenos-dashboard",
     "galenos-catalogos",
     "galenos-consulta-gestion",

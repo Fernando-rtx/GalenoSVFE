@@ -1,5 +1,5 @@
 // Solo recursos estáticos allowlisted; nunca se guarda una respuesta REST.
-const CACHE = 'galenossv-shell-v25';
+const CACHE = 'galenossv-shell-v26';
 const PREFIX = 'galenossv-shell-';
 // Estos recursos solo se guardan después de que un empleado los solicite.
 const ON_DEMAND_ASSETS = new Set([

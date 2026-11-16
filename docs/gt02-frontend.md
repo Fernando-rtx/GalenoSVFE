@@ -19,9 +19,11 @@ las identidades y respuestas de la API permanecen únicamente en memoria.
 ## Preparación demo
 
 1. Inicia el backend principal con `mvn -DskipTests liberty:run`, conectado a la base `clinica` de PostgreSQL en Docker y con `GALENOS_API_MODE=academic`.
-2. La app usa por defecto `src/js/control/environment.example.js`. Si necesitas
-   otra URL, define `window.GALENOS_CONFIG = { gestionConfig: { baseUrl: 'http://127.0.0.1:9080/GalenosSV/resources/' } }`
-   en `src/index.html` antes del módulo `main.js`. Autoriza el origen del frontend en CORS.
+2. La app carga `src/js/control/environment.local.js` si existe y, en caso
+   contrario, usa `src/js/control/environment.example.js`. Para un override de
+   despliegue, define `window.GALENOS_CONFIG = { gestionConfig: { baseUrl:
+   'http://127.0.0.1:9080/GalenosSV/resources/' } }` antes del módulo `main.js`.
+   Autoriza el origen del frontend en CORS.
 3. Ejecuta `npm run dev` y abre el origen local autorizado en CORS.
 
 La app shell PWA se precarga para abrir la interfaz sin conexión. Los datos clínicos requieren conexión y no se almacenan localmente; se comunica esta limitación al usuario.

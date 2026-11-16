@@ -1,9 +1,12 @@
 import { mountPortal } from './boundary/portal-academico.js';
+import './boundary/components/galenos-academic-app.js';
 import './boundary/components/galenos-notifications.js';
 import { mountAppearance } from './boundary/appearance.js';
+import { mountGestion } from './boundary/gestion.js';
+import { mountDashboard } from './boundary/dashboard.js';
 import { gestionConfig as defaults } from './control/environment.example.js';
-import { API_V2_ROUTES } from './control/api-v2-routes.js';
-import { createApiConfig } from './control/api-config.js';
+import { API_V2_ROUTES, API_V2_DASHBOARD_ROUTES } from './control/api-v2-routes.js';
+import { ClinicaService, createApiConfig } from './index.js';
 import { obtenerContextoEmpleado, obtenerAsignacionEmpleado } from './control/contexto-empleado.js';
 import { registerPwa } from './boundary/pwa.js';
 import { mountLanguage } from './boundary/language.js';
@@ -15,8 +18,6 @@ let gestion;
 let environment;
 let academicConfig;
 let academicSessions;
-let academicAppLoad;
-let academicAppConfigured = false;
 let unsubscribeEmployee;
 const root = document.querySelector('[data-dashboard]');
 document.querySelector('.brand').addEventListener('click', (event) => {
@@ -30,8 +31,6 @@ document.querySelector('.skip-link').addEventListener('click', (event) => {
   document.querySelector('#workspace').focus();
 });
 function closeGestion() {
-  dashboardGeneration += 1;
-  dashboardLoad = null;
   gestion?.destroy();
   dashboard?.destroy();
   gestion = null;
@@ -75,6 +74,7 @@ async function start() {
       },
       employee: () => portals.find((portal) => portal.identidad.portal === 'empleado')?.identidad.session ?? null,
     };
+    document.querySelector('galenos-academic-app')?.configure(academicConfig, academicSessions);
     const empleado = portals.find((portal) => portal.identidad.portal === 'empleado').identidad;
     unsubscribeEmployee?.();
     unsubscribeEmployee = empleado.subscribe((motivo) => {
@@ -112,7 +112,9 @@ function navigate() {
   if (academic) brand.setAttribute('aria-current', 'page');
   else brand.removeAttribute('aria-current');
   if (academic) {
-    void mountAcademicApp();
+    const app = document.querySelector('galenos-academic-app');
+    app?.refreshSessions();
+    app?.show('dashboard');
   }
   const portal = ['#pacientes', '#empleados', ''].includes(location.hash) || academic;
   const employee = location.hash === '#empleados';
@@ -140,139 +142,55 @@ function navigate() {
       else link.removeAttribute('aria-current');
     }
   } else if (!dashboard && environment) {
-    const main = document.querySelector('#main');
-    main.hidden = false;
-    document.querySelector('#gestion').hidden = true;
-    document.querySelector('[data-ui="startupStatus"]').textContent =
-      'Cargando las consultas de tu clínica…';
-    void mountEmployeeDashboard();
-  }
-}
-document.querySelector('[data-navigation]').addEventListener('click', (event) => {
-  const link = event.target.closest('a[href="#main"], a[href="#atencion"]');
-  if (!link || dashboard || dashboardLoad || !environment || !obtenerAsignacionEmpleado()) return;
-  document.querySelector('#main').hidden = false;
-  document.querySelector('#gestion').hidden = true;
-  document.querySelector('[data-ui="startupStatus"]').textContent =
-    'Reintentando la conexión con tu clínica…';
-  void mountEmployeeDashboard();
-});
-function mountAcademicApp() {
-  if (academicAppLoad) return academicAppLoad;
-  academicAppLoad = (async () => {
-    await import('./boundary/components/galenos-academic-app.js');
-    if (location.hash !== '#academico' || !obtenerContextoEmpleado()) return;
-    const app = document.querySelector('galenos-academic-app');
-    if (!academicAppConfigured) {
-      app.configure(academicConfig, academicSessions);
-      academicAppConfigured = true;
-    } else {
-      app.refreshSessions();
-    }
-    app.show('dashboard');
-  })()
-    .catch((error) => {
-      document.querySelector('[data-ui="startupStatus"]').textContent =
-        'No se pudo cargar el área de empleado. Reintenta la conexión.';
-      console.error('No se pudo cargar el área de empleado.', error);
-    })
-    .finally(() => {
-      academicAppLoad = null;
-    });
-  return academicAppLoad;
-}
-let dashboardLoad;
-let dashboardGeneration = 0;
-let employeeStyles;
-async function mountEmployeeDashboard() {
-  if (dashboardLoad) return dashboardLoad;
-  const generation = dashboardGeneration;
-  dashboardLoad = (async () => {
-    if (!employeeStyles) {
-      employeeStyles = Promise.all(
-        ['/resources/estilos/dashboard.css', '/resources/estilos/gestion.css'].map((href) => {
-          const link = document.createElement('link');
-          link.rel = 'stylesheet';
-          link.href = href;
-          document.head.append(link);
-          return new Promise((resolve, reject) => {
-            link.addEventListener('load', resolve, { once: true });
-            link.addEventListener('error', () => reject(new Error(`No se pudo cargar ${href}`)), {
-              once: true,
-            });
-          });
-        }),
-      ).catch((error) => {
-        employeeStyles = null;
-        throw error;
-      });
-    }
-    await employeeStyles;
-    const [{ mountGestion }, { mountDashboard }, { API_V2_DASHBOARD_ROUTES }, { ClinicaService }] =
-      await Promise.all([
-        import('./boundary/gestion.js'),
-        import('./boundary/dashboard.js'),
-        import('./control/api-v2-routes.js'),
-        import('./control/ClinicaService.js'),
-      ]);
-    if (generation !== dashboardGeneration || ['#pacientes', '#empleados'].includes(location.hash))
-      return;
-    // Servicios, controles, componentes y módulos de gestión originales.
-    // El servidor verifica permisos, aunque el usuario abra rutas manualmente.
-    const identificacion = portals.find((p) => p.identidad.portal === 'empleado').identidad;
-    // The employee may change or refresh the session while lazy modules load.
-    // Resolve the assignment only after those awaits so headers match the live token.
+    const identificacion = portals.find((p) => p.identidad.portal === 'empleado')?.identidad;
     const assignment = obtenerAsignacionEmpleado();
-    if (!obtenerContextoEmpleado() || !assignment || !identificacion.session) {
-      dashboardLoad = null;
-      document.querySelector('[data-ui="startupStatus"]').textContent =
-        'La sesión de empleado cambió. Vuelve a ingresar para continuar.';
-      return;
-    }
-    const session = identificacion.session;
+    if (!identificacion?.session || !assignment) return;
     const config = createApiConfig({
       ...environment,
       routes: API_V2_ROUTES,
       http: {
         headers: {
-          Authorization: `Bearer ${session.token}`,
+          Authorization: `Bearer ${identificacion.session.token}`,
           'X-Persona-Rol': assignment.idPersonaRol,
         },
       },
     });
     const clinicConfig = createApiConfig({ ...config, routes: API_V2_DASHBOARD_ROUTES });
-    dashboard = mountDashboard({
-      root,
-      config,
-      clinicaService: new ClinicaService({ config: clinicConfig }),
-    });
-    gestion = mountGestion({ config, dashboard });
-    const mounted = dashboard;
-    mounted.ready
-      .then(async () => {
-        if (dashboard !== mounted || mounted.control.state.clinicasStatus !== 'ready') return;
-        await mounted.control.selectClinica(assignment.idClinica);
-        if (dashboard === mounted)
-          document.querySelector('[data-ui="startupStatus"]').textContent = '';
-      })
-      .catch(() => {
-        document.querySelector('[data-ui="startupStatus"]').textContent =
-          'No se pudo cargar la clínica asignada. Reintenta la conexión.';
+    try {
+      dashboard = mountDashboard({
+        root,
+        config,
+        clinicaService: new ClinicaService({ config: clinicConfig }),
       });
-  })().catch((error) => {
-    if (generation === dashboardGeneration) {
-      dashboardLoad = null;
+      gestion = mountGestion({ config, dashboard });
+      const mounted = dashboard;
+      mounted.ready
+        .then(async () => {
+          if (dashboard !== mounted || mounted.control.state.clinicasStatus !== 'ready') return;
+          await mounted.control.selectClinica(assignment.idClinica);
+          if (dashboard === mounted)
+            document.querySelector('[data-ui="startupStatus"]').textContent = '';
+        })
+        .catch((error) => {
+          document.querySelector('[data-ui="startupStatus"]').textContent =
+            'No se pudo cargar la clínica asignada. Reintenta la conexión.';
+          console.error('No se pudo cargar la clínica asignada.', error);
+        });
+    } catch (error) {
+      console.error('No se pudo montar la consulta del empleado.', error);
       gestion?.destroy();
       dashboard?.destroy();
       gestion = null;
       dashboard = null;
       document.querySelector('[data-ui="startupStatus"]').textContent =
-        'No se pudo cargar el dashboard. Reintenta la conexión.';
-      console.error('No se pudo cargar el dashboard del empleado.', error);
+        'No se pudo abrir Consultas. Revisa la conexión y vuelve a intentar.';
     }
-  });
-  return dashboardLoad;
+  }
 }
+document.querySelector('[data-navigation]').addEventListener('click', (event) => {
+  const link = event.target.closest('a[href="#main"], a[href="#atencion"]');
+  if (link && !dashboard && environment && obtenerAsignacionEmpleado()) navigate();
+});
 window.addEventListener('hashchange', navigate);
 window.addEventListener('pagehide', () => {
   unsubscribeEmployee?.();

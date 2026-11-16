@@ -6,6 +6,9 @@ export function conectarEmpleado(value) {
 export function obtenerContextoEmpleado() {
   return control?.session ? structuredClone(control.session.contexto) : null;
 }
+export function obtenerSesionEmpleado() {
+  return control?.session ? structuredClone(control.session) : null;
+}
 export function obtenerAsignacionEmpleado() {
   const assignment = control?.session?.contexto.asignaciones.find(
     (a) => a.idPersonaRol === control.asignacionActiva,

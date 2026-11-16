@@ -33,6 +33,9 @@ export default class ConsultaGestionModel extends HTMLElement {
     this.editor = null;
     this.notice = node('p');
     this.notice.setAttribute('role', 'status');
+    this.nextStepLink = node('a', 'Abrir bandeja para registrar recepción y avanzar el procedimiento');
+    this.nextStepLink.href = '#academico';
+    this.nextStepLink.hidden = true;
     this.actions = node('div', undefined, 'gestion-tools');
     this.create = node('button', 'Nueva consulta', 'primary-button');
     this.add = node('button', 'Asociar procedimiento', 'secondary-button');
@@ -59,7 +62,7 @@ export default class ConsultaGestionModel extends HTMLElement {
     actions.append(this.cancel, this.save);
     this.form.append(this.fields, this.error, actions);
     this.dialog.append(this.form);
-    root.append(this.notice, this.actions, this.relationshipSection, this.dialog);
+    root.append(this.notice, this.nextStepLink, this.actions, this.relationshipSection, this.dialog);
     this.form.onsubmit = (event) => {
       event.preventDefault();
       return control.save(this.data(control.state));
@@ -87,6 +90,8 @@ export default class ConsultaGestionModel extends HTMLElement {
   }
   build(state) {
     const value = state.selected;
+    this.initialProcedure = null;
+    this.initialProcedurePager = null;
     this.fields.replaceChildren(
       node(
         'h2',
@@ -115,6 +120,59 @@ export default class ConsultaGestionModel extends HTMLElement {
         this.patients.id = 'consulta-paciente';
         this.patients.required = true;
         this.fields.append(label, this.patients);
+        this.fields.append(node('p', 'Si no aparece en la búsqueda, registra al paciente aquí antes de asignar la cita.'));
+        const details = node('details');
+        this.registrationDetails = details;
+        details.append(node('summary', 'Registrar paciente nuevo'));
+        const patientFields = node('div', undefined, 'gestion-fields');
+        this.newPatientInputs = {};
+        for (const [name, text, type] of [
+          ['nombres', 'Nombres', 'text'], ['apellidos', 'Apellidos', 'text'],
+          ['fechaNacimiento', 'Fecha de nacimiento', 'date'], ['documento', 'Número de documento', 'text'],
+        ]) {
+          const input = node('input');
+          input.type = type;
+          input.name = name;
+          input.id = 'consulta-nuevo-' + name;
+          input.autocomplete = name === 'documento' ? 'off' : name;
+          const fieldLabel = node('label', text);
+          fieldLabel.htmlFor = input.id;
+          patientFields.append(fieldLabel, input);
+          this.newPatientInputs[name] = input;
+        }
+        const docType = node('select');
+        docType.name = 'idTipoDocumentoNuevo';
+        docType.id = 'consulta-nuevo-tipo-documento';
+        const docLabel = node('label', 'Tipo de documento');
+        docLabel.htmlFor = docType.id;
+        patientFields.append(docLabel, docType);
+        this.newPatientInputs.idTipoDocumento = docType;
+        const register = node('button', 'Guardar paciente', 'secondary-button');
+        register.type = 'button';
+        register.onclick = () => this.registerPatient();
+        patientFields.append(register);
+        this.registrationStatus = node('p');
+        this.registrationStatus.setAttribute('role', 'status');
+        patientFields.append(this.registrationStatus);
+        details.append(patientFields);
+        this.fields.append(details);
+      }
+      if (!value) {
+        const procedureLabel = node('label', 'Procedimiento (el primer paso debe ser Atención al público)');
+        procedureLabel.htmlFor = 'consulta-procedimiento-inicial';
+        this.initialProcedure = node('select');
+        this.initialProcedure.name = 'idProcedimiento';
+        this.initialProcedure.id = 'consulta-procedimiento-inicial';
+        this.initialProcedure.required = true;
+        this.fields.append(procedureLabel, this.initialProcedure);
+        this.initialProcedurePager = node('div', undefined, 'gestion-tools');
+        const prev = node('button', 'Procedimientos anteriores', 'text-button');
+        const next = node('button', 'Más procedimientos', 'text-button');
+        prev.type = next.type = 'button';
+        prev.onclick = () => this.control.loadProcedures(this.control.state.firstProcedimientos - 20);
+        next.onclick = () => this.control.loadProcedures(this.control.state.firstProcedimientos + 20);
+        this.initialProcedurePager.append(prev, next);
+        this.fields.append(this.initialProcedurePager);
       }
       const reference = this.field(
         'referenciaExterna',
@@ -184,6 +242,7 @@ export default class ConsultaGestionModel extends HTMLElement {
         idPersonaRol: state.selected?.idPersonaRol ?? f.idPersonaRol.value,
         referenciaExterna: f.referenciaExterna.value,
         observaciones: f.observaciones.value,
+        ...(!state.selected ? { idProcedimiento: f.idProcedimiento.value } : {}),
       });
     if (state.editor === 'procedimiento')
       Object.assign(data, {
@@ -199,15 +258,32 @@ export default class ConsultaGestionModel extends HTMLElement {
       });
     return data;
   }
+  async registerPatient() {
+    if (!this.control.state.busquedaRealizada || this.control.state.pacientes.length) {
+      this.registrationStatus.textContent = 'Busca primero por nombre o documento y verifica que no exista.';
+      return;
+    }
+    const fields = this.newPatientInputs;
+    const data = Object.fromEntries(Object.entries(fields).map(([key, input]) => [key, input.value.trim()]));
+    if (Object.values(data).some((value) => !value)) {
+      this.registrationStatus.textContent = 'Completa todos los datos para registrar al paciente.';
+      return;
+    }
+    data.fechaNacimiento = new Date(`${data.fechaNacimiento}T12:00:00-06:00`).toISOString();
+    await this.control.registerPatient(data);
+  }
   render(state) {
     this.notice.textContent = state.error ? gestionError(state.error) : state.message;
+    this.nextStepLink.hidden = !state.message.startsWith('Cita creada');
     this.create.hidden = normalizarRol(obtenerAsignacionEmpleado()?.rolNombre) !== 'atencion al publico';
     this.create.disabled = state.writing || !state.clinic;
-    this.add.disabled = state.writing || !state.consulta;
+    const reception = normalizarRol(obtenerAsignacionEmpleado()?.rolNombre) === 'atencion al publico';
+    this.add.hidden = !reception;
+    this.add.disabled = state.writing || !state.consulta || !reception;
     editableRecord(
       document.querySelector('[data-ui=detail]'),
       () => this.control.editConsulta(false),
-      Boolean(state.consulta) && !state.writing,
+      Boolean(state.consulta) && !state.writing && reception,
     );
     this.relationshipSection.hidden = !state.consulta;
     this.relationshipSection.replaceChildren();
@@ -271,7 +347,7 @@ export default class ConsultaGestionModel extends HTMLElement {
             editableRecord(
               line,
               () => this.control.editProcedure(row),
-              !state.writing,
+              !state.writing && reception,
             );
           }
           this.relationshipSection.append(line);
@@ -294,6 +370,8 @@ export default class ConsultaGestionModel extends HTMLElement {
     }
     if (!state.editor && this.dialog.open) this.dialog.close();
     if (state.editor === 'consulta' && !state.selected && this.patients) {
+      if (this.registrationDetails)
+        this.registrationDetails.hidden = !state.busquedaRealizada || state.pacientes.length > 0;
       const previous = this.patients.value;
       this.patients.replaceChildren(node('option', 'Selecciona un paciente'));
       this.patients.firstChild.value = '';
@@ -306,6 +384,36 @@ export default class ConsultaGestionModel extends HTMLElement {
         this.patients.append(option);
       }
       this.patients.value = previous;
+      const docs = this.newPatientInputs?.idTipoDocumento;
+      if (docs) {
+        const selectedType = docs.value;
+        docs.replaceChildren(node('option', 'Selecciona tipo de documento'));
+        docs.firstChild.value = '';
+        for (const type of state.tiposDocumento) {
+          const option = node('option', type.nombre);
+          option.value = type.idTipoDocumento;
+          docs.append(option);
+        }
+        docs.value = selectedType;
+      }
+      if (this.initialProcedure) {
+        const selectedProcedure = this.initialProcedure.value;
+        this.initialProcedure.replaceChildren(node('option', 'Selecciona un procedimiento'));
+        this.initialProcedure.firstChild.value = '';
+        for (const item of state.procedimientos) {
+          const option = node('option', item.nombre || item.idProcedimiento);
+          option.value = item.idProcedimiento;
+          this.initialProcedure.append(option);
+        }
+        this.initialProcedure.value = selectedProcedure;
+        const buttons = this.initialProcedurePager?.querySelectorAll('button') || [];
+        if (buttons.length === 2) {
+          buttons[0].disabled = state.firstProcedimientos === 0;
+          buttons[1].disabled = state.firstProcedimientos + state.procedimientos.length >= state.totalProcedimientos;
+        }
+      }
+      if (state.message.startsWith('Paciente registrado') && state.pacientes.length)
+        this.patients.value = state.pacientes.at(-1).idPersonaRol;
     }
     if (state.editor === 'procedimiento' && !state.selected && this.procedures) {
       const previous = this.procedures.value;
@@ -330,6 +438,7 @@ export default class ConsultaGestionModel extends HTMLElement {
       this.catalogNext.disabled =
         state.writing || state.firstProcedimientos + 20 >= state.totalProcedimientos;
     }
+    if (this.registrationStatus) this.registrationStatus.textContent = state.error ? gestionError(state.error) : state.message;
     this.error.textContent = state.error ? gestionError(state.error) : '';
   }
   destroy() {

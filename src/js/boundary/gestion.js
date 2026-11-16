@@ -24,6 +24,8 @@ import {
   DefaultError,
 } from '../index.js';
 import ConsultaGestionControl from '../control/ConsultaGestionControl.js';
+import AtencionPacienteService from '../control/AtencionPacienteService.js';
+import AtencionCitaService from '../control/AtencionCitaService.js';
 import ConsultaGestionModel from './modelos/ConsultaGestionModel.js';
 import ProcedimientoControl from '../control/ProcedimientoControl.js';
 import ProcedimientoModel from './modelos/ProcedimientoModel.js';
@@ -114,6 +116,9 @@ export function mountGestion({ config: api, dashboard: dashboardApp }) {
     asociacionService: new ConsultaProcedimientoService({ config: api }),
     pasoService: new ConsultaProcedimientoPasoService({ config: api }),
     pacienteService: new PersonaRolService({ config: api }),
+    atencionPacienteService: new AtencionPacienteService({ config: api }),
+    atencionCitaService: new AtencionCitaService({ config: api }),
+    tipoDocumentoService: new TipoDocumentoService({ config: api }),
     procedimientoService: new ProcedimientoService({ config: api }),
   });
   const orders = new OrdenControl({

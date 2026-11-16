@@ -444,6 +444,60 @@ routes.personaRol = {
     },
   },
 };
+
+routes.atencionPaciente = {
+  status: 'verified',
+  source,
+  credentials: 'omit',
+  operations: {
+    create: {
+      method: 'POST',
+      path: 'v2/empleado/paciente',
+      body: 'json',
+      response: 'json',
+      successStatuses: [201],
+      query: clinicQuery,
+      validateData: (v) => object(v)
+        && Object.keys(v).length === 5
+        && typeof v.nombres === 'string' && Boolean(v.nombres.trim())
+        && typeof v.apellidos === 'string' && Boolean(v.apellidos.trim())
+        && typeof v.fechaNacimiento === 'string'
+        && isUuid(v.idTipoDocumento)
+        && typeof v.documento === 'string' && Boolean(v.documento.trim()),
+      validateResponse: recordSchema({
+        idPersonaRol: isUuid,
+        idPersona: isUuid,
+        idClinica: isUuid,
+        nombres: stringOrNull,
+        apellidos: stringOrNull,
+        rolNombre: stringOrNull,
+      }),
+    },
+  },
+};
+routes.atencionCita = {
+  status: 'verified',
+  source,
+  credentials: 'omit',
+  operations: {
+    create: {
+      method: 'POST',
+      path: 'v2/empleado/cita',
+      body: 'json',
+      response: 'json',
+      successStatuses: [201],
+      query: clinicQuery,
+      validateData: (v) => object(v)
+        && Object.keys(v).length === 6
+        && isUuid(v.idPersonaRol) && isUuid(v.idProcedimiento)
+        && typeof v.fechaInicio === 'string'
+        && (v.fechaFin === null || typeof v.fechaFin === 'string')
+        && (v.referenciaExterna === null || typeof v.referenciaExterna === 'string')
+        && (v.observaciones === null || typeof v.observaciones === 'string'),
+      validateResponse: recordSchema(consultaSchema),
+    },
+  },
+};
 routes.procedimiento.operations.findRange.query = {
   nombre: { validate: (v) => typeof v === 'string' },
   activo: { validate: (v) => typeof v === 'boolean' },

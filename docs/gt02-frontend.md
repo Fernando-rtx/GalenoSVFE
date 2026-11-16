@@ -18,6 +18,13 @@ ShadowRoots, sin recrear formularios ni cambiar los valores de los registros.
 La preferencia de idioma se conserva como `galenos-language` en localStorage;
 las identidades y respuestas de la API permanecen únicamente en memoria.
 
+En Consultas, solo la asignación de Atención al público puede dar de alta pacientes
+y programar citas. Recepción primero busca por nombre o documento; si no hay
+coincidencias, registra nombres, apellidos, nacimiento y documento. El guardado de
+cita asocia de forma atómica el procedimiento activo y su primer paso. La pantalla
+indica abrir la bandeja para registrar el resultado de recepción y usar «Avanzar»;
+el siguiente rol y responsable provienen de la secuencia configurada del procedimiento.
+
 ## Preparación demo
 
 1. Inicia el backend principal con `mvn -DskipTests liberty:run`, conectado a la base `clinica` de PostgreSQL en Docker y con `GALENOS_API_MODE=academic`.

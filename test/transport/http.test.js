@@ -3,13 +3,13 @@ import { expect } from 'chai';
 import { fixtureService, rejection } from '../helpers/http-fixture.js';
 
 // Servidor HTTP sintético local. Prueba Fetch real, no la API REST de Galenos.
-describe('Transporte HTTP real contra servidor sintético local', () => {
+suite('Transporte HTTP real contra servidor sintético local', () => {
   let server;
   let baseUrl;
   let service;
   let requests;
 
-  before(async () => {
+  suiteSetup(async () => {
     requests = [];
     server = createServer(async (request, response) => {
       const chunks = [];
@@ -50,9 +50,9 @@ describe('Transporte HTTP real contra servidor sintético local', () => {
     service = fixtureService(globalThis.fetch, { baseUrl });
   });
 
-  beforeEach(() => { requests.length = 0; });
+  setup(() => { requests.length = 0; });
 
-  after(async () => {
+  suiteTeardown(async () => {
     if (server && server.listening) {
       server.closeAllConnections();
       await new Promise((resolve, reject) =>
@@ -61,7 +61,7 @@ describe('Transporte HTTP real contra servidor sintético local', () => {
     }
   });
 
-  it('ejecuta GET, POST, PUT y DELETE con Fetch nativo y cabeceras reales', async () => {
+  test('ejecuta GET, POST, PUT y DELETE con Fetch nativo y cabeceras reales', async () => {
     const page = await service.findRange(0, 2);
     expect(page.totalDatos).to.equal(11);
     expect((await service.findById('fixture')).datos.id).to.equal('fixture');
@@ -82,18 +82,18 @@ describe('Transporte HTTP real contra servidor sintético local', () => {
     expect(requests[0].url).to.include('offset-fixture=0');
   });
 
-  it('mantiene el estado 404 de una respuesta HTTP real', async () => {
+  test('mantiene el estado 404 de una respuesta HTTP real', async () => {
     expect(await rejection(service.findById('missing-fixture'))).to.include({
       type: 'http',
       status: 404,
     });
   });
 
-  it('detecta JSON inválido recibido por red', async () => {
+  test('detecta JSON inválido recibido por red', async () => {
     expect((await rejection(service.findById('broken-fixture'))).type).to.equal('processing');
   });
 
-  it('aborta por timeout una conexión real', async () => {
+  test('aborta por timeout una conexión real', async () => {
     const limited = fixtureService(globalThis.fetch, { baseUrl, timeoutMs: 50 });
     expect((await rejection(limited.findById('slow-fixture'))).code).to.equal('TIMEOUT');
   });

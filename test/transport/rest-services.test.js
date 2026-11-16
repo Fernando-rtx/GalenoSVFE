@@ -10,7 +10,7 @@ import { TIPOS, CLINICAS, CONSULTAS } from '../helpers/rest-fixtures.js';
 import { rejection } from '../helpers/http-fixture.js';
 
 // Respuestas sintéticas del contrato 0.2 por HTTP real. No es GalenosSV/JPA.
-describe('DAOs oficiales contra servidor HTTP sintético, sin mock de Fetch', () => {
+suite('DAOs oficiales contra servidor HTTP sintético, sin mock de Fetch', () => {
   let server;
   let tipos;
   let clinicas;
@@ -19,7 +19,7 @@ describe('DAOs oficiales contra servidor HTTP sintético, sin mock de Fetch', ()
   const idClinica = CLINICAS[0].idClinica;
   const query = { idClinica };
 
-  before(async () => {
+  suiteSetup(async () => {
     server = createServer((request, response) => {
       const url = new URL(request.url, 'http://fixture.invalid');
       lastRequest = { method: request.method, url };
@@ -63,7 +63,7 @@ describe('DAOs oficiales contra servidor HTTP sintético, sin mock de Fetch', ()
     consultas = new ConsultaService({ config });
   });
 
-  after(async () => {
+  suiteTeardown(async () => {
     if (server && server.listening) {
       server.closeAllConnections();
       await new Promise((resolve, reject) =>
@@ -72,7 +72,7 @@ describe('DAOs oficiales contra servidor HTTP sintético, sin mock de Fetch', ()
     }
   });
 
-  it('obtiene catálogo, detalle y opciones de clínica por HTTP', async () => {
+  test('obtiene catálogo, detalle y opciones de clínica por HTTP', async () => {
     expect((await tipos.findRange(0, 2)).datos).to.deep.equal(TIPOS);
     expect((await tipos.findById(TIPOS[0].idTipoDocumento)).datos).to.deep.equal(TIPOS[0]);
     const response = await clinicas.findRange(0, 2);
@@ -80,7 +80,7 @@ describe('DAOs oficiales contra servidor HTTP sintético, sin mock de Fetch', ()
     expect(response.totalDatos).to.equal(CLINICAS.length);
   });
 
-  it('transmite todos los filtros y conserva el conteo del conjunto completo', async () => {
+  test('transmite todos los filtros y conserva el conteo del conjunto completo', async () => {
     const filters = Object.assign({}, query, {
       fechaDesde: '2026-10-22',
       fechaHasta: '2026-10-23',
@@ -95,7 +95,7 @@ describe('DAOs oficiales contra servidor HTTP sintético, sin mock de Fetch', ()
     );
   });
 
-  it('mantiene clínica en el detalle y conserva 404 al cambiar de ámbito', async () => {
+  test('mantiene clínica en el detalle y conserva 404 al cambiar de ámbito', async () => {
     expect((await consultas.findById(CONSULTAS[0].idConsulta, { query })).datos).to.deep.equal(
       CONSULTAS[0],
     );
@@ -105,11 +105,11 @@ describe('DAOs oficiales contra servidor HTTP sintético, sin mock de Fetch', ()
     expect(error).to.include({ type: 'http', status: 404 });
   });
 
-  it('conserva 422 del máximo de página propio de un despliegue', async () => {
+  test('conserva 422 del máximo de página propio de un despliegue', async () => {
     expect(await rejection(tipos.findRange(0, 4))).to.include({ type: 'http', status: 422 });
   });
 
-  it('recibe [] y total cero cuando la clínica no tiene coincidencias', async () => {
+  test('recibe [] y total cero cuando la clínica no tiene coincidencias', async () => {
     const response = await consultas.findRange(0, 2, {
       query: { idClinica: CLINICAS[1].idClinica },
     });

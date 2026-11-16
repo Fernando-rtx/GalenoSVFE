@@ -3,7 +3,7 @@ import sinon from 'sinon';
 import { TipoDocumentoService, ConsultaService, createApiConfig } from '../../src/js/index.js';
 import { rejection } from '../helpers/http-fixture.js';
 
-describe('Contratos deshabilitados explícitamente en configuración', () => {
+suite('Contratos deshabilitados explícitamente en configuración', () => {
   [TipoDocumentoService, ConsultaService].forEach((Service) => {
     const operations = {
       findRange: (service) => service.findRange(0, 5),
@@ -13,7 +13,7 @@ describe('Contratos deshabilitados explícitamente en configuración', () => {
       deleteById: (service) => service.deleteById('fixture'),
     };
     Object.keys(operations).forEach((operation) => {
-      it(`${Service.name}.${operation} informa la dependencia sin enviar solicitudes`, async () => {
+      test(`${Service.name}.${operation} informa la dependencia sin enviar solicitudes`, async () => {
         const fetchStub = sinon.stub();
         const config = createApiConfig({
           routes: { tipoDocumento: { status: 'pending' }, consulta: { status: 'pending' } },

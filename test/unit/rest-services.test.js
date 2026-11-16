@@ -9,7 +9,7 @@ import {
 import { TIPOS, CLINICAS, CONSULTAS } from '../helpers/rest-fixtures.js';
 import { jsonResponse, rejection } from '../helpers/http-fixture.js';
 
-describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
+suite('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
   const baseUrl = 'https://fixture.invalid/GalenosSV/resources/';
   const idClinica = CLINICAS[0].idClinica;
   const query = { idClinica };
@@ -17,7 +17,7 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
   let tipos;
   let clinicas;
   let consultas;
-  beforeEach(() => {
+  setup(() => {
     fetchStub = sinon.stub();
     const options = { config: createApiConfig({ baseUrl }), fetchImpl: fetchStub };
     tipos = new TipoDocumentoService(options);
@@ -25,7 +25,7 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
     consultas = new ConsultaService(options);
   });
 
-  it('TipoDocumento adapta arreglo y Total-registros a la interfaz acordada', async () => {
+  test('TipoDocumento adapta arreglo y Total-registros a la interfaz acordada', async () => {
     fetchStub.resolves(jsonResponse(TIPOS, 200, { 'Total-registros': '8' }));
     const response = await tipos.findRange(0, 2);
     expect(fetchStub.firstCall.args[0]).to.equal(`${baseUrl}v1/tipo_documento?first=0&max=2`);
@@ -35,7 +35,7 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
     expect(fetchStub.firstCall.args[1].credentials).to.equal('omit');
   });
 
-  it('TipoDocumento consulta detalle por UUID sin inventar un total', async () => {
+  test('TipoDocumento consulta detalle por UUID sin inventar un total', async () => {
     fetchStub.resolves(jsonResponse(TIPOS[0]));
     const response = await tipos.findById(TIPOS[0].idTipoDocumento);
     expect(fetchStub.firstCall.args[0]).to.equal(
@@ -45,14 +45,14 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
     expect(response.totalDatos).to.equal(null);
   });
 
-  it('acepta UUID canónico con mayúsculas sin aplicar restricciones de versión no publicadas', async () => {
+  test('acepta UUID canónico con mayúsculas sin aplicar restricciones de versión no publicadas', async () => {
     fetchStub.resolves(jsonResponse(TIPOS[0]));
     const id = 'ABCDEF01-ABCD-0000-0000-ABCDEF012345';
     await tipos.findById(id);
     expect(fetchStub.firstCall.args[0]).to.equal(`${baseUrl}v1/tipo_documento/${id}`);
   });
 
-  it('Clínica obtiene las opciones por HTTP sin fijar IDs en el Service', async () => {
+  test('Clínica obtiene las opciones por HTTP sin fijar IDs en el Service', async () => {
     fetchStub.resolves(jsonResponse(CLINICAS, 200, { 'Total-registros': String(CLINICAS.length) }));
     const response = await clinicas.findRange(0, 5);
     expect(new URL(fetchStub.firstCall.args[0]).pathname).to.equal(
@@ -62,7 +62,7 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
     expect(response.totalDatos).to.equal(CLINICAS.length);
   });
 
-  it('Consulta envía clínica y únicamente los filtros publicados', async () => {
+  test('Consulta envía clínica y únicamente los filtros publicados', async () => {
     fetchStub.resolves(
       jsonResponse(CONSULTAS, 200, { 'Total-registros': String(CONSULTAS.length) }),
     );
@@ -83,7 +83,7 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
     expect(response.datos[0].fechaInicio).to.equal(CONSULTAS[0].fechaInicio);
   });
 
-  it('Consulta conserva el ámbito de clínica en el detalle', async () => {
+  test('Consulta conserva el ámbito de clínica en el detalle', async () => {
     fetchStub.resolves(jsonResponse(CONSULTAS[0]));
     const response = await consultas.findById(CONSULTAS[0].idConsulta, { query });
     const url = new URL(fetchStub.firstCall.args[0]);
@@ -92,13 +92,13 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
     expect(response.totalDatos).to.equal(null);
   });
 
-  it('omite un filtro opcional undefined en lugar de serializarlo', async () => {
+  test('omite un filtro opcional undefined en lugar de serializarlo', async () => {
     fetchStub.resolves(jsonResponse([], 200, { 'Total-registros': '0' }));
     await consultas.findRange(0, 1, { query: { idClinica, fechaDesde: undefined } });
     expect(new URL(fetchStub.firstCall.args[0]).searchParams.has('fechaDesde')).to.equal(false);
   });
 
-  it('valida año bisiesto y años bajos sin rollover de Date ni zona del navegador', async () => {
+  test('valida año bisiesto y años bajos sin rollover de Date ni zona del navegador', async () => {
     fetchStub.callsFake(() => Promise.resolve(jsonResponse([], 200, { 'Total-registros': '0' })));
     for (const fechaDesde of ['0001-01-01', '2000-02-29', '2024-02-29', '9999-12-31']) {
       await consultas.findRange(0, 1, { query: { idClinica, fechaDesde } });
@@ -106,7 +106,7 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
     expect(fetchStub.callCount).to.equal(4);
   });
 
-  it('no envía credenciales aunque un entorno genérico las haya habilitado', async () => {
+  test('no envía credenciales aunque un entorno genérico las haya habilitado', async () => {
     fetchStub.resolves(jsonResponse(TIPOS[0]));
     const service = new TipoDocumentoService({
       config: createApiConfig({ baseUrl, http: { credentials: 'include' } }),
@@ -122,21 +122,21 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
     { name: 'Consulta', get: () => consultas, options: { query } },
   ];
   resources.forEach((resource) => {
-    it(`${resource.name} conserva un total no cero en una página sin resultados`, async () => {
+    test(`${resource.name} conserva un total no cero en una página sin resultados`, async () => {
       fetchStub.resolves(jsonResponse([], 200, { 'Total-registros': '17' }));
       const response = await resource.get().findRange(50, 2, resource.options);
       expect(response.datos).to.deep.equal([]);
       expect(response.totalDatos).to.equal(17);
     });
 
-    it(`${resource.name} representa conjunto vacío como [] y total cero`, async () => {
+    test(`${resource.name} representa conjunto vacío como [] y total cero`, async () => {
       fetchStub.resolves(jsonResponse([], 200, { 'Total-registros': '0' }));
       const response = await resource.get().findRange(0, 2, resource.options);
       expect(response.datos).to.deep.equal([]);
       expect(response.totalDatos).to.equal(0);
     });
 
-    it(`${resource.name} detecta total ausente o no expuesto por CORS`, async () => {
+    test(`${resource.name} detecta total ausente o no expuesto por CORS`, async () => {
       fetchStub.resolves(jsonResponse([]));
       expect(await rejection(resource.get().findRange(0, 2, resource.options))).to.include({
         type: 'processing',
@@ -145,7 +145,7 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
     });
 
     [403, 404, 422, 500].forEach((status) => {
-      it(`${resource.name} conserva HTTP ${status} y mensaje JSON del backend`, async () => {
+      test(`${resource.name} conserva HTTP ${status} y mensaje JSON del backend`, async () => {
         const details = { mensaje: 'Error sintético del contrato' };
         fetchStub.resolves(jsonResponse(details, status));
         const error = await rejection(resource.get().findRange(0, 2, resource.options));
@@ -155,7 +155,7 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
     });
 
     ['create', 'update', 'deleteById'].forEach((operation) => {
-      it(`${resource.name}.${operation} no está disponible ni envía HTTP`, async () => {
+      test(`${resource.name}.${operation} no está disponible ni envía HTTP`, async () => {
         const service = resource.get();
         const promise =
           operation === 'create'
@@ -168,7 +168,7 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
       });
     });
 
-    it(`${resource.name} respeta el rango entero de paginación del contrato Java`, async () => {
+    test(`${resource.name} respeta el rango entero de paginación del contrato Java`, async () => {
       for (const [first, max] of [
         [2147483648, 1],
         [0, 2147483648],
@@ -181,7 +181,7 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
     });
   });
 
-  it('Clínica no inventa una ruta de detalle', async () => {
+  test('Clínica no inventa una ruta de detalle', async () => {
     expect((await rejection(clinicas.findById(idClinica))).code).to.equal('OPERATION_UNSUPPORTED');
     sinon.assert.notCalled(fetchStub);
   });
@@ -195,7 +195,7 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
     '00000000-0000-4000-8000-00000000000g',
     `${TIPOS[0].idTipoDocumento} `,
   ].forEach((id) => {
-    it(`rechaza UUID no canónico ${JSON.stringify(id)} antes de Fetch`, async () => {
+    test(`rechaza UUID no canónico ${JSON.stringify(id)} antes de Fetch`, async () => {
       expect((await rejection(tipos.findById(id))).type).to.equal('validation');
       expect((await rejection(consultas.findById(id, { query }))).type).to.equal('validation');
       sinon.assert.notCalled(fetchStub);
@@ -204,7 +204,7 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
 
   [undefined, {}, { idClinica: null }, { idClinica: '' }, { idClinica: 'no-uuid' }].forEach(
     (filters) => {
-      it(`exige clínica válida en lista y detalle: ${JSON.stringify(filters)}`, async () => {
+      test(`exige clínica válida en lista y detalle: ${JSON.stringify(filters)}`, async () => {
         expect((await rejection(consultas.findRange(0, 1, { query: filters }))).code).to.equal(
           'INVALID_QUERY',
         );
@@ -230,7 +230,7 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
     null,
     20261022,
   ].forEach((value) => {
-    it(`rechaza fecha inválida ${JSON.stringify(value)}`, async () => {
+    test(`rechaza fecha inválida ${JSON.stringify(value)}`, async () => {
       expect(
         (await rejection(consultas.findRange(0, 1, { query: { idClinica, fechaDesde: value } })))
           .code,
@@ -243,7 +243,7 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
     });
   });
 
-  it('rechaza fechaDesde posterior a fechaHasta sin corregirla silenciosamente', async () => {
+  test('rechaza fechaDesde posterior a fechaHasta sin corregirla silenciosamente', async () => {
     expect(
       (
         await rejection(
@@ -256,7 +256,7 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
     sinon.assert.notCalled(fetchStub);
   });
 
-  it('rechaza PersonaRol inválido, filtros desconocidos y cambios de paginación por query', async () => {
+  test('rechaza PersonaRol inválido, filtros desconocidos y cambios de paginación por query', async () => {
     for (const extra of [
       { idPersonaRol: 'invalid' },
       { doctorNombre: 'no-publicado' },
@@ -271,7 +271,7 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
     sinon.assert.notCalled(fetchStub);
   });
 
-  it('no admite filtros de lista en el detalle ni en TipoDocumento/Clínica', async () => {
+  test('no admite filtros de lista en el detalle ni en TipoDocumento/Clínica', async () => {
     expect(
       (
         await rejection(
@@ -286,7 +286,7 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
     sinon.assert.notCalled(fetchStub);
   });
 
-  it('no acepta un sobre JSON o una entidad JPA como sustituto del DTO publicado', async () => {
+  test('no acepta un sobre JSON o una entidad JPA como sustituto del DTO publicado', async () => {
     fetchStub.resolves(jsonResponse({ datos: TIPOS }, 200, { 'Total-registros': '1' }));
     expect((await rejection(tipos.findRange(0, 1))).type).to.equal('processing');
     fetchStub.resolves(
@@ -297,7 +297,7 @@ describe('DAOs REST oficiales, contrato 0.2 (Fetch simulado)', () => {
     );
   });
 
-  it('no elimina campos null ni convierte timestamps UTC del DTO', async () => {
+  test('no elimina campos null ni convierte timestamps UTC del DTO', async () => {
     const nullable = Object.assign({}, CONSULTAS[0], {
       fechaInicio: null,
       fechaFin: null,

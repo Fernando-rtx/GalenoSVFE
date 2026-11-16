@@ -14,9 +14,9 @@ const response = (datos) =>
     totalDatos: Array.isArray(datos) ? datos.length : null,
   });
 
-describe('Gestión de catálogos — coordinación unitaria sintética', () => {
+suite('Gestión de catálogos — coordinación unitaria sintética', () => {
   let service, control;
-  beforeEach(() => {
+  setup(() => {
     service = {
       findRange: sinon.stub().resolves(response([row])),
       findById: sinon.stub().resolves(response(row)),
@@ -27,8 +27,8 @@ describe('Gestión de catálogos — coordinación unitaria sintética', () => {
       services: { tipoDocumento: service },
     });
   });
-  afterEach(() => control.destroy());
-  it('guardar crea mediante Service y recarga el listado sin duplicar reglas de negocio', async () => {
+  teardown(() => control.destroy());
+  test('guardar crea mediante Service y recarga el listado sin duplicar reglas de negocio', async () => {
     control.create();
     await control.save({ nombre: 'Sintético' });
     sinon.assert.calledOnceWithExactly(service.create, { nombre: 'Sintético' });
@@ -36,13 +36,13 @@ describe('Gestión de catálogos — coordinación unitaria sintética', () => {
     expect(control.state.editor).to.equal(null);
     expect(control.state.rows).to.deep.equal([row]);
   });
-  it('edición recupera el registro vigente y conserva su UUID al actualizar', async () => {
+  test('edición recupera el registro vigente y conserva su UUID al actualizar', async () => {
     await control.edit(row.idTipoDocumento);
     await control.save({ nombre: 'Cambio' });
     sinon.assert.calledOnceWithExactly(service.update, row.idTipoDocumento, { nombre: 'Cambio' });
     sinon.assert.notCalled(service.create);
   });
-  it('error de persistencia conserva el formulario y no simula éxito ni recarga', async () => {
+  test('error de persistencia conserva el formulario y no simula éxito ni recarga', async () => {
     const error = new Error('Fallo sintético');
     service.create.rejects(error);
     control.create();
@@ -52,7 +52,7 @@ describe('Gestión de catálogos — coordinación unitaria sintética', () => {
     expect(control.state.message).to.equal('');
     sinon.assert.notCalled(service.findRange);
   });
-  it('impide doble envío y cierre del formulario durante una escritura pendiente', async () => {
+  test('impide doble envío y cierre del formulario durante una escritura pendiente', async () => {
     let finish;
     service.create.returns(
       new Promise((resolve) => {
@@ -68,7 +68,7 @@ describe('Gestión de catálogos — coordinación unitaria sintética', () => {
     finish(response(row));
     await pending;
   });
-  it('ignora una lectura tardía anterior aunque el transporte no respete AbortController', async () => {
+  test('ignora una lectura tardía anterior aunque el transporte no respete AbortController', async () => {
     let finish;
     service.findRange.onFirstCall().returns(
       new Promise((resolve) => {

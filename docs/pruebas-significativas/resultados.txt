@@ -1,0 +1,30 @@
+
+/private/tmp/gt02-fe-before-unit.log
+  507 passing (290ms)
+
+/private/tmp/gt02-fe-before-check.log
+Sintaxis válida: 111 archivos.
+
+/private/tmp/gt02-fe-before-coverage.log
+  507 passing (341ms)
+ℹ all files                                |  88.61 |    88.12 |   83.85 | 
+V8: 46 archivos medidos; 31 archivos sin medición (coverage/scope.json).
+
+/private/tmp/gt02-fe-unit.log
+  419 passing (255ms)
+
+/private/tmp/gt02-fe-check.log
+Sintaxis válida: 114 archivos.
+
+/private/tmp/gt02-fe-transport.log
+  9 passing (1s)
+
+/private/tmp/gt02-fe-coverage.log
+Informes de cobertura: /var/folders/dd/k8qm1wk567b133f3tmt5y8x40000gn/T/galenos-coverage-TezzTk
+  419 passing (300ms)
+ℹ all files                                |  88.61 |    88.12 |   83.85 | 
+V8: 46 archivos medidos; 31 archivos sin medición (/var/folders/dd/k8qm1wk567b133f3tmt5y8x40000gn/T/galenos-coverage-TezzTk/scope.json).
+
+/private/tmp/gt02-fe-mutation.log
+  70 passing (71ms)
+  6 failing

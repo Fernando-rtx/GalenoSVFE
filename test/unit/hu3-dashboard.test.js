@@ -13,8 +13,8 @@ const step = (id, estado = 'COMPLETADO') => ({
   valor: `Registro ${id}`,
 });
 const edge = (from, to) => ({ idPasoOrigen: from, idPasoDestino: to, tipoSecuencia: 'CONTINUAR' });
-describe('HU3: fechas clínicas y preparación de solicitudes', () => {
-  it('calcula hoy en El Salvador aunque UTC ya sea el día siguiente', () => {
+suite('HU3: fechas clínicas y preparación de solicitudes', () => {
+  test('calcula hoy en El Salvador aunque UTC ya sea el día siguiente', () => {
     const now = new Date('2026-12-01T01:00:00Z');
     expect(fechaClinica(now)).to.equal('2026-11-30');
     expect(rangoPeriodo('today', now)).to.deep.equal({
@@ -24,7 +24,7 @@ describe('HU3: fechas clínicas y preparación de solicitudes', () => {
     expect(rangoPeriodo('past', now)).to.deep.equal({ fechaDesde: '', fechaHasta: '2026-11-29' });
     expect(rangoPeriodo('future', now)).to.deep.equal({ fechaDesde: '2026-12-01', fechaHasta: '' });
   });
-  it('utiliza exclusivamente la asignación seleccionada y no mezcla clínica/rol', () => {
+  test('utiliza exclusivamente la asignación seleccionada y no mezcla clínica/rol', () => {
     const control = new AcademicCareControl();
     const session = {
       token: 'sintetico',
@@ -53,7 +53,7 @@ describe('HU3: fechas clínicas y preparación de solicitudes', () => {
     ])
       expect(() => control.prepararBandeja(session, 'uno', dates)).to.throw();
   });
-  it('solo selecciona consultas de la página vigente sin cambiar estado clínico', () => {
+  test('solo selecciona consultas de la página vigente sin cambiar estado clínico', () => {
     const control = new AcademicCareControl();
     const consulta = { idConsulta: 'propia', estadoPasoActual: 'PENDIENTE' };
     control.queue = [consulta];
@@ -63,8 +63,8 @@ describe('HU3: fechas clínicas y preparación de solicitudes', () => {
     expect(() => control.seleccionarConsulta('propia')).to.throw('bandeja actual');
   });
 });
-describe('HU3: jerarquía de ejecuciones persistidas (fixture sintético)', () => {
-  it('representa bifurcaciones y convergencias sin repetir el registro compartido', () => {
+suite('HU3: jerarquía de ejecuciones persistidas (fixture sintético)', () => {
+  test('representa bifurcaciones y convergencias sin repetir el registro compartido', () => {
     const tree = arbolHistorial({
       pasos: ['a', 'b', 'c', 'd'].map((id) => step(id)),
       secuencias: [edge('a', 'b'), edge('a', 'c'), edge('b', 'd'), edge('c', 'd')],
@@ -74,7 +74,7 @@ describe('HU3: jerarquía de ejecuciones persistidas (fixture sintético)', () =
     expect(tree[0].children[0].children[0].ejecuciones[0].valor).to.equal('Registro d');
     expect(tree[0].children[1].children[0].referencia).to.equal(true);
   });
-  it('conserva repeticiones y retrocesos, pero nunca presenta pasos futuros como realizados', () => {
+  test('conserva repeticiones y retrocesos, pero nunca presenta pasos futuros como realizados', () => {
     const repeated = {
       ...step('a', 'RETROCEDIDO'),
       idConsultaProcedimientoPaso: 'segunda',
@@ -88,14 +88,14 @@ describe('HU3: jerarquía de ejecuciones persistidas (fixture sintético)', () =
     expect(tree[0].ejecuciones).to.have.length(2);
     expect(tree[0].children).to.deep.equal([]);
   });
-  it('termina con ciclos registrados y conserva datos sin inventar un orden lineal', () => {
+  test('termina con ciclos registrados y conserva datos sin inventar un orden lineal', () => {
     const tree = arbolHistorial({
       pasos: [step('a'), step('b')],
       secuencias: [edge('a', 'b'), edge('b', 'a')],
     });
     expect(tree[0].children[0].children[0]).to.include({ referencia: true, ciclo: true });
   });
-  it('no cruza procedimientos al construir los árboles', () => {
+  test('no cruza procedimientos al construir los árboles', () => {
     expect(
       arbolHistorial({ pasos: [step('a')], secuencias: [edge('a', 'otro-procedimiento')] })[0]
         .children,

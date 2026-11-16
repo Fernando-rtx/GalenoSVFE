@@ -3,14 +3,14 @@ import { validateIntegrationEnvironment } from '../integration/backend-suite.js'
 import { createApiConfig } from '../../src/js/index.js';
 import { fixtureConfig } from '../helpers/http-fixture.js';
 
-describe('Precondiciones de la suite de integración', () => {
-  it('no acepta una suite vacía como integración aprobada', () => {
+suite('Precondiciones de la suite de integración', () => {
+  test('no acepta una suite vacía como integración aprobada', () => {
     expect(() => validateIntegrationEnvironment({ config: fixtureConfig(), cases: [] })).to.throw(
       'Faltan URL y casos',
     );
   });
 
-  it('no acepta contratos de Galenos pendientes aunque se configure una URL', () => {
+  test('no acepta contratos de Galenos pendientes aunque se configure una URL', () => {
     const config = createApiConfig({
       baseUrl: 'https://fixture.invalid/',
       routes: { futuro: { status: 'pending' } },
@@ -23,7 +23,7 @@ describe('Precondiciones de la suite de integración', () => {
     ).to.throw('Contrato no verificado');
   });
 
-  it('exige una comprobación observable del cambio para habilitar escrituras', () => {
+  test('exige una comprobación observable del cambio para habilitar escrituras', () => {
     const testCase = {
       resource: 'fixture',
       first: 0,
@@ -51,7 +51,7 @@ describe('Precondiciones de la suite de integración', () => {
     expectedLength: 1,
   };
 
-  it('acepta expectativas explícitas de paginación y errores HTTP reales', () => {
+  test('acepta expectativas explícitas de paginación y errores HTTP reales', () => {
     const testCase = {
       ...listCase,
       listChecks: [check],
@@ -70,7 +70,7 @@ describe('Precondiciones de la suite de integración', () => {
     { name: '' },
     { first: 2147483648 },
   ].forEach((change) => {
-    it(`rechaza una expectativa de lista que podría falsear la verificación: ${JSON.stringify(change)}`, () => {
+    test(`rechaza una expectativa de lista que podría falsear la verificación: ${JSON.stringify(change)}`, () => {
       expect(() =>
         validateIntegrationEnvironment({
           config,
@@ -81,14 +81,14 @@ describe('Precondiciones de la suite de integración', () => {
   });
 
   ['listChecks', 'listErrors', 'detailErrors'].forEach((key) => {
-    it(`rechaza ${key} vacío en lugar de aprobarlo sin solicitudes`, () => {
+    test(`rechaza ${key} vacío en lugar de aprobarlo sin solicitudes`, () => {
       expect(() =>
         validateIntegrationEnvironment({ config, cases: [{ ...listCase, [key]: [] }] }),
       ).to.throw();
     });
   });
 
-  it('exige un error HTTP y parámetros que el cliente permita enviar al servidor', () => {
+  test('exige un error HTTP y parámetros que el cliente permita enviar al servidor', () => {
     for (const change of [{ status: 200 }, { max: 0 }, { query: { filtroInventado: 'x' } }]) {
       const listErrors = [{ name: 'Error sintético', first: 0, max: 101, status: 422, ...change }];
       expect(() =>
@@ -97,7 +97,7 @@ describe('Precondiciones de la suite de integración', () => {
     }
   });
 
-  it('no permite probar detalle de Clínica ni UUID inválidos como si fueran errores HTTP', () => {
+  test('no permite probar detalle de Clínica ni UUID inválidos como si fueran errores HTTP', () => {
     const detailErrors = [{ name: 'Ausente', id: listCase.id, status: 404 }];
     expect(() =>
       validateIntegrationEnvironment({

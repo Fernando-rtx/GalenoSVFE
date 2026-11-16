@@ -1,6 +1,9 @@
 {
-  "spec": ["test/unit/**/*.test.js"],
+  "spec": [
+    "test/unit/**/*.test.js"
+  ],
   "timeout": 3000,
   "forbid-only": true,
-  "fail-zero": true
+  "fail-zero": true,
+  "ui": "tdd"
 }

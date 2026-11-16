@@ -5,9 +5,9 @@ import { DefaultResponse } from '../../src/js/index.js';
 const response = (datos) => new DefaultResponse({ datos, status: 200, totalDatos: datos.length });
 const step = { idConsultaProcedimientoPaso: 'paso-sintetico' };
 const order = { idOrdenExamen: 'orden-sintetica' };
-describe('Órdenes y resultados — coordinación unitaria sintética', () => {
+suite('Órdenes y resultados — coordinación unitaria sintética', () => {
   let control, ordenService, resultadoService;
-  beforeEach(() => {
+  setup(() => {
     ordenService = {
       findRange: sinon.stub().resolves(response([])),
       create: sinon.stub().resolves(response([])),
@@ -28,8 +28,8 @@ describe('Órdenes y resultados — coordinación unitaria sintética', () => {
       dashboard,
     });
   });
-  afterEach(() => control.destroy());
-  it('no permite editar filas de órdenes anteriores mientras carga resultados de otro padre', async () => {
+  teardown(() => control.destroy());
+  test('no permite editar filas de órdenes anteriores mientras carga resultados de otro padre', async () => {
     control.set({ paso: step, rows: [order] });
     let finish;
     resultadoService.findRange.returns(
@@ -47,7 +47,7 @@ describe('Órdenes y resultados — coordinación unitaria sintética', () => {
     await pending;
     expect(control.state.rows[0].idExamenResultado).to.equal('resultado-sintetico');
   });
-  it('un fallo de persistencia conserva el formulario y no comunica éxito', async () => {
+  test('un fallo de persistencia conserva el formulario y no comunica éxito', async () => {
     control.set({ paso: step });
     control.edit();
     const error = new Error('Fallo sintético');

@@ -22,9 +22,9 @@ const deferred = () => {
   return { promise, resolve, reject };
 };
 
-describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
+suite('Dashboard Control — coordinación sin DOM ni Fetch', () => {
   let clinicaService, consultaService, control;
-  beforeEach(async () => {
+  setup(async () => {
     clinicaService = { findRange: sinon.stub().resolves(response(CLINICAS, CLINICAS.length)) };
     consultaService = {
       findRange: sinon.stub().resolves(response(CONSULTAS.slice(0, 2), 5)),
@@ -33,22 +33,22 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     control = new DashboardControl({ clinicaService, consultaService, pageSize: 2 });
     await control.loadClinicas();
   });
-  afterEach(() => control.destroy());
+  teardown(() => control.destroy());
 
-  it('exige dependencias Service y una paginación válida', () => {
+  test('exige dependencias Service y una paginación válida', () => {
     expect(() => new DashboardControl({})).to.throw(DefaultError);
     expect(() => new DashboardControl({ clinicaService, consultaService, pageSize: 0 })).to.throw(
       DefaultError,
     );
   });
 
-  it('no consulta antes de seleccionar una clínica recibida por REST', async () => {
+  test('no consulta antes de seleccionar una clínica recibida por REST', async () => {
     sinon.assert.notCalled(consultaService.findRange);
     expect(await rejection(control.selectClinica('no-disponible'))).to.be.instanceOf(DefaultError);
     sinon.assert.notCalled(consultaService.findRange);
   });
 
-  it('carga todas las páginas de clínicas para no ocultar opciones después de la primera', async () => {
+  test('carga todas las páginas de clínicas para no ocultar opciones después de la primera', async () => {
     clinicaService.findRange.reset();
     clinicaService.findRange.onFirstCall().resolves(response([CLINICAS[0]], 2));
     clinicaService.findRange.onSecondCall().resolves(response([CLINICAS[1]], 2));
@@ -57,14 +57,14 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     expect(control.state.clinicas).to.deep.equal(CLINICAS);
   });
 
-  it('no entra en bucle si el dataset de clínicas se vacía entre páginas', async () => {
+  test('no entra en bucle si el dataset de clínicas se vacía entre páginas', async () => {
     clinicaService.findRange.resolves(response([], 3));
     await control.loadClinicas();
     expect(control.state.clinicas).to.deep.equal([]);
     expect(control.state.clinicasStatus).to.equal('ready');
   });
 
-  it('selecciona clínica y conserva datos, total y estado de carga separados', async () => {
+  test('selecciona clínica y conserva datos, total y estado de carga separados', async () => {
     await control.selectClinica(CLINICAS[0].idClinica);
     const [first, max, options] = consultaService.findRange.firstCall.args;
     expect([first, max]).to.deep.equal([0, 2]);
@@ -75,7 +75,7 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     expect(control.state.consultasStatus).to.equal('ready');
   });
 
-  it('aplica filtros y reinicia first conservando clínica y fechas UTC originales', async () => {
+  test('aplica filtros y reinicia first conservando clínica y fechas UTC originales', async () => {
     await control.selectClinica(CLINICAS[0].idClinica);
     await control.setPage(2);
     const filtros = {
@@ -94,7 +94,7 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     expect(control.state.filtros.fechaDesde).to.equal('2026-10-22');
   });
 
-  it('rechaza filtros ajenos, UUID y fechas inválidos antes de usar los Service', async () => {
+  test('rechaza filtros ajenos, UUID y fechas inválidos antes de usar los Service', async () => {
     for (const filters of [
       { estado: 'inventado' },
       { fechaDesde: null },
@@ -107,7 +107,7 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     sinon.assert.notCalled(consultaService.findRange);
   });
 
-  it('representa vacío con total cero y páginas vacías con su total real', async () => {
+  test('representa vacío con total cero y páginas vacías con su total real', async () => {
     consultaService.findRange.resolves(response([], 0));
     await control.selectClinica(CLINICAS[0].idClinica);
     expect(control.state.consultas).to.deep.equal([]);
@@ -118,7 +118,7 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     expect(control.state.consultasStatus).to.equal('ready');
   });
 
-  it('limpia filtros, detalle y solicitudes al cambiar de clínica o quitar la selección', async () => {
+  test('limpia filtros, detalle y solicitudes al cambiar de clínica o quitar la selección', async () => {
     await control.selectClinica(CLINICAS[0].idClinica);
     await control.setFilters({ fechaDesde: '2026-10-22' });
     await control.selectConsulta(CONSULTAS[0].idConsulta);
@@ -134,7 +134,7 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     expect(consultaService.findRange.callCount).to.equal(count);
   });
 
-  it('consulta detalle únicamente de la página actual y envía solo idClinica como contexto', async () => {
+  test('consulta detalle únicamente de la página actual y envía solo idClinica como contexto', async () => {
     await control.selectClinica(CLINICAS[0].idClinica);
     await control.setFilters({ fechaDesde: '2026-10-22' });
     await control.selectConsulta(CONSULTAS[0].idConsulta);
@@ -147,7 +147,7 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
   });
 
   ['clinic', 'filters', 'page'].forEach((change) => {
-    it(`cancela e ignora una respuesta obsoleta al cambiar ${change}, incluso si el Service ignora AbortSignal`, async () => {
+    test(`cancela e ignora una respuesta obsoleta al cambiar ${change}, incluso si el Service ignora AbortSignal`, async () => {
       const old = deferred();
       consultaService.findRange.onFirstCall().returns(old.promise);
       const pending = control.selectClinica(CLINICAS[0].idClinica);
@@ -165,7 +165,7 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     });
   });
 
-  it('ignora errores tardíos de una lista cancelada', async () => {
+  test('ignora errores tardíos de una lista cancelada', async () => {
     const old = deferred();
     consultaService.findRange.onFirstCall().returns(old.promise);
     const pending = control.selectClinica(CLINICAS[0].idClinica);
@@ -176,7 +176,7 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     expect(control.state.consultasError).to.equal(null);
   });
 
-  it('no publica filas de la clínica anterior al notificar una selección nueva', async () => {
+  test('no publica filas de la clínica anterior al notificar una selección nueva', async () => {
     await control.selectClinica(CLINICAS[0].idClinica);
     consultaService.findRange.returns(new Promise(() => {}));
     const seen = [];
@@ -188,7 +188,7 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     unsubscribe();
   });
 
-  it('cancela detalle al cambiar lista e ignora su respuesta tardía', async () => {
+  test('cancela detalle al cambiar lista e ignora su respuesta tardía', async () => {
     await control.selectClinica(CLINICAS[0].idClinica);
     const old = deferred();
     consultaService.findById.returns(old.promise);
@@ -201,7 +201,7 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     expect(control.state.detalle).to.equal(null);
   });
 
-  it('mantiene únicamente el último detalle seleccionado', async () => {
+  test('mantiene únicamente el último detalle seleccionado', async () => {
     await control.selectClinica(CLINICAS[0].idClinica);
     const old = deferred();
     consultaService.findById.onFirstCall().returns(old.promise);
@@ -214,7 +214,7 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
   });
 
   ['clinicas', 'consultas', 'detalle'].forEach((resource) => {
-    it(`conserva DefaultError de ${resource} y permite reintentar`, async () => {
+    test(`conserva DefaultError de ${resource} y permite reintentar`, async () => {
       const error = new DefaultError({
         type: 'http',
         code: 'HTTP_ERROR',
@@ -253,7 +253,7 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     });
   });
 
-  it('publica snapshots inmutables y permite retirar suscripciones', async () => {
+  test('publica snapshots inmutables y permite retirar suscripciones', async () => {
     const listener = sinon.spy();
     const unsubscribe = control.subscribe(listener);
     unsubscribe();
@@ -265,7 +265,7 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     }).to.throw(TypeError);
   });
 
-  it('destruir la página cancela solicitudes y evita notificar respuestas posteriores', async () => {
+  test('destruir la página cancela solicitudes y evita notificar respuestas posteriores', async () => {
     const old = deferred();
     consultaService.findRange.returns(old.promise);
     const pending = control.selectClinica(CLINICAS[0].idClinica);
@@ -278,7 +278,7 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
     sinon.assert.calledOnce(listener);
   });
 
-  it('evita una paginación inválida y exige clínica antes de cargar una página', async () => {
+  test('evita una paginación inválida y exige clínica antes de cargar una página', async () => {
     for (const [first, max] of [
       [-1, 2],
       [0, 0],
@@ -291,8 +291,8 @@ describe('Dashboard Control — coordinación sin DOM ni Fetch', () => {
   });
 });
 
-describe('Presentación del dashboard y modelo compartido', () => {
-  it('entrega solo los seis campos aceptados, preservando null y cadenas UTC', () => {
+suite('Presentación del dashboard y modelo compartido', () => {
+  test('entrega solo los seis campos aceptados, preservando null y cadenas UTC', () => {
     const consulta = { ...CONSULTAS[0], personaNombre: null, fechaFin: null };
     const model = consultaCardModel(consulta);
     expect(Object.keys(model)).to.deep.equal([
@@ -310,7 +310,7 @@ describe('Presentación del dashboard y modelo compartido', () => {
     expect(formatDate(consulta.fechaInicio)).to.include('UTC');
   });
 
-  it('muestra el mismo instante en UTC aunque llegue con otra zona', () => {
+  test('muestra el mismo instante en UTC aunque llegue con otra zona', () => {
     expect(formatDate('2026-10-22T06:00:00Z')).to.equal(formatDate('2026-10-22T00:00:00-06:00'));
     expect(formatDate('fecha inválida')).to.equal('Sin especificar');
   });
@@ -326,7 +326,7 @@ describe('Presentación del dashboard y modelo compartido', () => {
     [{ type: 'http', status: 422 }, 'parámetros'],
     [{ type: 'http', status: 500 }, 'Intenta nuevamente'],
   ].forEach(([error, text]) => {
-    it(`presenta un mensaje seguro para ${JSON.stringify(error)}`, () => {
+    test(`presenta un mensaje seguro para ${JSON.stringify(error)}`, () => {
       expect(errorMessage({ ...error, message: 'SQL o contenido interno sintético' })).to.include(
         text,
       );

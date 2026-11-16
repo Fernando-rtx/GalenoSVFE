@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Capa de acceso a datos de GalenoSVFE, ES nativo y Boundary–Control–Entity",
+  "description": "Capa de acceso a datos de GalenoSVFE, ES nativo y Boundary\u2013Control\u2013Entity",
   "engines": {
     "node": ">=22"
   },
@@ -11,12 +11,10 @@
     "dev": "browser-sync start --config bs-config.cjs",
     "test": "mocha",
     "test:unit": "mocha",
-    "test:transport": "mocha --no-config --timeout 5000 'test/transport/**/*.test.js'",
+    "test:transport": "mocha --no-config --ui tdd --timeout 5000 'test/transport/**/*.test.js'",
     "test:integration": "node scripts/run-integration.js",
     "check": "node scripts/check-syntax.js",
-    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include='src/**/*.js' --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage/lcov.info scripts/test-coverage.js",
-    "pretest:coverage": "node -e \"require('node:fs').mkdirSync('coverage', { recursive: true })\"",
-    "posttest:coverage": "node scripts/coverage-scope.js"
+    "test:coverage": "node scripts/run-coverage.js"
   },
   "devDependencies": {
     "browser-sync": "3.0.4",

@@ -49,9 +49,9 @@ async function reject(work, type, status) {
   if (status) expect(error.status).to.equal(status);
   return error;
 }
-describe('GT02: controles con fixtures sintéticos', () => {
-  afterEach(() => conectarEmpleado(null));
-  it('valida el formato del tipo seleccionado sin convertir Pasaporte en DUI', () => {
+suite('GT02: controles con fixtures sintéticos', () => {
+  teardown(() => conectarEmpleado(null));
+  test('valida el formato del tipo seleccionado sin convertir Pasaporte en DUI', () => {
     const dui = { ...tipo, expresionRegular: '^[0-9]{8}-[0-9]$', nombre: 'DUI' };
     const passport = { ...tipo, idTipoDocumento: uuid(9), nombre: 'Pasaporte', expresionRegular: '^[A-Za-z0-9]+$' };
     expect(validarDocumento([dui, passport], dui.idTipoDocumento, '12345678-9').valor).to.equal('12345678-9');
@@ -60,7 +60,7 @@ describe('GT02: controles con fixtures sintéticos', () => {
     // No reinterpretar sintaxis exclusiva de Java como un rechazo del navegador.
     expect(validarDocumento([{ ...tipo, expresionRegular: '^\\p{L}+$' }], tipo.idTipoDocumento, 'Ána').valor).to.equal('Ána');
   });
-  it('comparte solo asignaciones propias y limpia la selección al cerrar sesión', async () => {
+  test('comparte solo asignaciones propias y limpia la selección al cerrar sesión', async () => {
     const c = new IdentificacionControl({ identificar: async () => ({ data: session() }), cerrar: async () => {} }, 'empleado');
     c.tipos = [tipo]; const reasons = []; const unsubscribe = c.subscribe((reason) => reasons.push(reason));
     await c.entrar(tipo.idTipoDocumento, 'EMP');
@@ -75,32 +75,32 @@ describe('GT02: controles con fixtures sintéticos', () => {
     expect(obtenerAsignacionEmpleado()).to.equal(null);
     expect(reasons).to.include('asignacion'); unsubscribe();
   });
-  it('rechaza un contexto actualizado de otra persona sin reemplazar la sesión', async () => {
+  test('rechaza un contexto actualizado de otra persona sin reemplazar la sesión', async () => {
     const c = new IdentificacionControl({ contexto: async () => ({ data: { ...contexto, idPersona: uuid(99) } }) }, 'empleado');
     c.session = session(); const previous = c.session.contexto;
     await reject(() => c.actualizar(), 'processing'); expect(c.session.contexto).to.equal(previous);
   });
-  it('no restaura un contexto tardío después del cierre de sesión', async () => {
+  test('no restaura un contexto tardío después del cierre de sesión', async () => {
     let resolve;
     const c = new IdentificacionControl({ contexto: () => new Promise((done) => { resolve = done; }), cerrar: async () => {} }, 'empleado');
     c.session = session(); c.asignacionActiva = uuid(3);
     const pending = c.actualizar(); await c.salir(); resolve({ data: contexto });
     expect((await rejection(pending)).name).to.equal('AbortError'); expect(c.session).to.equal(null);
   });
-  it('borra identidad y selección si no puede confirmar el cierre por desconexión', async () => {
+  test('borra identidad y selección si no puede confirmar el cierre por desconexión', async () => {
     const error = { type: 'network' };
     const c = new IdentificacionControl({ cerrar: async () => { throw error; } }, 'empleado');
     c.session = session(); c.asignacionActiva = uuid(3);
     expect(await rejection(c.salir())).to.equal(error);
     expect(c.session).to.equal(null); expect(c.asignacionActiva).to.equal(null);
   });
-  for (const status of [401, 403]) it(`descarta el contexto al revalidar con HTTP ${status}`, async () => {
+  for (const status of [401, 403]) test(`descarta el contexto al revalidar con HTTP ${status}`, async () => {
     const c = new IdentificacionControl({ contexto: async () => { throw { status }; } }, 'empleado');
     c.session = session(); c.asignacionActiva = uuid(3);
     expect((await rejection(c.actualizar())).status).to.equal(status);
     expect(c.session).to.equal(null); expect(c.asignacionActiva).to.equal(null);
   });
-  it('exige tipo y documento no vacío', () => {
+  test('exige tipo y documento no vacío', () => {
     for (const [id, valor] of [
       ['', 'ABC'],
       [uuid(1), ''],
@@ -110,7 +110,7 @@ describe('GT02: controles con fixtures sintéticos', () => {
       expect(() => validarDocumento([tipo], id, valor)).to.throw();
     expect(validarDocumento([tipo], uuid(1), ' ABC ').valor).to.equal('ABC');
   });
-  it('rechaza fechas inexistentes, incompletas e invertidas', () => {
+  test('rechaza fechas inexistentes, incompletas e invertidas', () => {
     for (const [a, b] of [
       ['', ''],
       ['2026-02-30', '2026-03-01'],
@@ -120,7 +120,7 @@ describe('GT02: controles con fixtures sintéticos', () => {
       expect(() => validarRango(a, b)).to.throw();
     expect(() => validarRango('2026-11-11', '2026-11-11')).not.to.throw();
   });
-  it('obtiene varias asignaciones y cierra la sesión antes de descartar el contexto', async () => {
+  test('obtiene varias asignaciones y cierra la sesión antes de descartar el contexto', async () => {
     let closed;
     const c = new IdentificacionControl(
       {
@@ -139,7 +139,7 @@ describe('GT02: controles con fixtures sintéticos', () => {
     expect(closed.slice(0, 2)).to.deep.equal(['empleado', 'A'.repeat(43)]);
     expect(c.session).to.equal(null);
   });
-  it('no acepta un contexto de paciente como empleado ni una asignación corrupta', async () => {
+  test('no acepta un contexto de paciente como empleado ni una asignación corrupta', async () => {
     const data = session();
     data.contexto.tipo = 'PACIENTE';
     const c = new IdentificacionControl({ identificar: async () => ({ data }) }, 'empleado');
@@ -150,7 +150,7 @@ describe('GT02: controles con fixtures sintéticos', () => {
     data.contexto.asignaciones[0].idPersonaRol = 'ajeno';
     await reject(() => c.entrar(uuid(1), 'EMP'), 'processing');
   });
-  it('cancelación no restaura la identidad', async () => {
+  test('cancelación no restaura la identidad', async () => {
     const signal = AbortSignal.abort();
     const c = new IdentificacionControl(
       { identificar: async () => ({ data: session() }) },
@@ -161,7 +161,7 @@ describe('GT02: controles con fixtures sintéticos', () => {
     expect(error.name).to.equal('AbortError');
     expect(c.session).to.equal(null);
   });
-  it('impide clínica ajena antes de Fetch y admite vacío y múltiples', async () => {
+  test('impide clínica ajena antes de Fetch y admite vacío y múltiples', async () => {
     let calls = 0;
     const identification = { session: session() };
     const c = new BusquedaCitasControl(identification, {
@@ -175,7 +175,7 @@ describe('GT02: controles con fixtures sintéticos', () => {
     expect((await c.buscar(uuid(5), '2026-11-11', '2026-11-11', 0)).data).to.have.length(0);
     expect((await c.buscar(uuid(5), '2026-11-11', '2026-11-11', 0)).data).to.have.length(2);
   });
-  it('HU3/HU4 consume copia del contexto y no permite asignación ajena', async () => {
+  test('HU3/HU4 consume copia del contexto y no permite asignación ajena', async () => {
     const c = { session: session(), http: { request: async (_path, opts) => opts } };
     conectarEmpleado(c);
     const copy = obtenerContextoEmpleado();
@@ -194,8 +194,8 @@ describe('GT02: controles con fixtures sintéticos', () => {
     expect(obtenerContextoEmpleado()).to.equal(null);
   });
 });
-describe('GT02: transporte Fetch simulado', () => {
-  it('muestra el error público de identificación sin mencionar campos de citas', async () => {
+suite('GT02: transporte Fetch simulado', () => {
+  test('muestra el error público de identificación sin mencionar campos de citas', async () => {
     const http = new IdentidadAcademicaService({
       baseUrl: 'http://localhost/',
       fetchImpl: async () => Response.json({ mensaje: 'Formato de documento inválido' }, { status: 422 }),
@@ -208,7 +208,7 @@ describe('GT02: transporte Fetch simulado', () => {
       expect(error.message).to.equal('Formato de documento inválido');
     }
   });
-  it('no muestra mensajes internos aunque lleguen dentro de JSON', async () => {
+  test('no muestra mensajes internos aunque lleguen dentro de JSON', async () => {
     const http = new IdentidadAcademicaService({
       baseUrl: 'http://localhost/',
       fetchImpl: async () => Response.json({ mensaje: 'SQL java.internal.trace' }, { status: 422 }),
@@ -221,7 +221,7 @@ describe('GT02: transporte Fetch simulado', () => {
       expect(error.message).to.equal('Revisa el tipo y el formato del número de documento.');
     }
   });
-  it('distingue desconexión y reconexión sin convertirlo en lista vacía', async () => {
+  test('distingue desconexión y reconexión sin convertirlo en lista vacía', async () => {
     let online = false;
     const http = new IdentidadAcademicaService({
       baseUrl: 'http://localhost/',
@@ -235,7 +235,7 @@ describe('GT02: transporte Fetch simulado', () => {
     expect(await http.tipos()).to.deep.equal([tipo]);
   });
   for (const status of [400, 401, 403, 404, 409, 422, 500])
-    it(`maneja HTTP ${status} sin mostrar trazas`, async () => {
+    test(`maneja HTTP ${status} sin mostrar trazas`, async () => {
       const http = new IdentidadAcademicaService({
         baseUrl: 'http://localhost/',
         fetchImpl: async () => new Response('SQL java.internal.trace', { status }),
@@ -243,7 +243,7 @@ describe('GT02: transporte Fetch simulado', () => {
       const error = await reject(() => http.identificar('empleado', {}), 'http', status);
       expect(error.message).not.to.include('SQL');
     });
-  it('pagína catálogo y oculta tipos inactivos', async () => {
+  test('pagína catálogo y oculta tipos inactivos', async () => {
     let count = 0;
     const http = new IdentidadAcademicaService({
       baseUrl: 'http://localhost/',
@@ -255,7 +255,7 @@ describe('GT02: transporte Fetch simulado', () => {
     expect(await http.tipos()).to.deep.equal([tipo]);
     expect(count).to.equal(2);
   });
-  it('descarga sólo PDF y envía token fuera de URL, sin caché ni cookies', async () => {
+  test('descarga sólo PDF y envía token fuera de URL, sin caché ni cookies', async () => {
     let captured;
     const http = new IdentidadAcademicaService({
       baseUrl: 'http://localhost/',
@@ -276,7 +276,7 @@ describe('GT02: transporte Fetch simulado', () => {
       new Response('not pdf', { headers: { 'Content-Type': 'application/pdf' } });
     await reject(() => new CitasPacienteService(http).ticket('token', uuid(9)), 'processing');
   });
-  it('propaga AbortError', async () => {
+  test('propaga AbortError', async () => {
     const http = new IdentidadAcademicaService({
       baseUrl: 'http://localhost/',
       fetchImpl: async () => {

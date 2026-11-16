@@ -2,7 +2,7 @@
 // interpretar el porcentaje de los módulos importados como cobertura de toda la SPA.
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-const lcov = readFileSync('coverage/lcov.info', 'utf8');
+const lcov = readFileSync(path.join(process.env.GALENOS_COVERAGE_DIR || 'coverage', 'lcov.info'), 'utf8');
 const measured = new Set([...lcov.matchAll(/^SF:(.+)$/gm)].map((match) => match[1]));
 function files(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -21,5 +21,5 @@ const report = {
   functions: { covered: sum('FNH'), total: sum('FNF') },
   unmeasuredFiles: missing,
 };
-writeFileSync('coverage/scope.json', `${JSON.stringify(report, null, 2)}\n`);
-console.log(`V8: ${measured.size} archivos medidos; ${missing.length} archivos sin medición (coverage/scope.json).`);
+writeFileSync(path.join(process.env.GALENOS_COVERAGE_DIR || 'coverage', 'scope.json'), `${JSON.stringify(report, null, 2)}\n`);
+console.log(`V8: ${measured.size} archivos medidos; ${missing.length} archivos sin medición (${path.join(process.env.GALENOS_COVERAGE_DIR || 'coverage', 'scope.json')}).`);

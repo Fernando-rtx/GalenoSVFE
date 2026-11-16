@@ -4,7 +4,7 @@ import { readdirSync } from 'node:fs';
 import Mocha from 'mocha';
 
 test('Suite unitaria Mocha bajo cobertura V8', async () => {
-  const mocha = new Mocha({ timeout: 3000, forbidOnly: true, failZero: true, reporter: 'dot' });
+  const mocha = new Mocha({ ui: 'tdd', timeout: 3000, forbidOnly: true, failZero: true, reporter: 'dot' });
   for (const name of readdirSync('test/unit').filter((name) => name.endsWith('.test.js')).sort()) {
     mocha.addFile(`test/unit/${name}`);
   }

@@ -1,13 +1,13 @@
 import { expect } from 'chai';
 import { DefaultResponse, DefaultError } from '../../src/js/index.js';
 
-describe('Tipos compartidos del cliente', () => {
-  it('no confunde tamaño de página con total de registros', () => {
+suite('Tipos compartidos del cliente', () => {
+  test('no confunde tamaño de página con total de registros', () => {
     const response = new DefaultResponse({ datos: [{ id: 'fixture' }], status: 200 });
     expect(response.totalDatos).to.equal(null);
   });
 
-  it('lee cabeceras sin distinguir mayúsculas y preserva metadatos', () => {
+  test('lee cabeceras sin distinguir mayúsculas y preserva metadatos', () => {
     const response = new DefaultResponse({
       datos: null,
       totalDatos: 0,
@@ -23,7 +23,7 @@ describe('Tipos compartidos del cliente', () => {
     expect(Object.isFrozen(response)).to.equal(true);
   });
 
-  it('no confunde propiedades heredadas con cabeceras recibidas', () => {
+  test('no confunde propiedades heredadas con cabeceras recibidas', () => {
     const response = new DefaultResponse({ status: 200 });
     expect(response.getHeader('constructor')).to.equal(null);
     expect(response.getHeader('__proto__')).to.equal(null);
@@ -35,12 +35,12 @@ describe('Tipos compartidos del cliente', () => {
   });
 
   [-1, NaN, 2.2, '2', Number.MAX_SAFE_INTEGER + 1].forEach((total) => {
-    it(`rechaza total inválido ${total}`, () => {
+    test(`rechaza total inválido ${total}`, () => {
       expect(() => new DefaultResponse({ totalDatos: total, status: 200 })).to.throw(DefaultError);
     });
   });
 
-  it('expone datos/totalDatos al serializar y conserva alias de lectura locales', () => {
+  test('expone datos/totalDatos al serializar y conserva alias de lectura locales', () => {
     const response = new DefaultResponse({ datos: [], totalDatos: 7, status: 200 });
     expect(response.data).to.equal(response.datos);
     expect(response.total).to.equal(response.totalDatos);
@@ -52,7 +52,7 @@ describe('Tipos compartidos del cliente', () => {
     }).to.throw(TypeError);
   });
 
-  it('conserva causa y detalles sin serializar la causa ni el stack', () => {
+  test('conserva causa y detalles sin serializar la causa ni el stack', () => {
     const cause = new Error('detalle técnico');
     const error = new DefaultError({
       type: 'http',

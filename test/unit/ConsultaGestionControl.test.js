@@ -10,9 +10,9 @@ const response = (datos) =>
     status: 200,
     totalDatos: Array.isArray(datos) ? datos.length : null,
   });
-describe('Consulta de gestión — coordinación unitaria sintética', () => {
+suite('Consulta de gestión — coordinación unitaria sintética', () => {
   let dashboard, service, control;
-  beforeEach(() => {
+  setup(() => {
     conectarEmpleado({
       session: {
         token: 'sesion-sintetica',
@@ -51,11 +51,11 @@ describe('Consulta de gestión — coordinación unitaria sintética', () => {
       atencionCitaService: service,
     });
   });
-  afterEach(() => {
+  teardown(() => {
     control.destroy();
     conectarEmpleado(null);
   });
-  it('crea y recupera por UUID la consulta guardada sin eliminar los filtros del dashboard', async () => {
+  test('crea y recupera por UUID la consulta guardada sin eliminar los filtros del dashboard', async () => {
     await control.editConsulta(true);
     await control.save({ idPersonaRol: 'paciente' });
     sinon.assert.calledOnceWithExactly(
@@ -70,7 +70,7 @@ describe('Consulta de gestión — coordinación unitaria sintética', () => {
     sinon.assert.calledOnceWithExactly(dashboard.openConsulta, id);
     expect(control.state.editor).to.equal(null);
   });
-  it('un fallo HTTP conserva el formulario y no comunica éxito', async () => {
+  test('un fallo HTTP conserva el formulario y no comunica éxito', async () => {
     const error = new Error('Fallo sintético');
     service.create.rejects(error);
     await control.editConsulta(true);
@@ -79,7 +79,7 @@ describe('Consulta de gestión — coordinación unitaria sintética', () => {
     expect(control.state.editor).to.equal('consulta');
     sinon.assert.notCalled(dashboard.loadConsultas);
   });
-  it('actualiza un paso con su responsable y asociación existentes, sin crear otro paso', async () => {
+  test('actualiza un paso con su responsable y asociación existentes, sin crear otro paso', async () => {
     const step = { idConsultaProcedimientoPaso: id };
     control.editStep(step);
     await control.save({ estado: 'EN_CURSO' });
@@ -94,7 +94,7 @@ describe('Consulta de gestión — coordinación unitaria sintética', () => {
     );
     sinon.assert.notCalled(service.create);
   });
-  it('inicia una actividad y recarga los pasos desde REST', async () => {
+  test('inicia una actividad y recarga los pasos desde REST', async () => {
     control.set({ consulta: { idConsulta: id } });
     const step = { idConsultaProcedimientoPaso: id, idConsultaProcedimiento: id,
       idPersonaRol: id, fechaInicio: '2026-11-06T12:00:00Z', estado: 'PENDIENTE' };
@@ -109,7 +109,7 @@ describe('Consulta de gestión — coordinación unitaria sintética', () => {
     expect(control.state.message).to.equal('Actividad iniciada.');
     sinon.assert.calledTwice(service.findRange);
   });
-  it('no envía una transición inválida o sin clínica seleccionada', async () => {
+  test('no envía una transición inválida o sin clínica seleccionada', async () => {
     control.set({ consulta: { idConsulta: id } });
     const step = { idConsultaProcedimientoPaso: id, estado: 'PENDIENTE' };
     await control.transitionStep(step, 'COMPLETADO');
@@ -117,7 +117,7 @@ describe('Consulta de gestión — coordinación unitaria sintética', () => {
     await control.transitionStep(step, 'EN_CURSO');
     sinon.assert.notCalled(service.update);
   });
-  it('ante conflicto 409 vuelve a consultar el estado real y conserva el error', async () => {
+  test('ante conflicto 409 vuelve a consultar el estado real y conserva el error', async () => {
     control.set({ consulta: { idConsulta: id } });
     const error = Object.assign(new Error('Conflicto sintético'), { status: 409 });
     service.update.rejects(error);
@@ -125,7 +125,7 @@ describe('Consulta de gestión — coordinación unitaria sintética', () => {
     sinon.assert.calledTwice(service.findRange);
     expect(control.state.error).to.equal(error);
   });
-  it('busca pacientes mediante PersonaRolService y el contexto de clínica', async () => {
+  test('busca pacientes mediante PersonaRolService y el contexto de clínica', async () => {
     await control.searchPatients('Persona');
     sinon.assert.calledOnce(service.get);
     expect(service.get.firstCall.args[0].query).to.deep.equal({

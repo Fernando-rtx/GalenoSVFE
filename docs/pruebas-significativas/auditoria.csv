@@ -1,0 +1,256 @@
+archivo,caso o alcance,decision,motivo
+test/unit/AcademicCareControl.test.js,descarta una respuesta anterior aunque Fetch ignore la cancelación,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/AcademicCareControl.test.js,no cancela la carga de pacientes al consultar la bandeja,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/AcademicCareControl.test.js,cancelar impide recuperar información de la sesión anterior,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/AcademicCareControl.test.js,conserva los errores HTTP para la presentación,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/CatalogoControl.test.js,guardar crea mediante Service y recarga el listado sin duplicar reglas de negocio,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/CatalogoControl.test.js,edición recupera el registro vigente y conserva su UUID al actualizar,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/CatalogoControl.test.js,error de persistencia conserva el formulario y no simula éxito ni recarga,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/CatalogoControl.test.js,impide doble envío y cierre del formulario durante una escritura pendiente,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/CatalogoControl.test.js,ignora una lectura tardía anterior aunque el transporte no respete AbortController,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/ConsultaGestionControl.test.js,crea y recupera por UUID la consulta guardada sin eliminar los filtros del dashboard,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/ConsultaGestionControl.test.js,un fallo HTTP conserva el formulario y no comunica éxito,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/ConsultaGestionControl.test.js,"actualiza un paso con su responsable y asociación existentes, sin crear otro paso",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/ConsultaGestionControl.test.js,inicia una actividad y recarga los pasos desde REST,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/ConsultaGestionControl.test.js,no envía una transición inválida o sin clínica seleccionada,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/ConsultaGestionControl.test.js,ante conflicto 409 vuelve a consultar el estado real y conserva el error,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/ConsultaGestionControl.test.js,busca pacientes mediante PersonaRolService y el contexto de clínica,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DashboardControl.test.js,exige dependencias Service y una paginación válida,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DashboardControl.test.js,no consulta antes de seleccionar una clínica recibida por REST,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DashboardControl.test.js,carga todas las páginas de clínicas para no ocultar opciones después de la primera,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DashboardControl.test.js,no entra en bucle si el dataset de clínicas se vacía entre páginas,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DashboardControl.test.js,"selecciona clínica y conserva datos, total y estado de carga separados",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DashboardControl.test.js,aplica filtros y reinicia first conservando clínica y fechas UTC originales,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DashboardControl.test.js,"rechaza filtros ajenos, UUID y fechas inválidos antes de usar los Service",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DashboardControl.test.js,representa vacío con total cero y páginas vacías con su total real,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DashboardControl.test.js,"limpia filtros, detalle y solicitudes al cambiar de clínica o quitar la selección",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DashboardControl.test.js,consulta detalle únicamente de la página actual y envía solo idClinica como contexto,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DashboardControl.test.js,"cancela e ignora una respuesta obsoleta al cambiar ${change}, incluso si el Service ignora AbortSignal",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DashboardControl.test.js,ignora errores tardíos de una lista cancelada,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DashboardControl.test.js,no publica filas de la clínica anterior al notificar una selección nueva,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DashboardControl.test.js,cancela detalle al cambiar lista e ignora su respuesta tardía,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DashboardControl.test.js,mantiene únicamente el último detalle seleccionado,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DashboardControl.test.js,conserva DefaultError de ${resource} y permite reintentar,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DashboardControl.test.js,publica snapshots inmutables y permite retirar suscripciones,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DashboardControl.test.js,destruir la página cancela solicitudes y evita notificar respuestas posteriores,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DashboardControl.test.js,evita una paginación inválida y exige clínica antes de cargar una página,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DashboardControl.test.js,"entrega solo los seis campos aceptados, preservando null y cadenas UTC",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DashboardControl.test.js,muestra el mismo instante en UTC aunque llegue con otra zona,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DashboardControl.test.js,presenta un mensaje seguro para ${JSON.stringify(error)},B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,GET por ID preserva contexto y codifica el segmento,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,findRange envía los nombres configurados y lee Total-registros sin inferir el total,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,representa el total desconocido como null y admite primera posición cero,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,preserva total cero de un catálogo vacío,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,permite mapear un sobre JSON solo desde un contrato explícito,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,POST serializa JSON y conserva estado 201 y Location,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,PUT actualiza por ID y devuelve los datos que realmente responde el servidor,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,PUT 204 no intenta procesar JSON,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,DELETE 204 no inventa un booleano ni un cuerpo JSON,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,"${operation} conserva HTTP ${status}, detalles y cabeceras",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,conserva HTTP 500 aunque el cuerpo sea HTML,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,normaliza un error de red sin atribuirle un estado HTTP,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,conserva el estado ${status} si se interrumpe la lectura del cuerpo,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,rechaza JSON inválido o vacío en un 200: ${JSON.stringify(body)},B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,rechaza HTML en un éxito que debía responder JSON,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,acepta media types JSON con sufijo y charset,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,rechaza un estado de éxito no confirmado para la operación,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,rechaza un cuerpo no vacío cuando el contrato declara respuesta none,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,permite respuestas de texto solo cuando el contrato lo declara,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,descarga archivos como Blob solo cuando el contrato declara respuesta blob,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,rechaza un resultado paginado que no produce un arreglo,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,rechaza total inválido del backend: ${JSON.stringify(value)},B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,detecta una cabecera obligatoria ausente o no expuesta por CORS,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,"usa exactamente el nombre de cabecera configurado, sin alias inventados",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,"rechaza paginación inválida ${first}, ${max} sin enviar solicitudes",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,rechaza ID inválido ${JSON.stringify(id)} como Promise,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,admite identificador numérico cero sin confundirlo con ausencia,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,aplica validadores del contrato antes de enviar datos,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,"rechaza datos no JSON, circulares o con pérdida de valores",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,combina cabeceras y opciones de entorno sin compartir mutaciones,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,rechaza Content-Type incompatible con JSON sin enviar solicitudes,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,"limita toda la operación, incluida la lectura del cuerpo",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,normaliza timeout aunque Fetch no responda,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,no envía una solicitud previamente cancelada,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,rechaza valores falsy que no sean AbortSignal antes de enviar HTTP,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,propaga la cancelación y retira su listener,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,limpia el timer al completar una solicitud,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,rechaza operaciones no confirmadas antes de llamar a Fetch,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,exige URL base solo al ejecutar un contrato confirmado,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,rechaza rutas que salen del contexto configurado,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,rechaza una ruta absoluta en lugar de cambiar de backend,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,rechaza un contrato inconsistente: ${JSON.stringify(change)},B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,exige una fuente para un contrato declarado verificado,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,no interpreta propiedades heredadas como recursos,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,serializa parámetros configurados sin permitir inyección de otro parámetro,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,conserva el estado ya recibido cuando ocurre timeout leyendo un error HTTP,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/DefaultService.test.js,conserva estado y cabeceras si el usuario cancela después de recibir HTTP,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/OrdenControl.test.js,no permite editar filas de órdenes anteriores mientras carga resultados de otro padre,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/OrdenControl.test.js,un fallo de persistencia conserva el formulario y no comunica éxito,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/academic-care.test.js,carga el catálogo público v1 aunque la configuración principal sea de gestión v2,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/academic-care.test.js,envía la asignación elegida en bandeja y detalle junto a la misma sesión,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/academic-care.test.js,"envía clínica y sesión de paciente, sin repetir el documento en la URL",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/academic-care.test.js,rechaza rangos invertidos antes de llamar al backend,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/academic-care.test.js,publica descarga ticket PDF como Blob bajo contrato explícito,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/academic-care.test.js,acepta el detalle HU4 ampliado con órdenes y predecesores reales del DTO,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/academic-care.test.js,"envía ${accion} con contexto, exámenes y sesión sin alterar el formulario",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/academic-care.test.js,rechaza ${label} antes de enviar la atención,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/academic-care.test.js,conserva HTTP ${status} sin simular una atención guardada,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/api-config.test.js,permite importar el módulo sin inventar una URL de backend,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/api-config.test.js,normaliza la URL preservando el contexto del WAR y el prefijo API,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/api-config.test.js,rechaza timeout inválido: ${timeoutMs},B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/api-config.test.js,rechaza URL inválida: ${baseUrl},B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/api-config.test.js,copia e inmoviliza rutas y cabeceras sin afectar el objeto del llamador,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/api-config.test.js,rechaza opciones HTTP incompatibles: ${JSON.stringify(http)},B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/application-boundary.test.js,usa un único Web Component como raíz visual del documento,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/application-boundary.test.js,carga cascarón y estilos propios desde el componente raíz,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/application-boundary.test.js,"no descarga módulos, componentes o estilos de otro origen",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/concrete-services.test.js,${Service.name}.${operation} informa la dependencia sin enviar solicitudes,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/editable-record.test.js,abre por doble clic y permite descubrir el registro con teclado,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/editable-record.test.js,"Enter y espacio abren, otras teclas y repeticiones no",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/editable-record.test.js,no edita al activar una acción o campo dentro de la fila,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/editable-record.test.js,respeta el estado deshabilitado y los eventos ya consumidos,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/entities.test.js,no confunde tamaño de página con total de registros,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/entities.test.js,lee cabeceras sin distinguir mayúsculas y preserva metadatos,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/entities.test.js,no confunde propiedades heredadas con cabeceras recibidas,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/entities.test.js,rechaza total inválido ${total},B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/entities.test.js,expone datos/totalDatos al serializar y conserva alias de lectura locales,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/entities.test.js,conserva causa y detalles sin serializar la causa ni el stack,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/error-presentation.test.js,"distingue sesión expirada, acceso denegado y servidor desconectado",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/error-presentation.test.js,presenta estados HTTP sin divulgar el cuerpo del servidor,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/error-presentation.test.js,no presenta cancelación como fallo de usuario ni errores JavaScript como texto público,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/error-presentation.test.js,rechaza una respuesta de transporte inválida sin clasificarla como error de conexión,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/error-presentation.test.js,impide representar HTTP 500 como una respuesta exitosa,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/error-presentation.test.js,"distingue errores de datos, del servidor y de red sin mostrar detalles internos",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/gt02.test.js,valida el formato del tipo seleccionado sin convertir Pasaporte en DUI,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/gt02.test.js,comparte solo asignaciones propias y limpia la selección al cerrar sesión,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/gt02.test.js,rechaza un contexto actualizado de otra persona sin reemplazar la sesión,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/gt02.test.js,no restaura un contexto tardío después del cierre de sesión,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/gt02.test.js,borra identidad y selección si no puede confirmar el cierre por desconexión,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/gt02.test.js,descarta el contexto al revalidar con HTTP ${status},B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/gt02.test.js,exige tipo y documento no vacío,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/gt02.test.js,"rechaza fechas inexistentes, incompletas e invertidas",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/gt02.test.js,obtiene varias asignaciones y cierra la sesión antes de descartar el contexto,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/gt02.test.js,no acepta un contexto de paciente como empleado ni una asignación corrupta,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/gt02.test.js,cancelación no restaura la identidad,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/gt02.test.js,impide clínica ajena antes de Fetch y admite vacío y múltiples,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/gt02.test.js,HU3/HU4 consume copia del contexto y no permite asignación ajena,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/gt02.test.js,muestra el error público de identificación sin mencionar campos de citas,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/gt02.test.js,no muestra mensajes internos aunque lleguen dentro de JSON,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/gt02.test.js,distingue desconexión y reconexión sin convertirlo en lista vacía,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/gt02.test.js,maneja HTTP ${status} sin mostrar trazas,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/gt02.test.js,pagína catálogo y oculta tipos inactivos,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/gt02.test.js,"descarga sólo PDF y envía token fuera de URL, sin caché ni cookies",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/gt02.test.js,propaga AbortError,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/hu3-dashboard.test.js,calcula hoy en El Salvador aunque UTC ya sea el día siguiente,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/hu3-dashboard.test.js,utiliza exclusivamente la asignación seleccionada y no mezcla clínica/rol,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/hu3-dashboard.test.js,solo selecciona consultas de la página vigente sin cambiar estado clínico,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/hu3-dashboard.test.js,representa bifurcaciones y convergencias sin repetir el registro compartido,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/hu3-dashboard.test.js,"conserva repeticiones y retrocesos, pero nunca presenta pasos futuros como realizados",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/hu3-dashboard.test.js,termina con ciclos registrados y conserva datos sin inventar un orden lineal,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/hu3-dashboard.test.js,no cruza procedimientos al construir los árboles,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/hu4-atencion.test.js,"deriva contexto y ejecución de la sesión/detalle, sin aceptar UUID de formulario",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/hu4-atencion.test.js,rechaza notas vacías o extensas sin modificar el detalle,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/hu4-atencion.test.js,solo acepta exámenes permitidos sin duplicarlos,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/hu4-atencion.test.js,exige una transición de avance devuelta por REST,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/hu4-atencion.test.js,respeta primer y último paso,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/hu4-atencion.test.js,selecciona un predecesor real y rechaza ejecuciones ajenas en una convergencia,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/hu4-atencion.test.js,rechaza detalle obsoleto de otra consulta y asignaciones ajenas,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/integration-preconditions.test.js,no acepta una suite vacía como integración aprobada,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/integration-preconditions.test.js,no acepta contratos de Galenos pendientes aunque se configure una URL,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/integration-preconditions.test.js,exige una comprobación observable del cambio para habilitar escrituras,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/integration-preconditions.test.js,acepta expectativas explícitas de paginación y errores HTTP reales,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/integration-preconditions.test.js,rechaza una expectativa de lista que podría falsear la verificación: ${JSON.stringify(change)},B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/integration-preconditions.test.js,rechaza ${key} vacío en lugar de aprobarlo sin solicitudes,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/integration-preconditions.test.js,exige un error HTTP y parámetros que el cliente permita enviar al servidor,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/integration-preconditions.test.js,no permite probar detalle de Clínica ni UUID inválidos como si fueran errores HTTP,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/language.test.js,conserva el español y traduce etiquetas en inglés,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/language.test.js,"conserva nombres, documentos y contenido ajeno al diccionario",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/language.test.js,traduce los prefijos sin alterar los valores del registro,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/language.test.js,mantiene los totales y el rango del mensaje de citas,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/language.test.js,traduce los errores públicos de identificación y validación,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/pwa-policy.test.js,referencia iconos PNG existentes y un inicio dentro del scope,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/pwa-policy.test.js,solo intercepta recursos públicos y deja pasar respuestas clínicas y Authorization,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/pwa-policy.test.js,precarga únicamente rutas públicas existentes y nunca configuración local ni REST,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/pwa-policy.test.js,elimina versiones antiguas sin borrar cachés de otras aplicaciones,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/pwa-policy.test.js,almacena una respuesta pública exitosa,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/pwa-policy.test.js,no almacena una respuesta sensible: ${Object.keys(headers)} ${Object.values(headers)},B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/pwa-policy.test.js,recupera el shell público al perder conexión y falla si no existe copia,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,TipoDocumento adapta arreglo y Total-registros a la interfaz acordada,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,TipoDocumento consulta detalle por UUID sin inventar un total,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,acepta UUID canónico con mayúsculas sin aplicar restricciones de versión no publicadas,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,Clínica obtiene las opciones por HTTP sin fijar IDs en el Service,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,Consulta envía clínica y únicamente los filtros publicados,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,Consulta conserva el ámbito de clínica en el detalle,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,omite un filtro opcional undefined en lugar de serializarlo,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,valida año bisiesto y años bajos sin rollover de Date ni zona del navegador,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,no envía credenciales aunque un entorno genérico las haya habilitado,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,${resource.name} conserva un total no cero en una página sin resultados,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,${resource.name} representa conjunto vacío como [] y total cero,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,${resource.name} detecta total ausente o no expuesto por CORS,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,${resource.name} conserva HTTP ${status} y mensaje JSON del backend,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,${resource.name}.${operation} no está disponible ni envía HTTP,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,${resource.name} respeta el rango entero de paginación del contrato Java,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,Clínica no inventa una ruta de detalle,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,rechaza UUID no canónico ${JSON.stringify(id)} antes de Fetch,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,exige clínica válida en lista y detalle: ${JSON.stringify(filters)},B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,rechaza fecha inválida ${JSON.stringify(value)},B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,rechaza fechaDesde posterior a fechaHasta sin corregirla silenciosamente,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,"rechaza PersonaRol inválido, filtros desconocidos y cambios de paginación por query",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,no admite filtros de lista en el detalle ni en TipoDocumento/Clínica,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,no acepta un sobre JSON o una entidad JPA como sustituto del DTO publicado,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/rest-services.test.js,no elimina campos null ni convierte timestamps UTC del DTO,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/service-inventory.test.js,exporta exactamente un Service por entidad y registra las mismas 20 claves,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/service-inventory.test.js,solo declara las cinco operaciones REST publicadas en API 0.2,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/service-inventory.test.js,selecciona su recurso y hereda el transporte sin aceptar una clave cruzada,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/service-inventory.test.js,rechaza configuración y Fetch inválidos sin enviar solicitudes,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/service-inventory.test.js,"declara contrato pendiente sin URL, métodos HTTP ni DTO inferido de JPA",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/unit/service-inventory.test.js,rechaza una operación sin contrato y no envía HTTP,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/transport/http.test.js,"ejecuta GET, POST, PUT y DELETE con Fetch nativo y cabeceras reales",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/transport/http.test.js,mantiene el estado 404 de una respuesta HTTP real,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/transport/http.test.js,detecta JSON inválido recibido por red,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/transport/http.test.js,aborta por timeout una conexión real,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/transport/rest-services.test.js,"obtiene catálogo, detalle y opciones de clínica por HTTP",B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/transport/rest-services.test.js,transmite todos los filtros y conserva el conteo del conjunto completo,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/transport/rest-services.test.js,mantiene clínica en el detalle y conserva 404 al cambiar de ámbito,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/transport/rest-services.test.js,conserva 422 del máximo de página propio de un despliegue,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/transport/rest-services.test.js,recibe [] y total cero cuando la clínica no tiene coincidencias,B → refactorizada,Conserva comportamiento y aserciones; interfaz Mocha TDD
+test/browser/accesibilidad_operativa.py,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/administracion_clinica.py,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/apariencia_jsf.py,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/catalogos_clinica.py,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/clinica_desarrollo.py,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/componentes.html,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/consulta_gestion.py,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/dashboard.py,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/documentos_contactos_clinica.py,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/ediciones_clinica.py,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/flujo_operativo_hu4.py,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/flujo_procedimiento_clinica.py,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/gestion.py,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/gt02.py,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/hu2_identificacion_readonly.mjs,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/hu3_componentes.html,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/hu3_dashboard_readonly.mjs,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/hu4_atencion.mjs,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/hu4_componentes.html,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/navegacion_clinica.py,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/page_components.html,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/persona_gestion.py,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/relaciones_clinica.py,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/browser/webcomponents_pwa.py,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/helpers/http-fixture.js,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/helpers/rest-fixtures.js,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/fixtures/README.md,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/fixtures/clinicas-demo.json,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/fixtures/consulta-demo.json,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/fixtures/tipo-documento.json,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/integration/backend-suite.js,consulta una página con Fetch real y lee su total cuando está disponible,A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/integration/backend-suite.js,consulta un identificador real del entorno de pruebas,A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/integration/backend-suite.js,conserva el estado confirmado para un ID inexistente,A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/integration/backend-suite.js,"crea, consulta, actualiza, vuelve a consultar y elimina datos de prueba",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/integration/environment.demo.example.js,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/integration/environment.example.js,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/integration/environment.local.js,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/integration/runner.html,"Archivo completo (fixture, corredor, integración o casos dinámicos)",A → conservar,"Mantener contrato, regla o infraestructura; no se comprobó redundancia suficiente para retirarla"
+test/unit/DefaultService.test.js,20 combinaciones HTTP equivalentes,C → eliminar,"Mismo camino común; quedan cinco operaciones, cinco estados y detalles/cabeceras"
+test/unit/service-inventory.test.js,68 combinaciones de operaciones sin contrato,C → eliminar,Queda rechazo sin HTTP por cada service; deshabilitación explícita cubierta en concrete-services

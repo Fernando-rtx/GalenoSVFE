@@ -13,8 +13,8 @@ async function filesUnder(directory) {
   return nested.flat();
 }
 
-describe('Límites del frontend sin dependencias de terceros', () => {
-  it('usa un único Web Component como raíz visual del documento', async () => {
+suite('Límites del frontend sin dependencias de terceros', () => {
+  test('usa un único Web Component como raíz visual del documento', async () => {
     const html = await readFile(path.join(sourceRoot, 'index.html'), 'utf8');
     const body = html.match(/<body>([\s\S]*?)<\/body>/i)?.[1].trim();
 
@@ -23,7 +23,7 @@ describe('Límites del frontend sin dependencias de terceros', () => {
     expect(html).to.match(/<script\s+type="module"\s+src="\/js\/main\.js"/i);
   });
 
-  it('carga cascarón y estilos propios desde el componente raíz', async () => {
+  test('carga cascarón y estilos propios desde el componente raíz', async () => {
     const app = await readFile(
       path.join(sourceRoot, 'js/boundary/components/galenos-application.js'),
       'utf8',
@@ -37,7 +37,7 @@ describe('Límites del frontend sin dependencias de terceros', () => {
     expect(styles).to.include('galenos-application');
   });
 
-  it('no descarga módulos, componentes o estilos de otro origen', async () => {
+  test('no descarga módulos, componentes o estilos de otro origen', async () => {
     const files = (await filesUnder(sourceRoot)).filter((file) => /\.(js|css|html)$/.test(file));
     const externalReferences = [];
 

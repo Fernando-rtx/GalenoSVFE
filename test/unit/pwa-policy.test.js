@@ -4,8 +4,8 @@ import vm from 'node:vm';
 
 const root = new URL('../../src/', import.meta.url);
 
-describe('PWA: recursos y límite de caché', () => {
-  it('referencia iconos PNG existentes y un inicio dentro del scope', async () => {
+suite('PWA: recursos y límite de caché', () => {
+  test('referencia iconos PNG existentes y un inicio dentro del scope', async () => {
     const manifest = JSON.parse(await readFile(new URL('manifest.webmanifest', root), 'utf8'));
     expect(manifest.start_url).to.equal('/#pacientes');
     expect(manifest.scope).to.equal('/');
@@ -16,7 +16,7 @@ describe('PWA: recursos y límite de caché', () => {
     }
   });
 
-  it('solo intercepta recursos públicos y deja pasar respuestas clínicas y Authorization', async () => {
+  test('solo intercepta recursos públicos y deja pasar respuestas clínicas y Authorization', async () => {
     const handlers = {};
     const self = {
       location: { origin: 'https://galenos.example' },
@@ -64,9 +64,9 @@ describe('PWA: recursos y límite de caché', () => {
   });
 });
 
-describe('PWA: almacenamiento y recuperación del shell público', () => {
+suite('PWA: almacenamiento y recuperación del shell público', () => {
   let handlers, stored, removed, pending, network, cached, assets;
-  beforeEach(async () => {
+  setup(async () => {
     handlers = {}; stored = []; removed = []; pending = []; assets = [];
     network = async () => ({ ok: true, type: 'basic', headers: new Headers(), clone: () => 'shell' });
     cached = undefined;
@@ -101,7 +101,7 @@ describe('PWA: almacenamiento y recuperación del shell público', () => {
     await Promise.all(pending);
     return result;
   }
-  it('precarga únicamente rutas públicas existentes y nunca configuración local ni REST', async () => {
+  test('precarga únicamente rutas públicas existentes y nunca configuración local ni REST', async () => {
     handlers.install({ waitUntil: (promise) => pending.push(promise) });
     await Promise.all(pending);
     expect(assets).to.include('/js/main.js');
@@ -110,24 +110,24 @@ describe('PWA: almacenamiento y recuperación del shell público', () => {
       await access(new URL(path === '/' ? 'index.html' : path.slice(1), root));
     }
   });
-  it('elimina versiones antiguas sin borrar cachés de otras aplicaciones', async () => {
+  test('elimina versiones antiguas sin borrar cachés de otras aplicaciones', async () => {
     handlers.activate({ waitUntil: (promise) => pending.push(promise) });
     await Promise.all(pending);
     expect(removed).to.deep.equal(['galenossv-shell-old']);
   });
-  it('almacena una respuesta pública exitosa', async () => {
+  test('almacena una respuesta pública exitosa', async () => {
     await fetchShell();
     expect(stored).to.deep.equal([['/js/main.js', 'shell']]);
   });
   for (const headers of [{ 'Cache-Control': 'no-store' }, { 'Cache-Control': 'private' },
     { 'Set-Cookie': 'synthetic=1' }]) {
-    it(`no almacena una respuesta sensible: ${Object.keys(headers)} ${Object.values(headers)}`, async () => {
+    test(`no almacena una respuesta sensible: ${Object.keys(headers)} ${Object.values(headers)}`, async () => {
       network = async () => ({ ok: true, type: 'basic', headers: new Headers(headers) });
       await fetchShell();
       expect(stored).to.deep.equal([]);
     });
   }
-  it('recupera el shell público al perder conexión y falla si no existe copia', async () => {
+  test('recupera el shell público al perder conexión y falla si no existe copia', async () => {
     network = async () => { throw new TypeError('sin red'); };
     cached = { contenido: 'shell sintético' };
     expect(await fetchShell()).to.equal(cached);

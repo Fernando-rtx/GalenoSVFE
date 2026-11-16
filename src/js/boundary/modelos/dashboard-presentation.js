@@ -22,7 +22,14 @@ export function errorMessage(error) {
   if (error.status === 400) return 'Revisa los datos enviados.';
   if (error.status === 409)
     return 'Los cambios entran en conflicto con el estado actual del registro.';
-  if (error.status === 403) return 'El servidor no permite el acceso a este recurso.';
+  if (error.status === 403) {
+    const serverMessage = error.details && typeof error.details === 'object'
+      ? error.details.mensaje
+      : null;
+    if (typeof serverMessage === 'string' && serverMessage.trim() && serverMessage.length <= 240)
+      return serverMessage;
+    return 'El servidor no permite el acceso a este recurso.';
+  }
   if (error.status === 422)
     return 'El servidor rechazó los parámetros. Revisa los filtros y el tamaño de página.';
   return 'No se pudieron cargar los datos. Intenta nuevamente.';

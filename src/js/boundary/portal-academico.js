@@ -1,3 +1,4 @@
+import { notifyFailure } from './notifications.js';
 import './modelos/BusquedaCitasModel.js';
 import { offerTicketDownload } from './ticket-options.js';
 import './modelos/InicioSesionModel.js';
@@ -30,6 +31,7 @@ export function mountPortal(view, config) {
       await work(request.signal);
       view.retry(false);
     } catch (error) {
+      notifyFailure(view, error, { id: `portal-${view.portal}` });
       if (error.name !== 'AbortError') {
         if ([401, 403].includes(error.status)) {
           identidad.invalidar();
@@ -78,6 +80,7 @@ export function mountPortal(view, config) {
       try {
         identidad.seleccionarAsignacion(view.value('asignacion'));
       } catch (error) {
+      notifyFailure(view, error, { id: `portal-${view.portal}` });
         view.status(error.message, 'error');
       }
     },
@@ -106,6 +109,7 @@ export function mountPortal(view, config) {
         try {
           await identidad.salir(signal);
         } catch (error) {
+      notifyFailure(view, error, { id: `portal-${view.portal}` });
           view.context(null);
           if (error.type === 'network')
             error.message =

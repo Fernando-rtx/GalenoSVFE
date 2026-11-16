@@ -1,3 +1,4 @@
+import { notify } from '../notifications.js';
 import '../components/tarjeta_consulta.js';
 export class PortalAcademicoModel extends HTMLElement {
   constructor() {
@@ -187,6 +188,10 @@ export class PortalAcademicoModel extends HTMLElement {
   status(message, state = '') {
     const status = this.shadowRoot.querySelector('[data-status]');
     status.textContent = message;
+    if (message === 'Sin conexión. Puedes reintentar al volver la conexión.')
+      notify(this, 'advertencia', 'Sin conexión. No se pueden consultar ni guardar cambios.', { id: `portal-${this.portal}` });
+    else if (message === 'Ticket descargado.')
+      notify(this, 'confirmacion', 'Ticket descargado correctamente', { id: 'ticket' });
     status.classList.toggle('error', state === 'error' && Boolean(message));
     status.setAttribute('role', state === 'error' && message ? 'alert' : 'status');
     status.setAttribute('aria-live', state === 'error' && message ? 'assertive' : 'polite');
@@ -244,6 +249,7 @@ export class PortalAcademicoModel extends HTMLElement {
     this.shadowRoot.querySelector('[data-hint]').textContent = value ?? '';
   }
   context(context, selected) {
+    if (context) notify(this, 'confirmacion', 'Identificación confirmada. Revisa tu clínica y rol.', { id: `portal-${this.portal}` });
     this.shadowRoot.querySelector('[data-context]').hidden = !context;
     this.shadowRoot.querySelector('[data-login]').hidden = Boolean(context);
     this.shadowRoot.querySelector('[data-search]')?.toggleAttribute('hidden', !context);
@@ -297,6 +303,7 @@ export class PortalAcademicoModel extends HTMLElement {
       this.shadowRoot.querySelector(sel)?.setAttribute('hidden', '');
   }
   results(rows, total, first, zona) {
+    notify(this, 'informacion', 'Búsqueda de citas completada', { id: 'patient-search' });
     this.clearResults();
     for (const datos of rows) {
       const card = document.createElement('tarjeta-consulta');

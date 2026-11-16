@@ -97,7 +97,8 @@ export class HistorialConsulta extends HTMLElement {
                 `Orden: ${this.fecha(order.fechaCreacion)} · ${order.indicaciones || 'Sin indicaciones registradas'}`,
               ),
             );
-            if (!order.resultados?.length) exam.append(node('p', 'Sin resultados registrados.'));
+            exam.append(node('p', `Estado de la orden: ${order.resultados?.length ? 'Con resultados registrados' : 'Sin resultados registrados'}`));
+            exam.append(node('p', `Origen: ${step.nombre || 'Paso sin nombre'} · Responsable: ${step.responsable || 'No registrado'}`));
             for (const result of order.resultados || []) {
               exam.append(
                 node(

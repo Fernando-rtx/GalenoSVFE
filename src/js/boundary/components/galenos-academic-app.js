@@ -1,3 +1,4 @@
+import { notify, notifyFailure, dismissNotification } from '../notifications.js';
 import { offerTicketDownload } from '../ticket-options.js';
 import { getLocale } from '../language.js';
 import './tarjeta_consulta.js';
@@ -37,7 +38,12 @@ class GalenosAcademicApp extends HTMLElement {
     this.first = 0;
     this.person = null;
     this.care = null;
-    this.onNetwork = () => this.updateNetwork();
+    this.onNetwork = () => {
+      this.updateNetwork();
+      notify(this, navigator.onLine ? 'informacion' : 'advertencia', navigator.onLine
+        ? 'Conexión restablecida. Puedes actualizar y reintentar.'
+        : 'Sin conexión. No se pueden guardar cambios.', { id: 'connection' });
+    };
   }
   configure(config, sessions = {}) { this.api = new AcademicCareService(config); this.sessions = sessions; this.render(); this.refreshSessions(); }
   connectedCallback() { if (!this.api) this.render(); window.addEventListener('online', this.onNetwork); window.addEventListener('offline', this.onNetwork); this.updateNetwork(); }
@@ -166,6 +172,7 @@ class GalenosAcademicApp extends HTMLElement {
     } catch (error) {
       if (error.status === 401) this.sessions.invalidate?.();
       status.textContent = gestionError(error);
+      notifyFailure(this, error);
       status.className = 'status error';
       if (status === this.q('[data-queue-status]'))
         this.q('[data-retry-queue]').hidden = !(
@@ -328,6 +335,7 @@ class GalenosAcademicApp extends HTMLElement {
     if (!page) return;
     const rows = page.datos;
     this.control.queue = rows;
+    notify(this, 'informacion', 'Bandeja de consultas actualizada', { id: 'employee-queue' });
     this.q('[data-page-prev]').disabled = this.first === 0;
     this.q('[data-page-next]').disabled = this.first + rows.length >= page.totalDatos;
     this.q('[data-page-summary]').textContent =
@@ -347,7 +355,7 @@ class GalenosAcademicApp extends HTMLElement {
         ? 'No hay consultas asignadas para este rango de fechas'
         : 'No hay consultas en esta página. Vuelve a la página anterior.';
   }
-  history(items = []) { return items.length ? `<ol>${items.map((i) => `<li class="step"><strong>${esc(i.nombre || 'Paso')}</strong> · ${esc(i.estado || '')}<div class="meta">Responsable: ${esc(i.responsable || 'No registrado')} · Rol: ${esc(i.rol || 'No registrado')} · ${time(i.fechaInicio)}${i.fechaFin ? ` – ${time(i.fechaFin)}` : ''}<details><summary>Ver registro</summary><p>${esc(i.valor || 'Sin datos registrados')}</p>${(i.ordenes || []).map((order) => `<article><h4>${esc(order.examen || 'Examen')}</h4><p>${esc(order.indicaciones || '')} · ${time(order.fechaCreacion)}</p>${order.resultados.map((result) => `<p>${time(result.fechaCreacion)}<br>Resultado: ${esc(result.resultado || 'Pendiente')}<br>Interpretación: ${esc(result.interpretacion || 'No registrada')}</p>`).join('') || '<p>Sin resultados registrados.</p>'}</article>`).join('')}</details></div></li>`).join('')}</ol>` : '<p>Aún no hay pasos registrados.</p>'; }
+  history(items = []) { return items.length ? `<ol>${items.map((i) => `<li class="step"><strong>${esc(i.nombre || 'Paso')}</strong> · ${esc(i.estado || '')}<div class="meta">Responsable: ${esc(i.responsable || 'No registrado')} · Rol: ${esc(i.rol || 'No registrado')} · ${time(i.fechaInicio)}${i.fechaFin ? ` – ${time(i.fechaFin)}` : ''}<details><summary>Ver registro</summary><p>${esc(i.valor || 'Sin datos registrados')}</p>${this.orders(i.ordenes || [])}</details></div></li>`).join('')}</ol>` : '<p>Aún no hay pasos registrados.</p>'; }
   context() { return this.control.prepararBandeja(this.employeeSession, this.q('[data-staff-role]').value, {}).query; }
   async openCare(id) {
     if (this.saving) return;
@@ -415,10 +423,15 @@ class GalenosAcademicApp extends HTMLElement {
     this.q('[data-care-form]').addEventListener('submit', (event) => { event.preventDefault(); this.saveCare(event); });
   }
   orders(orders) {
-    return orders.map((order) => `<article><h4>${esc(order.examen || 'Examen no identificado')}</h4><p>${esc(order.indicaciones || '')} · ${time(order.fechaCreacion)}</p>${(order.resultados || []).map((result) => `<p>${time(result.fechaCreacion)}<br>Resultado: ${esc(result.resultado || 'Pendiente')}<br>Interpretación: ${esc(result.interpretacion || 'No registrada')}</p>`).join('') || '<p>Sin resultados registrados.</p>'}</article>`).join('') || '<p>Sin órdenes registradas.</p>';
+    return orders.map((order) => `<article><h4>${esc(order.examen || 'Examen no identificado')}</h4><p>Estado de la orden: ${order.resultados?.length ? 'Con resultados registrados' : 'Sin resultados registrados'} · ${time(order.fechaCreacion)}</p><p>${esc(order.indicaciones || '')}</p>${(order.resultados || []).map((result) => `<p>${time(result.fechaCreacion)}<br>Resultado: ${esc(result.resultado || 'Pendiente')}<br>Interpretación: ${esc(result.interpretacion || 'No registrada')}</p>`).join('') || '<p>Sin resultados registrados.</p>'}</article>`).join('') || '<p>Sin órdenes registradas.</p>';
   }
   async saveCare(event) {
     if (this.saving || this.careConflicted) return;
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      notifyFailure(this, { type: 'connection' });
+      this.q('[data-care-status]').textContent = 'Sin conexión. No se pueden guardar cambios.';
+      return;
+    }
     const form = event.currentTarget;
     const care = this.care;
     const session = this.employeeSession;
@@ -441,6 +454,7 @@ class GalenosAcademicApp extends HTMLElement {
     controls.forEach((node) => { node.disabled = true; });
     form.setAttribute('aria-busy', 'true');
     status.textContent = 'Guardando atención…';
+    notify(this, 'cargando', 'Guardando atención...', { id: 'hu4-save' });
     status.className = 'status';
     let saved;
     const current = () => this.care === care && this.consultation === care.idConsulta && this.employeeSession?.token === session?.token
@@ -448,9 +462,13 @@ class GalenosAcademicApp extends HTMLElement {
     try {
       saved = (await this.api.register(data, options)).datos;
     } catch (error) {
-      if (error.status === 401) this.sessions.invalidate?.();
+      if (error.status === 401) {
+        notifyFailure(this, error, { id: 'session-warning' });
+        this.sessions.invalidate?.();
+      }
       if (!current()) return;
       status.textContent = gestionError(error);
+      notifyFailure(this, error, { id: 'hu4-save' });
       status.className = 'status error';
       this.careConflicted = error.status === 409 || error.status === 403 || error.status >= 500
         || ['connection', 'network'].includes(error.type);
@@ -459,12 +477,22 @@ class GalenosAcademicApp extends HTMLElement {
         this.q('[data-retry-care]').hidden = false;
       }
     } finally {
+      if (!current()) dismissNotification(this, 'hu4-save');
       this.saving = false;
       form.setAttribute('aria-busy', 'false');
       controls.forEach((node) => { node.disabled = false; });
       if (this.careConflicted) form.querySelectorAll('button').forEach((node) => { node.disabled = true; });
     }
     if (!saved || !current()) return;
+    const messages = {
+      GUARDAR_PARCIAL: 'Atención guardada correctamente',
+      AVANZAR: 'Consulta enviada al siguiente responsable',
+      RETROCEDER: 'Consulta devuelta al paso anterior',
+      FINALIZAR: 'Procedimiento finalizado',
+    };
+    notify(this, 'confirmacion', saved.finalizada ? messages.FINALIZAR : messages[data.accion], { id: 'hu4-save' });
+    if (data.examenes.some((id) => !(care.ordenesActuales || []).some((order) => order.examen === care.examenes.find((exam) => exam.idExamen === id)?.nombre)))
+      notify(this, 'confirmacion', 'Examen asignado correctamente', { id: 'hu4-exam' });
     if (data.accion === 'GUARDAR_PARCIAL') {
       this.q('[data-care-notice]').textContent = 'Atención guardada correctamente.';
       await this.loadCare(true);

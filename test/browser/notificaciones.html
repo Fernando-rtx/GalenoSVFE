@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notificaciones — prueba sintética</title>
+<body>
+<output id="resultado">EJECUTANDO</output>
+<galenos-notifications></galenos-notifications>
+<script type="module">
+import '/js/boundary/components/galenos-notifications.js';
+import { notify, notifyFailure } from '/js/boundary/notifications.js';
+const assert = (condition, message) => { if (!condition) throw new Error(message); };
+const component = document.querySelector('galenos-notifications');
+const root = component.shadowRoot;
+try {
+  notify(document.body, 'cargando', 'Guardando atención...', { id: 'atencion' });
+  assert(root.querySelector('.cargando[role=status]'), 'Falta indicador de carga accesible');
+  notify(document.body, 'confirmacion', 'Atención guardada correctamente', { id: 'atencion' });
+  assert(!root.querySelector('.cargando'), 'La confirmación no reemplazó la carga');
+  assert(root.querySelectorAll('.notice').length === 1, 'Duplicó el aviso de la operación');
+  notifyFailure(document.body, { status: 409, message: 'No publicar datos internos' });
+  assert(root.querySelector('.advertencia[role=alert]'), 'El conflicto no es una alerta');
+  assert(!root.textContent.includes('No publicar datos internos'), 'Filtró datos internos');
+  await new Promise((resolve) => setTimeout(resolve, 5700));
+  assert(!root.querySelector('.confirmacion'), 'El éxito no desapareció');
+  assert(root.querySelector('.advertencia'), 'El error desapareció sin intervención');
+  root.querySelector('button').click();
+  assert(root.querySelectorAll('.notice').length === 0, 'No permite cerrar el aviso');
+  document.querySelector('#resultado').textContent = 'PASS: carga, éxito temporal, conflicto persistente, privacidad, accesibilidad y cierre';
+} catch (error) {
+  document.querySelector('#resultado').textContent = 'FAIL: ' + error.message;
+}
+</script>
+</body></html>

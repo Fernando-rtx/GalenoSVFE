@@ -39,10 +39,15 @@ function closeGestion() {
 }
 async function start() {
   try {
+    // Preserve ignored per-machine settings used by the local Liberty setup.
+    const local = await import('./control/environment.local.js').catch((error) => {
+      if (!(error instanceof TypeError)) throw error;
+      return {};
+    });
+    const localConfig = local.gestionConfig ?? local.config ?? local;
     const runtimeConfig = globalThis.GALENOS_CONFIG;
-    const local =
-      runtimeConfig?.gestionConfig ?? runtimeConfig?.config ?? runtimeConfig ?? {};
-    environment = { ...defaults, ...local };
+    const runtime = runtimeConfig?.gestionConfig ?? runtimeConfig?.config ?? runtimeConfig ?? {};
+    environment = { ...defaults, ...localConfig, ...runtime };
     academicConfig = createApiConfig({ ...environment, routes: API_V2_ROUTES });
     appearance = mountAppearance(root);
     portals = [...document.querySelectorAll('busqueda-citas,inicio-sesion')].map((view) =>

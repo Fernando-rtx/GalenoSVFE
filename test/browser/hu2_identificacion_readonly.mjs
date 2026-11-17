@@ -142,7 +142,7 @@ const waitQueue = () =>
     );
   });
 async function identify(row, duplicate = false) {
-  await view.locator('#tipo').selectOption(row.tipo);
+  await selectDocumentType(view, row.tipo);
   await view.locator('#valor').fill(row.valor);
   if (duplicate) {
     const count = identificationRequests;
@@ -161,7 +161,7 @@ try {
   await page.goto(front + '/#empleados');
   await waitFor(
     () =>
-      document.querySelector('inicio-sesion')?.shadowRoot.querySelector('#tipo').options.length > 1,
+      document.querySelector('inicio-sesion')?.documentTypes?.length > 0,
   );
   assert(await view.locator('#valor').isDisabled());
   assert.equal(await view.locator('h1').textContent(), 'Acceso de empleados');
@@ -169,7 +169,7 @@ try {
   await view.getByRole('button', { name: 'Ingresar', exact: true }).click();
   assert.equal(await view.locator('#tipo').getAttribute('aria-invalid'), 'true');
   mark('Tipo obligatorio, número inicialmente deshabilitado y error accesible');
-  await view.locator('#tipo').selectOption(employee.tipo);
+  await selectDocumentType(view, employee.tipo);
   await view.locator('#valor').fill('!');
   await view.getByRole('button', { name: 'Ingresar', exact: true }).click();
   await waitFor(
@@ -180,13 +180,13 @@ try {
         .getAttribute('aria-invalid') === 'true',
   );
   mark('Documento con formato incorrecto rechazado');
-  await view.locator('#tipo').selectOption(patient.tipo);
+  await selectDocumentType(view, patient.tipo);
   await view.locator('#valor').fill(patient.valor);
   await view.getByRole('button', { name: 'Ingresar', exact: true }).click();
   await waitFor(() =>
     document
       .querySelector('inicio-sesion')
-      .shadowRoot.querySelector('[role=status]')
+      .shadowRoot.querySelector('[data-status]')
       .textContent.includes('no tiene asignaciones de empleado'),
   );
   assert(await view.locator('[data-context]').isHidden());
@@ -261,13 +261,13 @@ try {
   const realOutage = process.env.GALENOS_RESTART_READONLY_RUNTIME === '1';
   if (realOutage) readonlyRuntime('stop');
   else await context.setOffline(true);
-  await view.locator('#tipo').selectOption(employee.tipo);
+  await selectDocumentType(view, employee.tipo);
   await view.locator('#valor').fill(employee.valor);
   await view.getByRole('button', { name: 'Ingresar', exact: true }).click();
   await waitFor(() =>
     document
       .querySelector('inicio-sesion')
-      .shadowRoot.querySelector('[role=status]')
+      .shadowRoot.querySelector('[data-status]')
       .textContent.includes('Sin conexión'),
   );
   if (realOutage) {
@@ -285,7 +285,7 @@ try {
   await waitFor(() =>
     document
       .querySelector('inicio-sesion')
-      .shadowRoot.querySelector('[role=status]')
+      .shadowRoot.querySelector('[data-status]')
       .textContent.includes('Selecciona tu documento'),
   );
   await identify(employee);
@@ -381,4 +381,12 @@ try {
     writeFileSync(out + '/resultado.json', JSON.stringify(report, null, 2) + '\n');
   }
   await browser.close();
+}
+
+// Selección visible del combobox de empleados; no modifica el estado a escondidas.
+async function selectDocumentType(view, id) {
+  const name = await view.evaluate((node, id) => node.documentTypes.find(type => type.idTipoDocumento === id)?.nombre, id);
+  assert(name, 'Tipo de documento disponible');
+  await view.locator('#tipo').fill(name);
+  await view.getByRole('option', { name, exact: true }).click();
 }

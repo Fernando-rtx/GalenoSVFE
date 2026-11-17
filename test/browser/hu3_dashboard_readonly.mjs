@@ -99,9 +99,9 @@ try {
   const app = page.locator('galenos-academic-app');
   await page.waitForFunction(
     () =>
-      document.querySelector('inicio-sesion')?.shadowRoot.querySelector('#tipo').options.length > 1,
+      document.querySelector('inicio-sesion')?.documentTypes?.length > 0,
   );
-  await view.locator('#tipo').selectOption(employee.tipo);
+  await selectDocumentType(view, employee.tipo);
   await view.locator('#valor').fill(employee.valor);
   await view.getByRole('button', { name: 'Ingresar', exact: true }).click();
   await view.locator('[data-context]').waitFor({ state: 'visible' });
@@ -242,4 +242,12 @@ try {
   await browser.close();
   if (report.status !== 'passed') report.status = 'failed';
   writeFileSync(out + '/resultado.json', JSON.stringify(report, null, 2) + '\n');
+}
+
+// Selección visible del combobox de empleados; no modifica el estado a escondidas.
+async function selectDocumentType(view, id) {
+  const name = await view.evaluate((node, id) => node.documentTypes.find(type => type.idTipoDocumento === id)?.nombre, id);
+  assert(name, 'Tipo de documento disponible');
+  await view.locator('#tipo').fill(name);
+  await view.getByRole('option', { name, exact: true }).click();
 }

@@ -58,8 +58,8 @@ try {
       contentType: 'text/javascript', body: `export const gestionConfig=${JSON.stringify({ baseUrl: backend })};` }));
     await page.goto(front + '/#empleados');
     const view = page.locator('inicio-sesion');
-    await page.waitForFunction(() => document.querySelector('inicio-sesion')?.shadowRoot.querySelector('#tipo').options.length > 1);
-    await view.locator('#tipo').selectOption(employee.tipo);
+    await page.waitForFunction(() => document.querySelector('inicio-sesion')?.documentTypes?.length > 0);
+    await selectDocumentType(view, employee.tipo);
     await view.locator('#valor').fill(employee.valor);
     await view.getByRole('button', { name: 'Ingresar', exact: true }).click();
     await view.locator('[data-context]').waitFor({ state: 'visible' });
@@ -92,4 +92,12 @@ try {
   writeFileSync('coverage/hu4/resultado.json', JSON.stringify(report, null, 2));
   await browser.close();
   console.log(JSON.stringify(report));
+}
+
+// Selección visible del combobox de empleados; no modifica el estado a escondidas.
+async function selectDocumentType(view, id) {
+  const name = await view.evaluate((node, id) => node.documentTypes.find(type => type.idTipoDocumento === id)?.nombre, id);
+  assert(name, 'Tipo de documento disponible');
+  await view.locator('#tipo').fill(name);
+  await view.getByRole('option', { name, exact: true }).click();
 }

@@ -55,6 +55,11 @@ suite('Inventario completo de 20 Service', () => {
     ]);
   });
 
+  test('DefaultService rechaza configuración y Fetch inválidos antes de enviar HTTP', () => {
+    expect(() => new api.DefaultService({ resource: 'clinica', fetchImpl: null })).to.throw(api.DefaultError);
+    expect(() => new api.DefaultService({ resource: 'clinica', config: { timeoutMs: 0 } })).to.throw(api.DefaultError);
+  });
+
   inventory.forEach(([name, resource]) => {
     suite(name, () => {
       test('selecciona su recurso y hereda el transporte sin aceptar una clave cruzada', () => {
@@ -70,11 +75,6 @@ suite('Inventario completo de 20 Service', () => {
         expect(service.config.timeoutMs).to.equal(4321);
         expect(service.fetchImpl).to.equal(fetchImpl);
         sinon.assert.notCalled(fetchImpl);
-      });
-
-      test('rechaza configuración y Fetch inválidos sin enviar solicitudes', () => {
-        expect(() => new api[name]({ fetchImpl: null })).to.throw(api.DefaultError);
-        expect(() => new api[name]({ config: { timeoutMs: 0 } })).to.throw(api.DefaultError);
       });
 
       if (!confirmed.includes(resource)) {

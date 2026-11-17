@@ -379,6 +379,7 @@ function mountApplication(root) {
         invalidate: () => {
           const portal = portals.find((portal) => portal.identidad.portal === 'empleado');
           portal.identidad.invalidar();
+          location.hash = '#empleados';
           root.querySelector('inicio-sesion').status('La sesión expiró o ya no es válida. Identifícate de nuevo.');
         },
         logout: async () => {

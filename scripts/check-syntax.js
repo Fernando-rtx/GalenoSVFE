@@ -9,7 +9,7 @@ async function collect(directory) {
       const file = path.join(directory, entry.name);
       return entry.isDirectory()
         ? collect(file)
-        : Promise.resolve(/\.(?:js|cjs)$/.test(file) ? [file] : []);
+        : Promise.resolve(/\.(?:js|cjs|mjs)$/.test(file) ? [file] : []);
     }),
   );
   return groups.flat();

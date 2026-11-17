@@ -11,6 +11,7 @@
     <script type="module">
       import '/js/boundary/components/tarjeta_consulta.js';
       import { mountDashboard } from '/js/boundary/dashboard.js';
+      import { applicationMarkup } from '/js/boundary/components/application-markup.js';
       import DefaultResponse from '/js/entity/DefaultResponse.js';
 
       const assert = (condition, message) => {
@@ -56,13 +57,12 @@
         );
         simple.remove();
 
-        const [clinicas, consultas, html] = await Promise.all([
+        const [clinicas, consultas] = await Promise.all([
           fetch('/test/fixtures/clinicas-demo.json').then((response) => response.json()),
           fetch('/test/fixtures/consulta-demo.json').then((response) => response.json()),
-          fetch('/index.html').then((response) => response.text()),
         ]);
         const root = new DOMParser()
-          .parseFromString(html, 'text/html')
+          .parseFromString(applicationMarkup, 'text/html')
           .querySelector('[data-dashboard]');
         document.body.append(root);
         const clinicaService = {

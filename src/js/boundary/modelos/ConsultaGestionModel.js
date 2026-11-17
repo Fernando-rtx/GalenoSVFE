@@ -79,7 +79,9 @@ export default class ConsultaGestionModel extends HTMLElement {
       if (this.isNewAppointment && this.wizardStep === 1) return this.continueToAppointment();
       return control.save(this.data(control.state));
     };
-    this.cards = root.closest('galenos-application')?.querySelector('[data-ui=cards]');
+    const application = root.closest('galenos-application');
+    this.cards = application?.querySelector('[data-ui=cards]');
+    this.detail = application?.querySelector('[data-ui=detail]');
     this.openCard = (event) => {
       const card = event.target.closest('tarjeta-consulta');
       if (card && !event.composedPath().some((n) => n.matches?.('button')))
@@ -387,22 +389,7 @@ export default class ConsultaGestionModel extends HTMLElement {
     data.fechaNacimiento = new Date(`${data.fechaNacimiento}T12:00:00-06:00`).toISOString();
     await this.control.registerPatient(data);
   }
-  render(state) {
-    this.notice.textContent = state.error ? gestionError(state.error) : state.message;
-    const reception = normalizarRol(obtenerAsignacionEmpleado()?.rolNombre) === 'atencion al publico';
-    this.nextStepLink.hidden = !reception;
-    this.flowHint.hidden = !reception;
-    this.create.hidden = normalizarRol(obtenerAsignacionEmpleado()?.rolNombre) !== 'atencion al publico';
-    this.create.disabled = state.writing || !state.clinic;
-    this.createPatient.hidden = !reception;
-    this.createPatient.disabled = state.writing || !state.clinic || !reception;
-    this.add.hidden = !reception;
-    this.add.disabled = state.writing || !state.consulta || !reception;
-    editableRecord(
-      this.root.closest('galenos-application')?.querySelector('[data-ui=detail]'),
-      () => this.control.editConsulta(false),
-      Boolean(state.consulta) && !state.writing && reception,
-    );
+  renderRelationships(state, reception) {
     this.relationshipSection.hidden = !state.consulta;
     this.relationshipSection.replaceChildren();
     if (state.consulta) {
@@ -472,6 +459,24 @@ export default class ConsultaGestionModel extends HTMLElement {
         this.relationshipSection.append(pager);
       }
     }
+  }
+  render(state) {
+    this.notice.textContent = state.error ? gestionError(state.error) : state.message;
+    const reception = normalizarRol(obtenerAsignacionEmpleado()?.rolNombre) === 'atencion al publico';
+    this.nextStepLink.hidden = !reception;
+    this.flowHint.hidden = !reception;
+    this.create.hidden = normalizarRol(obtenerAsignacionEmpleado()?.rolNombre) !== 'atencion al publico';
+    this.create.disabled = state.writing || !state.clinic;
+    this.createPatient.hidden = !reception;
+    this.createPatient.disabled = state.writing || !state.clinic || !reception;
+    this.add.hidden = !reception;
+    this.add.disabled = state.writing || !state.consulta || !reception;
+    editableRecord(
+      this.detail,
+      () => this.control.editConsulta(false),
+      Boolean(state.consulta) && !state.writing && reception,
+    );
+    this.renderRelationships(state, reception);
     if (state.editor && !this.dialog.open) {
       this.build(state);
       showAccessibleDialog(this.dialog);
@@ -603,7 +608,7 @@ export default class ConsultaGestionModel extends HTMLElement {
     if (!this._mounted) return;
     this._mounted = false;
     editableRecord(
-      this.root?.closest('galenos-application')?.querySelector('[data-ui=detail]'),
+      this.detail,
       () => {},
       false,
     );

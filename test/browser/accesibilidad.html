@@ -1,0 +1,36 @@
+<!doctype html><html lang="es"><meta charset="utf-8"><title>Accesibilidad sintética</title><body>
+<output id="resultado">EJECUTANDO</output><button id="opener">Abrir diálogo</button>
+<inicio-sesion></inicio-sesion>
+<script type="module">
+import '/js/boundary/modelos/InicioSesionModel.js';
+import { showAccessibleDialog, bindFormValidation } from '/js/boundary/modelos/form-validation.js';
+const assert = (condition, message) => { if (!condition) throw Error(message); };
+try {
+ const view = document.querySelector('inicio-sesion');
+ view.tipos([{idTipoDocumento:'00000000-0000-4000-8000-000000000001',nombre:'Documento académico'}]);
+ const input = view.shadowRoot.querySelector('#tipo');
+ input.focus();input.value='académico';input.dispatchEvent(new Event('input',{bubbles:true}));
+ assert(input.getAttribute('aria-expanded')==='true','Combobox no anuncia apertura');
+ input.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}));
+ assert(input.getAttribute('aria-activedescendant'),'Opción activa ausente');
+ input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));
+ assert(view.value('tipo')==='00000000-0000-4000-8000-000000000001','Enter no selecciona tipo');
+ assert(input.getAttribute('aria-expanded')==='false','Combobox sigue abierto');
+ const number=view.shadowRoot.querySelector('#valor');
+ assert(!number.disabled,'No habilitó el número');
+ const opener=document.querySelector('#opener');opener.focus();
+ const dialog=document.createElement('dialog');dialog.innerHTML='<h2>Atención sintética</h2><form><label for="nota">Nota</label><input id="nota" required><button>Guardar</button></form>';
+ document.body.append(dialog);
+ const form=dialog.querySelector('form');const clear=bindFormValidation(form,dialog);
+ showAccessibleDialog(dialog);
+ assert(dialog.getAttribute('aria-labelledby')===dialog.querySelector('h2').id,'Diálogo sin nombre');
+ assert(dialog.contains(document.activeElement),'Foco fuera del modal');
+ form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));
+ const note=dialog.querySelector('input');
+ assert(note===document.activeElement,'Error no recibe foco');
+ assert(note.getAttribute('aria-invalid')==='true','Error no asociado al campo');
+ assert(document.getElementById(note.getAttribute('aria-errormessage')),'Mensaje de error inexistente');
+ dialog.close();assert(document.activeElement===opener,'No devolvió el foco');clear();dialog.remove();
+ document.querySelector('#resultado').textContent='PASS: combobox con flechas/Enter, ARIA, modal, error y retorno del foco';
+} catch(error) {document.querySelector('#resultado').textContent='FAIL: '+error.message;}
+</script></body></html>

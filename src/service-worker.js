@@ -1,8 +1,9 @@
 // Solo recursos estáticos allowlisted; nunca se guarda una respuesta REST.
-const CACHE = 'galenossv-shell-v34';
+const CACHE = 'galenossv-shell-v35';
 const PREFIX = 'galenossv-shell-';
 // Lista cerrada: incluye todas las dependencias de arranque, incluso componentes de empleados.
 const ASSETS = new Set([
+  '/js/boundary/components/application-markup.js',
   '/js/control/AtencionCitaService.js',
   '/js/control/AtencionPacienteService.js',
   '/js/boundary/components/galenos-application.js',

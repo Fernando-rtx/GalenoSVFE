@@ -3,8 +3,11 @@
   <meta charset="utf-8" /><title>Componentes de página sintéticos</title>
   <body>
     <output id="resultado">EJECUTANDO</output>
+    <galenos-application>
     <div data-ui="cards"></div>
     <aside data-ui="detail"></aside>
+    <div data-fixtures></div>
+    </galenos-application>
     <script type="module">
       import '/js/boundary/modelos/CatalogoModel.js';
       import '/js/boundary/modelos/ConsultaGestionModel.js';
@@ -36,7 +39,7 @@
       function mount(tag, ...args) {
         const element = document.createElement(tag);
         element._mountArgs = args;
-        document.body.append(element);
+        document.querySelector('[data-fixtures]').append(element);
         assert(element._mounted, `${tag}: no montó al conectarse`);
         return element;
       }
@@ -80,7 +83,7 @@
         relation.remove();
         assert(
           calls.filter((call) => call === 'unsubscribe').length === 6,
-          'No se limpiaron las seis suscripciones',
+          'Suscripciones sin limpiar: ' + JSON.stringify(calls),
         );
         document.querySelector('#resultado').textContent =
           'PASS: montaje, acciones y limpieza de seis componentes de página';

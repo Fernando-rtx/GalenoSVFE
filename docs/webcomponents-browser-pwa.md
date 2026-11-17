@@ -17,3 +17,19 @@ Para ejecutar las pruebas de navegador, inicia `npm run dev` y ejecuta `python t
 Chromium informó cero errores de manifiesto e instalabilidad. Se probaron también modo oscuro y ancho móvil de 390 px sin desbordamiento. El botón de instalación no apareció en sesiones de Chromium headless ni visible con perfil temporal, por lo que no se pudo aceptar un diálogo nativo de instalación. El Service Worker creó `galenossv-shell-v2`; offline abrió la interfaz. Una respuesta clínica sintética de `/api/synthetic-patients` no apareció en Cache Storage. La prueba no acredita la aceptación del diálogo nativo de instalación: Playwright en modo headless no opera el diálogo del navegador. Ese paso requiere una comprobación manual en Chrome o Safari compatible.
 
 El backend local disponible apunta a `clinica`, por lo que no se ejecutaron pruebas de escritura ni se presentó como entorno aislado. `npm run test:transport` verifica Fetch nativo con servidor HTTP sintético; no sustituye una integración con backend aislado. Para esa prueba pendiente hace falta un despliegue de GalenosSV y base separados con datos ficticios y credenciales de prueba.
+
+## Runner vigente tras la revisión final GT02
+
+`npm run test:browser` usa `test/browser/webcomponents-pwa.mjs`, un servidor temporal y fixtures sintéticos. `webcomponents_pwa.py` delega en ese runner para conservar el comando sin duplicar recorridos. Los fixtures actuales usan el marcado real de la SPA y montan gestión dentro de su contenedor. Ninguna prueba sintética acredita persistencia PostgreSQL.
+
+Con Playwright1.62.1 externo instalado en `/tmp/galenos-browser-tools`, ejecutar:
+
+```sh
+PLAYWRIGHT_MODULE=/tmp/galenos-browser-tools/node_modules/playwright npm run test:browser
+PLAYWRIGHT_MODULE=/tmp/galenos-browser-tools/node_modules/playwright node test/browser/offline-shell.mjs
+npm run test:coverage
+```
+
+El primer comando genera `coverage/browser/resultado.json`, capturas, ratios de contraste y medición V8 de funciones del navegador. El segundo prueba arranque frío con servidor realmente detenido. El informe unitario no suma porcentajes con Chromium y comprueba los hashes de las fuentes. Manifest y prompt automatizados no sustituyen la evidencia manual de instalar y abrir la aplicación. El usuario confirmó esa instalación; adjuntar captura/navegador/origen/commit a la entrega.
+
+Dependencias de desarrollo: Node>=22.12.0, herramientas principales conservadas. Los overrides glob14.0.6/minimatch11.0.9 se limitan a Mocha y fueron validados con descubrimiento TDD, transporte y cobertura; follow-redirects1.16.3 corrige la alerta de BrowserSync. `npm audit` quedó sin alertas en esta revisión.

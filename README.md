@@ -36,7 +36,7 @@ npm run dev
 npm run check
 npm test
 npm run test:transport
-python test/browser/webcomponents_pwa.py
+npm run test:browser  # requiere Playwright externo; ver docs/webcomponents-browser-pwa.md
 ```
 
 Las pruebas HTTP usan un servidor sintético local; no equivalen a integrar contra Galenos. Las pruebas de navegador usan Chromium y fixtures ficticios. Para un backend real, sigue la configuración segura documentada en `docs/demo-setup.md`; no uses datos clínicos reales para pruebas destructivas.

@@ -34,3 +34,7 @@ El manifiesto publica nombre, scope e iconos. El Service Worker mantiene una cac
 - `npm run test:integration`: backend de prueba configurado; no declarar integración si no se ejecutó.
 
 El esquema PostgreSQL, los DAO Java y las reglas clínicas no forman parte de la capa frontend y no se cambian en esta refactorización.
+
+## Decisiones de simplicidad de la revisión final
+
+`components/application-markup.js` contiene solo el marcado estático de la SPA, compartido con el fixture de tarjetas. `galenos-application.js` conserva composición, navegación y ciclo de vida. En ConsultaGestionModel, el renderizado de relaciones se mantiene en un método de la misma clase, separado del editor; no se crean capas. Las referencias de tarjetas/detalle se conservan al montar para poder limpiar cuando el componente ya está desconectado. El componente académico continúa presentando estado y delegando coordinación/validación a AcademicCareControl; no se divide por longitud. Los Services y DefaultService conservan sus nombres, contratos y transporte compartido. Backend DAO/JPA no se reestructura.

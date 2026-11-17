@@ -58,6 +58,7 @@ class GalenosAcademicApp extends HTMLElement {
       @media(max-width:560px){main{padding:.8rem}.toolbar>*{width:100%}button{min-height:44px}.actions button{flex:1}}
       [data-care-form] fieldset{min-width:0;margin:1rem 0;padding:1rem;border:1px solid var(--gs-border);border-radius:.55rem}
       [data-care-form] fieldset label{display:flex;align-items:center;gap:.6rem;min-width:0;margin:.6rem 0;font-weight:400}
+      [data-care-form] [data-care-continuation] label{display:grid}[data-care-continuation] select{width:100%;min-width:0}
       [data-exam-search]{width:100%}[data-exam-selected]{padding-left:1.25rem}[data-exam-selected] li{margin:.5rem 0;overflow-wrap:anywhere}[data-exam-selected] button{padding:.4rem .65rem;margin-left:.4rem}
       [data-care-form] input[type=checkbox]{width:1.15rem;height:1.15rem;flex:0 0 auto}
       @media(max-width:560px){[data-care-form] .actions>*{width:100%;flex-basis:100%}}
@@ -408,6 +409,13 @@ class GalenosAcademicApp extends HTMLElement {
           <div id="care-exam-options" data-exam-options>${d.examenes.map((e) => `<label hidden data-exam-name="${esc(e.nombre || 'Examen sin nombre')}"><input type="checkbox" name="examenes" value="${esc(e.idExamen)}"> ${esc(e.nombre || 'Examen sin nombre')}</label>`).join('')}</div>
           <p data-exam-empty>No hay exámenes seleccionados.</p><ul data-exam-selected aria-label="Exámenes seleccionados" hidden></ul>`
         : '<p>No hay exámenes configurados para este paso.</p>'}</fieldset>`;
+    const continuation = `<fieldset data-care-continuation><legend>Continuación del procedimiento</legend>
+      <p>Procedimiento: <strong>${esc(d.procedimiento)}</strong></p>
+      ${d.siguientes.length
+        ? `<label for="care-next-step">Siguiente paso o ruta alternativa<select id="care-next-step" name="idPasoSiguiente" aria-describedby="care-route-help"><option value="">Selecciona un destino</option>${d.siguientes.map((s) => `<option value="${esc(s.idPaso)}">${esc(s.nombre)} · ${esc(s.tipoSecuencia === 'ALTERNATIVA' ? 'Ruta alternativa' : (s.tipoSecuencia === 'SIGUIENTE' || !s.tipoSecuencia ? 'Siguiente paso' : s.tipoSecuencia))}</option>`).join('')}</select></label>
+          <p id="care-route-help" class="status">Son los destinos permitidos desde «${esc(d.pasoActual)}». Seleccionar uno no avanza la consulta; confirma con el botón de avance.</p>`
+        : `<p>No hay pasos siguientes ni rutas alternativas configuradas desde «${esc(d.pasoActual)}» en este procedimiento.</p>${d.pasoFinal && !reception ? '<p>Este paso permite finalizar el procedimiento.</p>' : ''}`}
+      </fieldset>`;
     const advanceLabel = reception ? 'Confirmar recepción y avanzar' : 'Guardar y avanzar';
     const saveLabel = reception ? 'Guardar registro de recepción' : 'Guardar avance';
     const noNextStep = reception && !d.siguientes.length
@@ -421,9 +429,9 @@ class GalenosAcademicApp extends HTMLElement {
       <details><summary>Historial previo</summary>${this.history(d.historial)}</details>
       ${reception ? '' : `<details><summary>Órdenes y resultados de este paso</summary>${this.orders(d.ordenesActuales || [])}</details>`}
       <form data-care-form><label>${reception ? 'Registro de recepción' : 'Registro de atención'}<textarea name="valor" required minlength="1" maxlength="10000" placeholder="${reception ? 'Ejemplo: paciente llegó y se confirmó su identidad.' : ''}">${esc(d.valorActual || '')}</textarea></label>
-      ${examSection}
+      ${examSection}${continuation}
       <div class="actions"><button class="primary" name="accion" value="GUARDAR_PARCIAL">${saveLabel}</button>
-      ${d.siguientes.length ? `<label>Siguiente paso<select name="idPasoSiguiente"><option value="">Selecciona un paso</option>${d.siguientes.map((s) => `<option value="${esc(s.idPaso)}">${esc(s.nombre)}${s.tipoSecuencia ? ` · ${esc(s.tipoSecuencia)}` : ''}</option>`).join('')}</select></label><button class="primary" name="accion" value="AVANZAR">${advanceLabel}</button>` : ''}
+      ${d.siguientes.length ? `<button class="primary" name="accion" value="AVANZAR">${advanceLabel}</button>` : ''}
       ${d.puedeRetroceder ? `${d.anteriores?.length > 1 ? `<label>Paso anterior<select name="idConsultaProcedimientoPasoAnterior"><option value="">Selecciona un paso</option>${d.anteriores.map((s) => `<option value="${esc(s.idConsultaProcedimientoPaso)}">${esc(s.nombre)}</option>`).join('')}</select></label>` : ''}<button name="accion" value="RETROCEDER">Retroceder</button>` : ''}
       ${d.pasoFinal && !reception ? '<button name="accion" value="FINALIZAR">Finalizar procedimiento</button>' : ''}</div>${noNextStep}
       <p class="status" data-save-status role="status" aria-live="polite"></p></form>`;

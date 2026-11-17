@@ -86,6 +86,28 @@ suite('HU4: acciones de los botones de atención', () => {
     sinon.assert.calledWith(app.show, 'dashboard');
     sinon.assert.notCalled(app.loadCare);
   });
+  test('muestra la ruta alternativa del procedimiento y envía su UUID al avanzar', async () => {
+    app.care.procedimiento = 'Evaluación de salud sintética';
+    app.care.siguientes.push({ idPaso: 'laboratorio', nombre: 'Exámenes', tipoSecuencia: 'ALTERNATIVA' });
+    app.renderCare();
+    expect(content.innerHTML).to.include('Evaluación de salud sintética');
+    expect(content.innerHTML).to.include('Exámenes · Ruta alternativa');
+    app.form.returns({ valor: 'Solicita evaluación de laboratorio', idPasoSiguiente: 'laboratorio' });
+    await submitButton('Guardar y avanzar');
+    expect(app.api.register.firstCall.args[0]).to.include({ accion: 'AVANZAR', idPasoSiguiente: 'laboratorio' });
+  });
+
+  test('un paso final sin salidas informa que no tiene alternativas y permite finalizar', async () => {
+    app.care.pasoFinal = true;
+    app.care.siguientes = [];
+    app.renderCare();
+    expect(content.innerHTML).to.include('No hay pasos siguientes ni rutas alternativas configuradas');
+    expect(content.innerHTML).not.to.include('name="idPasoSiguiente"');
+    expect(content.innerHTML).not.to.include('value="AVANZAR"');
+    await submitButton('Finalizar procedimiento');
+    expect(app.api.register.firstCall.args[0].accion).to.equal('FINALIZAR');
+  });
+
   test('espera confirmación REST antes del éxito y bloquea un segundo envío', async () => {
     let confirm;
     app.api.register.returns(new Promise((resolve) => { confirm = resolve; }));

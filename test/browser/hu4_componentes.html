@@ -25,7 +25,8 @@
       const detail = { idConsulta: id(5), idConsultaProcedimientoPaso: id(6), paciente: row.paciente, clinica: row.clinica, rol: 'Rol sintético',
         procedimiento: 'Procedimiento sintético', idPasoActual: id(7), pasoActual: 'Paso sintético', valorActual: 'Nota previa', pasoFinal: false,
         historial: [], examenes: [{ idExamen: id(8), nombre: 'Radiografía de tórax' }, { idExamen: id(10), nombre: 'Hemograma completo' }],
-        siguientes: [{ idPaso: id(9), nombre: 'Rama sintética', tipoSecuencia: 'SI' }], puedeRetroceder: false,
+        siguientes: [{ idPaso: id(9), nombre: 'Pago sintético', tipoSecuencia: 'SIGUIENTE' },
+          { idPaso: id(11), nombre: 'Laboratorio sintético', tipoSecuencia: 'ALTERNATIVA' }], puedeRetroceder: false,
         anteriores: [], ordenesActuales: [{ idOrdenExamen: id(20), examen: 'Examen registrado sintético',
           fechaCreacion: '2026-01-01T12:00:00Z', indicaciones: 'Indicación previa sintética',
           resultados: [{ idExamenResultado: id(21), fechaCreacion: '2026-01-01T12:30:00Z', resultado: 'Resultado previo sintético', interpretacion: 'Interpretación sintética' }] }],
@@ -51,6 +52,10 @@
         assert(app.q('[data-care-content]').textContent.includes('Empleado sintético'), 'Falta contexto de empleado');
         assert(app.q('[data-care-content]').textContent.includes('Resultado previo sintético'), 'No muestra órdenes/resultados existentes');
         assert(!app.q('[value=RETROCEDER]') && !app.q('[value=FINALIZAR]'), 'Ofrece acciones no permitidas');
+        const routes = app.q('[data-care-continuation]');
+        assert(routes.textContent.includes('Procedimiento sintético'), 'No identifica el procedimiento de los destinos');
+        assert(routes.textContent.includes('Laboratorio sintético · Ruta alternativa'), 'Oculta el nombre de la ruta alternativa');
+        assert(routes.textContent.includes('Pago sintético · Siguiente paso'), 'Oculta la continuación normal');
         app.q('textarea').value = '  ';
         await submit('GUARDAR_PARCIAL');
         assert(app.q('[data-save-status]').textContent.includes('Registra la atención'), 'No valida nota vacía');
@@ -94,13 +99,15 @@
         assert(app.q('[data-care-notice]').textContent.includes('guardada'), 'Falta confirmación');
         await submit('AVANZAR');
         assert(calls.length === 1, 'Avanzó sin escoger una rama');
-        app.q('[name=idPasoSiguiente]').value = id(9);
+        app.q('[name=idPasoSiguiente]').value = id(11);
+        app.q('[name=idPasoSiguiente]').dispatchEvent(new Event('change', { bubbles: true }));
+        assert(calls.length === 1, 'Seleccionar una alternativa avanzó sin confirmar');
         app.api.register = async (data, options) => {
           calls.push({ data, options }); return response({ accion: 'AVANZAR', finalizada: false });
         };
         await submit('AVANZAR');
         assert(!app.q('[data-panel=dashboard]').hidden, 'No volvió al dashboard tras la transición');
-        assert(calls.at(-1).data.idPasoSiguiente === id(9), 'Avanzó a una rama distinta');
+        assert(calls.at(-1).data.idPasoSiguiente === id(11), 'Avanzó a una rama distinta');
         await app.openCare(row.idConsulta);
         app.q('textarea').value = 'Borrador que debe conservarse';
         app.api.register = async () => { throw new DefaultError({ type: 'http', status: 409, message: 'SQL privado' }); };
@@ -124,6 +131,7 @@
         detail.siguientes = [];
         await app.loadCare();
         assert(app.q('[value=FINALIZAR]') && !app.q('[value=AVANZAR]'), 'No respeta el último paso');
+        assert(app.q('[data-care-continuation]').textContent.includes('No hay pasos siguientes ni rutas alternativas'), 'Inventa destinos en un paso sin salidas');
         const beforeBack = calls.length;
         await submit('RETROCEDER');
         assert(calls.length === beforeBack, 'Retrocedió sin elegir un predecesor');
@@ -144,7 +152,7 @@
         await app.refreshSessions();
         await until(() => app.control.queue.length === 1);
         await app.openCare(row.idConsulta);
-        document.querySelector('#resultado').textContent = 'PASS: HU4 sintético — formulario, buscador de exámenes, selección conservada, guardado único, avance, conflictos, desconexión y limpieza de contexto';
+        document.querySelector('#resultado').textContent = 'PASS: HU4 sintético — formulario, buscador de exámenes, selección conservada, guardado único, rutas alternativas, avance, conflictos, desconexión y limpieza de contexto';
       } catch (error) {
         document.querySelector('#resultado').textContent = 'FAIL: ' + error.message;
         console.error(error);

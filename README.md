@@ -1,7 +1,7 @@
 # GalenoSVFE
 
-Aplicación académica local con datos ficticios. Abre el dashboard sin iniciar
-sesión. Arranca Liberty y el frontend con la
+Aplicación académica local con datos ficticios. Identifica pacientes y empleados
+mediante documento y limita el dashboard a las asignaciones vigentes. Arranca Liberty y el frontend con la
 [guía de desarrollo local](docs/desarrollo-local.md).
 
 

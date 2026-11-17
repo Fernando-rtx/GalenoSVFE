@@ -73,9 +73,15 @@
               status: 200,
             }),
         };
+        const requests = [];
+        // La primera fila representa una consulta cerrada en este fixture sintético.
+        const finished = consultas[0].idConsulta;
         const consultaService = {
           findRange: async (first, max, options) => {
-            const rows = consultas.filter((row) => row.idClinica === options.query.idClinica);
+            requests.push({ first, ...options.query });
+            const rows = consultas.filter((row) => row.idClinica === options.query.idClinica)
+              .filter(row => !options.query.estadoAtencion ||
+                (options.query.estadoAtencion === 'FINALIZADAS' ? row.idConsulta === finished : row.idConsulta !== finished));
             return new DefaultResponse({
               datos: rows.slice(first, first + max),
               totalDatos: rows.length,
@@ -153,13 +159,27 @@
           card.shadowRoot.textContent.includes('Sin especificar'),
           'No se mostró la fecha ausente',
         );
+        const careStatus = root.querySelector('[data-ui="estadoAtencion"]');
+        root.querySelector('[data-ui="fechaDesde"]').value = '2026-10-01';
+        careStatus.value = 'FINALIZADAS';
+        root.querySelector('[data-ui="filters"]').requestSubmit();
+        await until(() => dashboard.control.state.consultas.length === 1, 'No muestra solo finalizadas');
+        assert(requests.at(-1).estadoAtencion === 'FINALIZADAS' && requests.at(-1).fechaDesde === '2026-10-01', 'El estado perdió el filtro de fecha');
+        assert(root.querySelector('[data-ui="total"]').textContent === '1', 'El total no corresponde a finalizadas');
+        careStatus.value = 'PENDIENTES';
+        root.querySelector('[data-ui="filters"]').requestSubmit();
+        await until(() => dashboard.control.state.consultas.length === 4, 'No muestra solo pendientes');
+        assert(!dashboard.control.state.consultas.some(row => row.idConsulta === finished), 'Mezcla una finalizada con pendientes');
+        root.querySelector('[data-ui="clearFilters"]').click();
+        await until(() => dashboard.control.state.consultas.length === 5, 'Limpiar no recupera todas');
+        assert(careStatus.value === '' && !requests.at(-1).estadoAtencion, 'Limpiar conserva el filtro de estado');
         dashboard.destroy();
       }
 
       run()
         .then(() => {
           document.querySelector('#resultado').textContent =
-            'PASS: tarjetas, slots, UTC, datos nulos y selección del dashboard';
+            'PASS: tarjetas, slots, UTC, datos nulos, selección y filtros de atención del dashboard';
         })
         .catch((error) => {
           document.querySelector('#resultado').textContent = `FAIL: ${error.message}`;

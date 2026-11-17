@@ -383,7 +383,10 @@ flowRoutes(
   consultaSchema,
   ['idPersonaRol', 'fechaInicio', 'fechaFin', 'referenciaExterna', 'observaciones'],
   {
-    listQuery: API_ROUTES.consulta.operations.findRange.query,
+    listQuery: {
+      ...API_ROUTES.consulta.operations.findRange.query,
+      estadoAtencion: { validate: (value) => ['PENDIENTES', 'FINALIZADAS'].includes(value) },
+    },
     validateQuery: API_ROUTES.consulta.operations.findRange.validateQuery,
   },
 );

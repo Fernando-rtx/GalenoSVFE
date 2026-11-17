@@ -82,6 +82,7 @@ suite('Dashboard Control — coordinación sin DOM ni Fetch', () => {
       fechaDesde: '2026-10-22',
       fechaHasta: '2026-10-23',
       idPersonaRol: CONSULTAS[0].idPersonaRol,
+      estadoAtencion: 'FINALIZADAS',
     };
     await control.setFilters(filtros);
     expect(consultaService.findRange.lastCall.args.slice(0, 2)).to.deep.equal([0, 2]);
@@ -97,6 +98,7 @@ suite('Dashboard Control — coordinación sin DOM ni Fetch', () => {
   test('rechaza filtros ajenos, UUID y fechas inválidos antes de usar los Service', async () => {
     for (const filters of [
       { estado: 'inventado' },
+      { estadoAtencion: 'COMPLETADO' },
       { fechaDesde: null },
       { idPersonaRol: 'invalido' },
       { fechaDesde: '2026-10-23', fechaHasta: '2026-10-22' },

@@ -74,7 +74,7 @@ export default class DashboardModel extends HTMLElement {
         this.nodes.idPersonaRol.value = candidates[0].idPersonaRol;
       }
       const filters = {};
-      ['fechaDesde', 'fechaHasta', 'idPersonaRol'].forEach((key) => {
+      ['fechaDesde', 'fechaHasta', 'idPersonaRol', 'estadoAtencion'].forEach((key) => {
         const value = this.nodes[key].value.trim();
         if (value) filters[key] = value;
       });
@@ -143,7 +143,7 @@ export default class DashboardModel extends HTMLElement {
     n.retryClinicas.hidden = state.clinicasStatus !== 'error';
     n.filtersFieldset.disabled = !state.idClinica;
     if (this._filters !== state.filtros) {
-      ['fechaDesde', 'fechaHasta', 'idPersonaRol'].forEach((key) => {
+      ['fechaDesde', 'fechaHasta', 'idPersonaRol', 'estadoAtencion'].forEach((key) => {
         n[key].value = state.filtros[key] || '';
       });
       this._filters = state.filtros;

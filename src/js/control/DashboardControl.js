@@ -159,7 +159,7 @@ export default class DashboardControl {
   }
 
   async setFilters(filters) {
-    const names = ['fechaDesde', 'fechaHasta', 'idPersonaRol'];
+    const names = ['fechaDesde', 'fechaHasta', 'idPersonaRol', 'estadoAtencion'];
     if (
       !filters ||
       typeof filters !== 'object' ||
@@ -169,9 +169,10 @@ export default class DashboardControl {
         (key) => filters[key] !== undefined && !isCalendarDate(filters[key]),
       ) ||
       (filters.idPersonaRol !== undefined && !isUuid(filters.idPersonaRol)) ||
+      (filters.estadoAtencion !== undefined && !['PENDIENTES', 'FINALIZADAS'].includes(filters.estadoAtencion)) ||
       !orderedDates(filters)
     ) {
-      throw DefaultError.validation('Revisa las fechas y el UUID de PersonaRol.', 'INVALID_QUERY');
+      throw DefaultError.validation('Revisa las fechas, el paciente y el estado de atención.', 'INVALID_QUERY');
     }
     const clean = {};
     names.forEach((key) => {

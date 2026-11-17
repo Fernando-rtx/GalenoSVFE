@@ -18,6 +18,8 @@ const english = new Map(Object.entries({
   'En Chrome, abre el menú ⋮ → Enviar, guardar y compartir → Instalar página como aplicación… y confirma la instalación. También puedes usar el icono Instalar de la barra de direcciones, si aparece.': 'In Chrome, open the ⋮ menu → Cast, save, and share → Install page as app… and confirm the installation. You can also use the Install icon in the address bar, if shown.',
   'En Safari para Mac, selecciona Archivo → Añadir al Dock… (o Compartir → Añadir al Dock) y confirma con Añadir. Safari no permite abrir esa ventana desde este botón.': 'In Safari for Mac, choose File → Add to Dock… (or Share → Add to Dock) and confirm with Add. Safari does not allow this button to open that window.',
   'El navegador no ha ofrecido el aviso de instalación. Abre su menú y busca Instalar GalenosSV o Instalar aplicación. Si no aparece, puedes seguir usando la versión web y descargar tu ticket PDF.': 'The browser has not offered an installation prompt. Open its menu and look for Install GalenosSV or Install app. If unavailable, you can keep using the web version and download your PDF ticket.',
+  'Estado de atención': 'Care status', 'Todas': 'All', 'Por atender / en curso': 'Awaiting care / In progress', 'Finalizadas': 'Completed',
+  'Finalizadas: todos sus procedimientos concluyeron.': 'Completed: all associated procedures have ended.',
   'Nombre del paciente': 'Patient name', 'Escribe el nombre o apellido': 'Enter a first or last name',
   'Pacientes encontrados': 'Matching patients', 'Selecciona un paciente': 'Select a patient',
   'Opcional · busca pacientes de la clínica seleccionada': 'Optional · search patients in the selected clinic',

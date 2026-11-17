@@ -155,6 +155,15 @@ export const applicationMarkup = String.raw`<galenos-notifications></galenos-not
                     <label for="fechaHasta">Hasta</label
                     ><input type="date" id="fechaHasta" data-ui="fechaHasta" />
                   </div>
+                  <div>
+                    <label for="estadoAtencion">Estado de atención</label>
+                    <select id="estadoAtencion" data-ui="estadoAtencion" aria-describedby="estado-atencion-ayuda">
+                      <option value="">Todas</option>
+                      <option value="PENDIENTES">Por atender / en curso</option>
+                      <option value="FINALIZADAS">Finalizadas</option>
+                    </select>
+                    <span id="estado-atencion-ayuda" class="field-hint">Finalizadas: todos sus procedimientos concluyeron.</span>
+                  </div>
                   <div class="role-filter">
                     <label for="pacienteNombre">Nombre del paciente</label
                     ><input

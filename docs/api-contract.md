@@ -227,3 +227,7 @@ Las fechas del ejemplo pertenecen al fixture sintético; el cliente obtiene
 clínicas por HTTP y fechas de los filtros de usuario. Reproducción y límites:
 `docs/consulta-demo.md`. Autenticación y autorización reales serán un contrato
 posterior antes de usar datos clínicos.
+
+## Filtro de atención en gestión v2
+
+`GET /v2/consulta` acepta `estadoAtencion=PENDIENTES` o `FINALIZADAS`; omitido significa todas. No se cambia el DTO ni el contrato v1. Un valor desconocido se rechaza con 422. Se combina con clínica, fecha y paciente y se aplica antes de paginar y contar `Total-registros`. Finalizada requiere al menos un procedimiento, todos cerrados y ningún paso pendiente/en curso; las demás están por atender/en curso. No se interpreta la fecha de fin programada de la cita como cierre de HU4.

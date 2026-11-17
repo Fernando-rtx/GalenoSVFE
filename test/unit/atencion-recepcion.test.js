@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import AtencionPacienteService from '../../src/js/control/AtencionPacienteService.js';
+import ConsultaService from '../../src/js/control/ConsultaService.js';
 import AtencionCitaService from '../../src/js/control/AtencionCitaService.js';
 import { createApiConfig } from '../../src/js/control/api-config.js';
 import { API_V2_ROUTES } from '../../src/js/control/api-v2-routes.js';
@@ -24,6 +25,25 @@ suite('Servicios de recepción: transporte sintético con asignación', () => {
     expect(options.cache).to.equal('no-store');
     expect(JSON.parse(options.body)).to.deep.equal(data);
     expect(result.datos.idPersonaRol).to.equal(id);
+  });
+  test('ConsultaService envía estado y fechas juntos, conservando el total del backend', async () => {
+    fetchImpl.resolves(new Response('[]', { status: 200, headers: { 'Content-Type': 'application/json', 'Total-registros': '3' } }));
+    const service = new ConsultaService({ config, fetchImpl });
+    const query = { idClinica: id, estadoAtencion: 'FINALIZADAS', fechaDesde: '2026-11-01', fechaHasta: '2026-11-30' };
+    const result = await service.findRange(10, 10, { query });
+    const params = new URL(fetchImpl.firstCall.args[0]).searchParams;
+    expect(params.get('estadoAtencion')).to.equal('FINALIZADAS');
+    expect(params.get('fechaDesde')).to.equal('2026-11-01');
+    expect(params.get('first')).to.equal('10');
+    expect(result.totalDatos).to.equal(3);
+  });
+  test('ConsultaService rechaza estados de atención desconocidos antes de Fetch', async () => {
+    const service = new ConsultaService({ config, fetchImpl });
+    try {
+      await service.findRange(0, 10, { query: { idClinica: id, estadoAtencion: 'CANCELADA' } });
+      expect.fail('Debía rechazar el estado');
+    } catch (error) { expect(error.type).to.equal('validation'); }
+    sinon.assert.notCalled(fetchImpl);
   });
   test('AtencionCitaService propaga un conflicto sin devolver una cita exitosa', async () => {
     fetchImpl.resolves(new Response(JSON.stringify({ mensaje: 'Conflicto sintético' }), { status: 409, headers: { 'Content-Type': 'application/json' } }));

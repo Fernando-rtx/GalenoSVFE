@@ -29,6 +29,16 @@
         assert(installationInstructions({ userAgent: 'iPhone Safari/605' }).includes('Compartir → Añadir a pantalla de inicio'), 'No guía la instalación en iPhone');
         assert(installationInstructions({ userAgent: 'Macintosh Safari/605', maxTouchPoints: 5 }).includes('pantalla de inicio'), 'Confunde un iPad con un Mac');
         assert(!installationInstructions({ userAgent: 'Macintosh Chrome/130 Safari/537' }).includes('Archivo → Añadir al Dock'), 'Da instrucciones de Safari a Chrome');
+        assert(installationInstructions({ userAgent: 'Macintosh Chrome/130 Safari/537' }).includes('Enviar, guardar y compartir → Instalar página como aplicación'), 'No guía la instalación de Chrome en escritorio');
+        assert(installationInstructions({ userAgent: 'Android Chrome/130 Safari/537' }).includes('Chrome para Android'), 'Confunde Chrome Android con escritorio');
+        assert(installationInstructions({ userAgent: 'iPhone CriOS/130 Mobile Safari/605' }).includes('Chrome para iPhone'), 'Confunde Chrome iOS con Safari');
+        assert(installationInstructions({ userAgent: 'Windows NT 10.0 Firefox/146' }).includes('icono de aplicaciones web de la barra de direcciones'), 'No guía Firefox Windows');
+        assert(installationInstructions({ userAgent: 'Macintosh Firefox/146' }).includes('Firefox para Mac no ofrece instalación nativa'), 'Promete instalación nativa en Firefox Mac');
+        assert(installationInstructions({ userAgent: 'X11; Linux x86_64 Firefox/146' }).includes('abre esta misma dirección en Chrome'), 'No ofrece alternativa para Firefox Linux');
+        assert(installationInstructions({ userAgent: 'Android Firefox/146' }).includes('Firefox para Android, abre el menú ⋮ → Instalar'), 'No guía Firefox Android');
+        assert(installationInstructions({ userAgent: 'iPhone FxiOS/146 Mobile Safari/605' }).includes('Firefox para iPhone'), 'Confunde Firefox iOS con Safari');
+        assert(!installationInstructions({ userAgent: 'Windows Chrome/130 Safari/537 Edg/130' }).includes('En Chrome,'), 'Confunde Edge con Chrome');
+        assert(installationInstructions({ userAgent: '' }).includes('El navegador no ha ofrecido'), 'No conserva ayuda para un navegador desconocido');
         document.querySelector('#volver').focus();
         const pdf = offerTicketDownload();
         document.querySelector('[data-ticket-install]').click();
@@ -61,7 +71,7 @@
         assert(document.querySelector('[data-ticket-install]').disabled && document.querySelector('[data-ticket-install]').textContent === 'App instalada', 'Ignora la confirmación appinstalled');
         document.querySelector('[data-ticket-cancel]').click();
         await installed;
-        document.querySelector('#resultado').textContent = 'PASS: instalación sintética — aviso único, cancelación, confirmación, guía Safari/Mac/iPhone/iPad y PDF independiente';
+        document.querySelector('#resultado').textContent = 'PASS: instalación sintética — aviso único, cancelación, confirmación, guía Safari/Chrome/Firefox por dispositivo y PDF independiente';
       } catch (error) {
         document.querySelector('#resultado').textContent = 'FAIL: ' + error.message;
         console.error(error);

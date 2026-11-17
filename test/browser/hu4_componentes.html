@@ -24,7 +24,7 @@
       const row = { idConsulta: id(5), paciente: 'Paciente sintético', clinica: 'Clínica sintética', fechaInicio: '2026-01-01T12:00:00Z', procedimientos: [] };
       const detail = { idConsulta: id(5), idConsultaProcedimientoPaso: id(6), paciente: row.paciente, clinica: row.clinica, rol: 'Rol sintético',
         procedimiento: 'Procedimiento sintético', idPasoActual: id(7), pasoActual: 'Paso sintético', valorActual: 'Nota previa', pasoFinal: false,
-        historial: [], examenes: [{ idExamen: id(8), nombre: 'Examen permitido sintético' }],
+        historial: [], examenes: [{ idExamen: id(8), nombre: 'Radiografía de tórax' }, { idExamen: id(10), nombre: 'Hemograma completo' }],
         siguientes: [{ idPaso: id(9), nombre: 'Rama sintética', tipoSecuencia: 'SI' }], puedeRetroceder: false,
         anteriores: [], ordenesActuales: [{ idOrdenExamen: id(20), examen: 'Examen registrado sintético',
           fechaCreacion: '2026-01-01T12:00:00Z', indicaciones: 'Indicación previa sintética',
@@ -60,12 +60,32 @@
           return new Promise((resolve) => { finish = resolve; });
         };
         app.q('textarea').value = 'Nota sintética actualizada';
-        app.q('[name=examenes]').checked = true;
+        const search = app.q('[data-exam-search]');
+        const examRows = [...app.q('[data-exam-options]').querySelectorAll('label')];
+        assert(examRows.every(row => row.hidden), 'Lista exámenes antes de buscar');
+        search.value = 'TORAX'; search.dispatchEvent(new Event('input', { bubbles: true }));
+        assert(!examRows[0].hidden && examRows[1].hidden, 'No busca ignorando mayúsculas y tildes');
+        const exam = app.q('[name=examenes]'); exam.checked = true;
+        exam.dispatchEvent(new Event('change', { bubbles: true }));
+        assert(app.q('[data-exam-selected]').textContent.includes('Radiografía de tórax'), 'No muestra la selección');
+        search.value = 'hemograma'; search.dispatchEvent(new Event('input', { bubbles: true }));
+        assert(examRows[0].hidden && !examRows[1].hidden && exam.checked, 'Otra búsqueda pierde la selección');
+        const secondExam = examRows[1].querySelector('input'); secondExam.checked = true;
+        secondExam.dispatchEvent(new Event('change', { bubbles: true }));
+        app.q('[aria-label="Quitar Hemograma completo"]').click();
+        assert(!secondExam.checked && exam.checked, 'Quitar afecta a otro examen');
+        search.value = 'examen no permitido'; search.dispatchEvent(new Event('input', { bubbles: true }));
+        assert(examRows.every(row => row.hidden), 'Ofrece un examen ajeno al paso');
+        assert(app.q('[data-exam-status]').textContent.includes('No hay'), 'No informa búsqueda vacía');
+        search.value = ''; search.dispatchEvent(new Event('input', { bubbles: true }));
+        assert(exam.checked && app.q('textarea').value === 'Nota sintética actualizada', 'La búsqueda pierde selección o nota');
+        assert(calls.length === 0, 'Buscar o quitar envió atención sin confirmación');
         const first = submit('GUARDAR_PARCIAL');
         await submit('GUARDAR_PARCIAL');
         assert(calls.length === 1, 'Dos envíos crearon dos escrituras');
         assert(app.q('[data-back]').disabled && app.q('textarea').disabled, 'Permite cambios durante el guardado');
         assert(calls[0].data.examenes[0] === id(8), 'No envió el examen seleccionado');
+        assert(calls[0].data.examenes.length === 1, 'Envió un examen retirado de la selección');
         assert(calls[0].options.headers['X-Persona-Rol'] === id(2), 'Perdió la asignación');
         detail.valorActual = calls[0].data.valor;
         finish(response({ accion: 'GUARDAR_PARCIAL', finalizada: false }));
@@ -124,7 +144,7 @@
         await app.refreshSessions();
         await until(() => app.control.queue.length === 1);
         await app.openCare(row.idConsulta);
-        document.querySelector('#resultado').textContent = 'PASS: HU4 sintético — formulario, exámenes, guardado único, avance, conflictos, desconexión y limpieza de contexto';
+        document.querySelector('#resultado').textContent = 'PASS: HU4 sintético — formulario, buscador de exámenes, selección conservada, guardado único, avance, conflictos, desconexión y limpieza de contexto';
       } catch (error) {
         document.querySelector('#resultado').textContent = 'FAIL: ' + error.message;
         console.error(error);

@@ -58,6 +58,7 @@ class GalenosAcademicApp extends HTMLElement {
       @media(max-width:560px){main{padding:.8rem}.toolbar>*{width:100%}button{min-height:44px}.actions button{flex:1}}
       [data-care-form] fieldset{min-width:0;margin:1rem 0;padding:1rem;border:1px solid var(--gs-border);border-radius:.55rem}
       [data-care-form] fieldset label{display:flex;align-items:center;gap:.6rem;min-width:0;margin:.6rem 0;font-weight:400}
+      [data-exam-search]{width:100%}[data-exam-selected]{padding-left:1.25rem}[data-exam-selected] li{margin:.5rem 0;overflow-wrap:anywhere}[data-exam-selected] button{padding:.4rem .65rem;margin-left:.4rem}
       [data-care-form] input[type=checkbox]{width:1.15rem;height:1.15rem;flex:0 0 auto}
       @media(max-width:560px){[data-care-form] .actions>*{width:100%;flex-basis:100%}}
     </style><main><p class="eyebrow">GalenosSV · atención académica</p><h1>Dashboard</h1><p class="lead">Consulta tus citas y atiende los casos asociados a la sesión académica que hayas iniciado.</p>
@@ -400,7 +401,13 @@ class GalenosAcademicApp extends HTMLElement {
       : '';
     const examSection = reception
       ? '<p>Los exámenes y resultados se registran durante los pasos clínicos.</p>'
-      : `<fieldset><legend>Exámenes permitidos para este paso</legend>${d.examenes.map((e) => `<label><input type="checkbox" name="examenes" value="${esc(e.idExamen)}"> ${esc(e.nombre || 'Examen sin nombre')}</label>`).join('') || '<p>No hay exámenes configurados.</p>'}</fieldset>`;
+      : `<fieldset><legend>Exámenes para este paso</legend>${d.examenes.length
+        ? `<label for="care-exam-search">Buscar examen permitido</label>
+          <input id="care-exam-search" data-exam-search type="search" autocomplete="off" placeholder="Escribe el nombre del examen…" aria-describedby="care-exam-status" aria-controls="care-exam-options">
+          <p id="care-exam-status" class="status" data-exam-status role="status" aria-live="polite">Escribe para buscar entre los exámenes permitidos.</p>
+          <div id="care-exam-options" data-exam-options>${d.examenes.map((e) => `<label hidden data-exam-name="${esc(e.nombre || 'Examen sin nombre')}"><input type="checkbox" name="examenes" value="${esc(e.idExamen)}"> ${esc(e.nombre || 'Examen sin nombre')}</label>`).join('')}</div>
+          <p data-exam-empty>No hay exámenes seleccionados.</p><ul data-exam-selected aria-label="Exámenes seleccionados" hidden></ul>`
+        : '<p>No hay exámenes configurados para este paso.</p>'}</fieldset>`;
     const advanceLabel = reception ? 'Confirmar recepción y avanzar' : 'Guardar y avanzar';
     const saveLabel = reception ? 'Guardar registro de recepción' : 'Guardar avance';
     const noNextStep = reception && !d.siguientes.length
@@ -421,6 +428,45 @@ class GalenosAcademicApp extends HTMLElement {
       ${d.pasoFinal && !reception ? '<button name="accion" value="FINALIZAR">Finalizar procedimiento</button>' : ''}</div>${noNextStep}
       <p class="status" data-save-status role="status" aria-live="polite"></p></form>`;
     this.q('[data-care-form]').addEventListener('submit', (event) => { event.preventDefault(); this.saveCare(event); });
+    if (!reception && d.examenes.length) this.bindExamSearch();
+  }
+  bindExamSearch() {
+    const search = this.q('[data-exam-search]');
+    // Enter en la búsqueda no debe enviar el formulario de atención.
+    search.addEventListener('keydown', event => { if (event.key === 'Enter') event.preventDefault(); });
+    const options = this.q('[data-exam-options]');
+    const selected = this.q('[data-exam-selected]');
+    const rows = [...options.querySelectorAll('[data-exam-name]')];
+    const normalize = (value) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es');
+    search.addEventListener('input', () => {
+      const term = normalize(search.value.trim());
+      const matches = term ? rows.filter(row => normalize(row.dataset.examName).includes(term)) : [];
+      const visible = new Set(matches.slice(0, 10));
+      rows.forEach(row => { row.hidden = !visible.has(row); });
+      this.q('[data-exam-status]').textContent = !term
+        ? 'Escribe para buscar entre los exámenes permitidos.'
+        : matches.length ? `${visible.size} de ${matches.length} coincidencias. Selecciona los exámenes que necesitas.${matches.length > 10 ? ' Escribe más para filtrar.' : ''}`
+        : 'No hay exámenes permitidos que coincidan con la búsqueda.';
+    });
+    const updateSelected = () => {
+      selected.replaceChildren();
+      for (const row of rows) {
+        const checkbox = row.querySelector('input');
+        if (!checkbox.checked) continue;
+        const item = document.createElement('li');
+        item.append(document.createTextNode(row.dataset.examName + ' '));
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.textContent = 'Quitar';
+        remove.setAttribute('aria-label', `Quitar ${row.dataset.examName}`);
+        remove.addEventListener('click', () => { checkbox.checked = false; updateSelected(); search.focus(); });
+        item.append(remove);
+        selected.append(item);
+      }
+      selected.hidden = selected.children.length === 0;
+      this.q('[data-exam-empty]').hidden = !selected.hidden;
+    };
+    options.addEventListener('change', updateSelected);
   }
   orders(orders) {
     return orders.map((order) => `<article><h4>${esc(order.examen || 'Examen no identificado')}</h4><p>Estado de la orden: ${order.resultados?.length ? 'Con resultados registrados' : 'Sin resultados registrados'} · ${time(order.fechaCreacion)}</p><p>${esc(order.indicaciones || '')}</p>${(order.resultados || []).map((result) => `<p>${time(result.fechaCreacion)}<br>Resultado: ${esc(result.resultado || 'Pendiente')}<br>Interpretación: ${esc(result.interpretacion || 'No registrada')}</p>`).join('') || '<p>Sin resultados registrados.</p>'}</article>`).join('') || '<p>Sin órdenes registradas.</p>';

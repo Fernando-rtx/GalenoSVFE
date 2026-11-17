@@ -50,6 +50,13 @@ try {
     await page.waitForFunction(() => /^(PASS|FAIL):/.test(document.querySelector('#resultado').textContent));
     const result = await page.locator('#resultado').textContent();
     assert(result.startsWith('PASS:'), result);
+    if (fixture === 'hu4_componentes') {
+      const search = page.locator('galenos-academic-app').getByRole('searchbox', { name: 'Buscar examen permitido' });
+      await search.fill('torax');
+      await search.press('Enter');
+      assert.equal(await page.locator('galenos-academic-app').evaluate(node => node.saving), false,
+        'Enter en búsqueda envía el formulario clínico');
+    }
     report.checks.push({ fixture, result });
   }
   await page.goto(origin);

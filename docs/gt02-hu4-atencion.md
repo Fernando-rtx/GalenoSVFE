@@ -170,3 +170,11 @@ las condiciones de la consulta candidata; no se ejecutó ese plan.
 El backend también impide que Paciente sea responsable del paso inicial
 (`8f9c485`);843 pruebas Java aprobadas. El frontend de producción no cambió en
 esta inspección y no se certifica persistencia real de HU4.
+
+## Búsqueda de exámenes en atención
+
+El Web Component galenos-academic-app muestra un cuadro de búsqueda en lugar de listar inicialmente todos los exámenes. Filtra en memoria únicamente los exámenes permitidos que devolvió el backend para ese paso, sin distinguir mayúsculas ni tildes. Muestra hasta diez coincidencias y permite seleccionar varios, conservarlos al cambiar la búsqueda y quitarlos desde la lista de seleccionados. Un término sin coincidencias muestra un aviso; no permite inventar exámenes ni modifica las órdenes históricas.
+
+Enter dentro de la búsqueda no envía el formulario de atención. La nota no se reconstruye al buscar o quitar. Guardar conserva el contrato original: array de UUID seleccionados, validado por AcademicCareControl y por el backend. Buscar/seleccionar no registra nada por sí solo. Los controles continúan bloqueados durante el guardado.
+
+Validación: fixture HU4 con búsquedas sin tildes, selección entre búsquedas, retirada, ausencia de coincidencias, nota conservada y UUID enviados; Chromium comprueba Enter real, escritorio/móvil y el resto de transiciones/conflictos sintéticos. Las pruebas de guardado usan mocks, no PostgreSQL. Para Safari recargar con el servidor activo y adoptar el shell v39; abrir una consulta con exámenes permitidos, escribir parte del nombre, marcar coincidencias y revisar seleccionados antes de guardar. No se añadieron librerías ni cambios de backend.

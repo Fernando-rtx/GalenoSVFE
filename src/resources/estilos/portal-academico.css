@@ -203,3 +203,9 @@ button:disabled {
 ul {
   padding-left: 1.3rem;
 }
+
+/* El Shadow DOM no hereda el selector de placeholder de la hoja global. */
+input::placeholder {
+  color: var(--gs-placeholder, #556c7e);
+  opacity: 1;
+}

@@ -80,6 +80,19 @@ try {
       contrast.push({ theme, ...pair, ratio, minimum });
       assert(ratio >= minimum, `Contraste ${theme} ${pair.text}: ${ratio}`);
     }
+    const applied = await page.evaluate(() => {
+      const input = document.querySelector('inicio-sesion').shadowRoot.querySelector('#tipo');
+      const root = getComputedStyle(document.documentElement);
+      const rgb = hex => 'rgb(' + hex.slice(1).match(/../g).map(n => parseInt(n, 16)).join(', ') + ')';
+      return {
+        placeholder: getComputedStyle(input, '::placeholder').color,
+        expectedPlaceholder: rgb(root.getPropertyValue('--gs-placeholder').trim()),
+        border: getComputedStyle(input).borderColor,
+        expectedBorder: rgb(root.getPropertyValue('--gs-control-border').trim()),
+      };
+    });
+    assert.equal(applied.placeholder, applied.expectedPlaceholder, 'Placeholder del Shadow DOM no usa el color medido');
+    assert.equal(applied.border, applied.expectedBorder, 'Borde del Shadow DOM no usa el color medido');
     for (const width of [390, 768, 1440]) {
       await page.setViewportSize({ width, height: 950 });
       for (const hash of ['#pacientes', '#empleados']) {

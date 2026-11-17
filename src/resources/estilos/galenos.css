@@ -502,7 +502,8 @@ textarea {
   min-height: 90px;
   resize: vertical;
 }
-input::placeholder {
+input::placeholder,
+textarea::placeholder {
   color: var(--gs-placeholder);
   font-size: inherit;
 }

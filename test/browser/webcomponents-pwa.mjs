@@ -19,8 +19,12 @@ const server = createServer(async (req, res) => {
     return res.end("export const gestionConfig = {baseUrl: location.origin + '/synthetic-api/'};");
   }
   if (pathname.startsWith('/synthetic-api/')) {
-    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
-    return res.end('[]');
+    const rows = pathname.endsWith('/v1/tipo_documento') ? [{
+      idTipoDocumento: '00000000-0000-4000-8000-000000000001', nombre: 'Documento académico',
+      indicaciones: 'Documento sintético del fixture', expresionRegular: '^ACAD[A-Z0-9]+$', activo: true,
+    }] : [];
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Total-registros': String(rows.length) });
+    return res.end(JSON.stringify(rows));
   }
   const file = path.resolve(root, pathname.startsWith('/test/') ? '.' + pathname : 'src' + (pathname === '/' ? '/index.html' : pathname));
   if (!file.startsWith(root + path.sep)) { res.writeHead(403); return res.end(); }

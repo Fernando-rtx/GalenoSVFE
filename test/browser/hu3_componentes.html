@@ -239,11 +239,18 @@
         form.elements.fechaHasta.value = '2026-12-01';
         form.elements.fechaDesde.dispatchEvent(new Event('change'));
         assert(pages.length === countBefore, 'Envió un rango de fechas inválido');
+        assert(form.elements.fechaDesde.value === '2026-12-02' && form.elements.fechaHasta.value === '2026-12-01', 'Cambió las fechas elegidas');
+        const validation = app.q('#' + form.elements.fechaDesde.getAttribute('aria-describedby'));
+        assert(validation?.textContent.includes('fecha inicial'), 'El campo perdió el mensaje de validación');
+        assert(form.elements.fechaDesde.getAttribute('aria-invalid') === 'true' &&
+          form.elements.fechaHasta.getAttribute('aria-invalid') === 'true', 'El rango inválido no se anuncia en ambos campos');
         assert(!app.control.queue.length, 'Conservó consultas después de un filtro inválido');
         form.elements.fechaHasta.value = '2026-12-03';
         form.elements.fechaHasta.dispatchEvent(new Event('change'));
         await until(() => app.control.queue.length === 20);
         assert(pages.at(-1).query.fechaDesde === '2026-12-02', 'No envió el nuevo rango');
+        assert(!form.elements.fechaDesde.hasAttribute('aria-invalid') &&
+          !form.elements.fechaHasta.hasAttribute('aria-invalid'), 'La corrección conserva un error anterior');
         assert(pages.at(-1).options.headers['X-Persona-Rol'] === id(5), 'Paginación perdió asignación');
         app.api.findEmployeeAppointments = async () => {
           throw new DefaultError({ type: 'http', status: 403, message: 'Acceso no permitido' });

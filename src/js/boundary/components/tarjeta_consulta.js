@@ -85,11 +85,13 @@ export default class TarjetaConsulta extends HTMLElement {
     procedures.slot = 'contenido';
     procedures.hidden = true;
     const employeeContent = document.createElement('div');
+    employeeContent.className = 'employee-details';
     employeeContent.slot = 'contenido';
     employeeContent.hidden = true;
     const staffValues = {};
     for (const field of ['procedimiento', 'pasoActual', 'estadoPasoActual']) {
       const paragraph = document.createElement('p');
+      paragraph.dataset.field = field;
       staffValues[field] = paragraph;
       employeeContent.append(paragraph);
     }
@@ -101,13 +103,13 @@ export default class TarjetaConsulta extends HTMLElement {
     employeeContent.append(historyDetails);
     card.append(title, content, procedures, employeeContent, button);
     this.shadowRoot.append(stylesheet, card);
-    this._nodes = { title, values, button, procedures, employeeContent, staffValues, history };
+    this._nodes = { card, title, values, button, procedures, employeeContent, staffValues, history };
   }
 
   _render() {
     if (!this._nodes) return;
     const consulta = this._consulta || {};
-    const { title, values, button, procedures, employeeContent, staffValues, history } =
+    const { card, title, values, button, procedures, employeeContent, staffValues, history } =
       this._nodes;
     const patient = consulta.portalPaciente === true;
     const employee = consulta.portalEmpleado === true;
@@ -133,6 +135,7 @@ export default class TarjetaConsulta extends HTMLElement {
           : 'Sin especificar';
       }
     }
+    card.classList.toggle('employee-card', employee);
     employeeContent.hidden = !employee;
     if (employee) {
       staffValues.procedimiento.textContent = `Procedimiento: ${displayText(consulta.procedimiento)}`;

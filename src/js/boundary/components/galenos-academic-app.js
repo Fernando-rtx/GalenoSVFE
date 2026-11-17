@@ -56,16 +56,167 @@ class GalenosAcademicApp extends HTMLElement {
       nav,.toolbar,.grid,.actions{display:flex;gap:.75rem;flex-wrap:wrap;align-items:end}nav{border-bottom:1px solid var(--gs-border);padding:.8rem 0;margin-bottom:1.25rem}button,.tab{font:inherit;border:0;border-radius:.55rem;padding:.75rem 1rem;background:var(--gs-raised);color:var(--gs-text);cursor:pointer;font-weight:650}.active,.primary{background:var(--gs-blue);color:var(--gs-on-blue)}button:disabled{opacity:.55;cursor:wait}
       section{background:var(--gs-surface);border:1px solid var(--gs-border);border-radius:1rem;padding:clamp(1rem,2.5vw,1.5rem);margin:1rem 0;box-shadow:0 8px 24px var(--gs-shadow-dialog)}label{display:grid;gap:.35rem;font-weight:600;min-width:min(100%,13rem);flex:1}input,select,textarea{font:inherit;padding:.7rem;border:1px solid var(--gs-border);border-radius:.45rem;background:var(--gs-surface);color:var(--gs-text)}a{color:var(--gs-accent)}input,select,textarea{background:var(--gs-input);border-color:var(--gs-control-border)}input::placeholder,textarea::placeholder{color:var(--gs-placeholder);opacity:1}.card{background:var(--gs-raised)}textarea{min-height:8rem;width:100%;resize:vertical}.status{min-height:1.5rem;color:var(--gs-muted)}.error{color:var(--gs-error)}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:.8rem}.card{border:1px solid var(--gs-border);border-radius:.75rem;padding:1rem}.card h3{margin:.1rem 0 .5rem}.meta{color:var(--gs-muted);font-size:.94rem;line-height:1.6}details{margin-top:.6rem}summary{cursor:pointer;font-weight:650}ol{padding-left:1.3rem}.step{padding:.45rem 0;border-bottom:1px solid var(--gs-soft-border)}.sr{position:absolute;clip:rect(0,0,0,0)}[hidden]{display:none!important}:focus-visible{outline:3px solid var(--gs-accent);outline-offset:2px}
       @media(max-width:560px){main{padding:.8rem}.toolbar>*{width:100%}button{min-height:44px}.actions button{flex:1}}
+      [data-network] { margin: .25rem 0; font-size: .88em; }
+      .academic-heading { margin: .65rem 0 .35rem; }
+      .queue-description { margin: 0 0 1rem; color: var(--gs-muted); }
+      [data-network]:empty, [data-employee-status]:empty, [data-queue-status]:empty {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+      }
+      .academic-nav { margin: 0 0 .75rem; padding: 0 0 .65rem; }
+      .academic-nav:has([data-tab="paciente"][hidden]) { display: none; }
+      .queue-context, .queue-search {
+        background: var(--gs-nav);
+        border: 1px solid var(--gs-border);
+        border-radius: .75rem;
+        padding: clamp(.8rem, 2.5vw, 1.25rem);
+      }
+      .context-heading, .queue-results-heading, .queue-pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: .6rem 1rem;
+      }
+      .context-heading p, .queue-results-heading p { margin: 0; }
+      [data-person-label] { font-weight: 700; overflow-wrap: anywhere; }
+      [data-clinic-date], .queue-results-heading p { color: var(--gs-muted); font-size: .9em; }
+      .queue-fields {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 11.5rem), 1fr));
+        gap: .8rem;
+        align-items: start;
+      }
+      .queue-fields label { min-width: 0; font-size: .92em; }
+      .queue-fields :is(input, select) { width: 100%; min-width: 0; min-height: 44px; }
+      .queue-fields [aria-invalid="true"] { border-color: var(--gs-error-message-border); }
+      .queue-context .queue-fields { margin-top: .85rem; }
+      .queue-search, .queue-results { margin-top: 1rem; }
+      .queue-search h2, .queue-results h2 { margin: 0; font-size: 1.12em; }
+      .queue-periods, .queue-submit { margin: .75rem 0; align-items: center; }
+      .queue-submit { margin-bottom: 0; }
+      .queue-context button, .queue-periods button, .queue-submit button, .queue-pagination button {
+        min-height: 44px;
+        max-width: 100%;
+      }
+      .queue-context a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        text-underline-offset: .2em;
+      }
+      [data-panel="dashboard"] button:not(.primary) { border: 1px solid var(--gs-border); }
+      [data-panel="dashboard"] button:not(.primary):hover:not(:disabled) { background: var(--gs-selected); }
+      [data-panel="dashboard"] button:disabled { cursor: default; }
+      .queue-results-heading { margin-bottom: .75rem; }
+      .queue-results [data-queue] {
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 25rem), 1fr));
+        align-items: start;
+      }
+      .queue-results [data-queue]:empty { display: none; }
+      .queue-results [data-queue-status] {
+        padding: .8rem 1rem;
+        border: 1px solid var(--gs-border);
+        border-radius: .65rem;
+        background: var(--gs-nav);
+        overflow-wrap: anywhere;
+      }
+      .queue-results [data-queue-status].error {
+        border-color: var(--gs-error-message-border);
+        background: var(--gs-error-bg);
+      }
+      .queue-empty {
+        grid-column: 1 / -1;
+        margin: 0;
+        padding: 1.4rem 1rem;
+        border: 1px dashed var(--gs-control-border);
+        border-radius: .75rem;
+        background: var(--gs-nav);
+        text-align: center;
+        overflow-wrap: anywhere;
+      }
+      .queue-pagination { justify-content: flex-end; margin-top: .75rem; }
+      .queue-pagination:has(button:first-child:disabled):has(button:last-child:disabled) { display: none; }
+      @media (max-width: 560px) {
+        .queue-fields { grid-template-columns: minmax(0, 1fr); }
+        .queue-submit > button { flex-basis: 100%; }
+      }
       [data-care-form] fieldset{min-width:0;margin:1rem 0;padding:1rem;border:1px solid var(--gs-border);border-radius:.55rem}
       [data-care-form] fieldset label{display:flex;align-items:center;gap:.6rem;min-width:0;margin:.6rem 0;font-weight:400}
       [data-care-form] [data-care-continuation] label{display:grid}[data-care-continuation] select{width:100%;min-width:0}
       [data-exam-search]{width:100%}[data-exam-selected]{padding-left:1.25rem}[data-exam-selected] li{margin:.5rem 0;overflow-wrap:anywhere}[data-exam-selected] button{padding:.4rem .65rem;margin-left:.4rem}
       [data-care-form] input[type=checkbox]{width:1.15rem;height:1.15rem;flex:0 0 auto}
       @media(max-width:560px){[data-care-form] .actions>*{width:100%;flex-basis:100%}}
-    </style><main><p class="eyebrow">GalenosSV · atención académica</p><h1>Dashboard</h1><p class="lead">Consulta tus citas y atiende los casos asociados a la sesión académica que hayas iniciado.</p>
-      <nav aria-label="Historias de usuario"><button class="tab active" data-tab="dashboard">Bandeja de consultas</button><button class="tab" data-tab="paciente">Mis citas</button></nav><p class="status" data-network role="status" aria-live="polite"></p>
+    </style>
+    <main>
+      <nav class="academic-nav" aria-label="Historias de usuario">
+        <button class="tab active" data-tab="dashboard" aria-pressed="true">Bandeja de consultas</button>
+        <button class="tab" data-tab="paciente" aria-pressed="false">Mis citas</button>
+      </nav>
+      <h1 class="academic-heading">Bandeja de consultas</h1>
+      <p class="status" data-network role="status" aria-live="polite"></p>
     <section data-panel="paciente" hidden><h2>Mis citas</h2><p>La identidad se comparte de forma segura con el portal de paciente.</p><p class="status" data-patient-status role="status" aria-live="polite"></p><a href="#pacientes">Abrir portal de paciente</a><form data-patient hidden></form><button data-retry-types hidden>Reintentar carga</button><div data-clinic-area hidden><label>Clínica<select data-patient-clinic></select></label><form data-patient-dates class="toolbar"><label>Desde<input type="date" name="fechaDesde"></label><label>Hasta<input type="date" name="fechaHasta"></label><button class="primary">Consultar citas</button></form><div class="cards" data-patient-cards></div></div></section>
-    <section data-panel="dashboard"><h2>Bandeja de consultas</h2><p data-employee-intro>Inicia sesión como empleado para ver las consultas asignadas a tu clínica y rol.</p><p class="status" data-employee-status role="status" aria-live="polite"></p><a data-employee-login-link href="#empleados">Abrir portal de empleado</a><form data-employee hidden></form><div data-employee-context hidden><p data-person-label></p><p data-clinic-date>Fecha clínica: ${today()}</p><div class="actions"><a href="#empleados">Cambiar asignación</a><button type="button" data-logout>Cerrar sesión</button></div><div class="grid"><label>Clínica<select data-staff-clinic></select></label><label>Asignación<select data-staff-role></select></label></div><div class="actions"><button type="button" data-period="today">Hoy</button><button type="button" data-period="past">Fechas pasadas</button><button type="button" data-period="future">Fechas futuras</button></div><form data-staff-dates class="toolbar"><label>Desde<input type="date" name="fechaDesde" value="${today()}"></label><label>Hasta<input type="date" name="fechaHasta" value="${today()}"></label><label>Tipo de documento del paciente<select name="idTipoDocumento"><option value="">Sin filtro de paciente</option></select></label><label>Número de documento<input name="numero" autocomplete="off" disabled></label><button class="primary">Buscar consultas</button><button type="button" data-clear-filters>Restablecer filtros</button></form><p class="status" data-queue-status role="status" aria-live="polite"></p><button type="button" data-retry-queue hidden>Reintentar conexión</button><div class="cards" data-queue aria-busy="false"></div><div class="actions"><button type="button" data-page-prev disabled>Anterior</button><p data-page-summary role="status"></p><button type="button" data-page-next disabled>Siguiente</button></div></div></section>
+      <section data-panel="dashboard">
+        <p class="queue-description">Consulta las citas asignadas a tu clínica y rol, revisa el historial y abre la atención.</p>
+        <p data-employee-intro>Inicia sesión como empleado para ver tus consultas.</p>
+        <p class="status" data-employee-status role="status" aria-live="polite"></p>
+        <a data-employee-login-link href="#empleados">Abrir portal de empleado</a>
+        <form data-employee hidden></form>
+        <div data-employee-context hidden>
+          <div class="queue-context" role="group" aria-label="Asignación de trabajo">
+            <div class="context-heading">
+              <div>
+                <p data-person-label></p>
+                <p data-clinic-date>Fecha clínica: ${today()}</p>
+              </div>
+              <div class="actions">
+                <a href="#empleados">Cambiar asignación</a>
+                <button type="button" data-logout>Cerrar sesión</button>
+              </div>
+            </div>
+            <div class="queue-fields">
+              <label>Clínica<select data-staff-clinic></select></label>
+              <label>Rol activo<select data-staff-role></select></label>
+            </div>
+          </div>
+          <div class="queue-search" role="group" aria-labelledby="queue-search-title">
+            <h2 id="queue-search-title">Filtrar consultas</h2>
+            <div class="actions queue-periods" role="group" aria-label="Período de consultas">
+              <button type="button" data-period="today">Hoy</button>
+              <button type="button" data-period="past">Fechas pasadas</button>
+              <button type="button" data-period="future">Fechas futuras</button>
+            </div>
+            <form data-staff-dates>
+              <div class="queue-fields">
+                <label>Desde<input type="date" name="fechaDesde" value="${today()}" aria-describedby="queue-status"></label>
+                <label>Hasta<input type="date" name="fechaHasta" value="${today()}" aria-describedby="queue-status"></label>
+                <label>Tipo de documento del paciente<select name="idTipoDocumento"><option value="">Sin filtro de paciente</option></select></label>
+                <label>Número de documento<input name="numero" autocomplete="off" disabled></label>
+              </div>
+              <div class="actions queue-submit">
+                <button class="primary" type="submit">Buscar consultas</button>
+                <button type="button" data-clear-filters>Restablecer filtros</button>
+              </div>
+            </form>
+          </div>
+          <div class="queue-results" role="region" aria-labelledby="queue-results-title">
+            <div class="queue-results-heading">
+              <h2 id="queue-results-title">Resultados</h2>
+              <p data-page-summary role="status"></p>
+            </div>
+            <p id="queue-status" class="status" data-queue-status role="status" aria-live="polite"></p>
+            <button type="button" data-retry-queue hidden>Reintentar conexión</button>
+            <div class="cards" data-queue aria-busy="false"></div>
+            <div class="queue-pagination" role="group" aria-label="Paginación de consultas">
+              <button type="button" data-page-prev disabled>Anterior</button>
+              <button type="button" data-page-next disabled>Siguiente</button>
+            </div>
+          </div>
+        </div>
+      </section>
     <section data-panel="atencion" hidden><button data-back>← Regresar a la bandeja</button><p class="status" data-care-notice role="status" aria-live="polite"></p><p class="status" data-care-status role="status" aria-live="polite"></p><button type="button" data-retry-care hidden>Actualizar paso</button><div data-care-content aria-busy="false"></div></section></main>`;
     this.bind();
   }
@@ -158,14 +309,22 @@ class GalenosAcademicApp extends HTMLElement {
     });
     this.updateNetwork();
   }
-  show(name) { this.q('h1').textContent = ({ dashboard: 'Dashboard', atencion: 'Atención activa', paciente: 'Mis citas' })[name] || 'Dashboard'; this.shadowRoot.querySelectorAll('[data-panel]').forEach((p) => { p.hidden = p.dataset.panel !== name; }); this.shadowRoot.querySelectorAll('[data-tab]').forEach((b) => b.classList.toggle('active', b.dataset.tab === name)); }
+  show(name) {
+    this.q('h1').textContent = ({ dashboard: 'Bandeja de consultas', atencion: 'Atención activa', paciente: 'Mis citas' })[name] || 'Bandeja de consultas';
+    this.shadowRoot.querySelectorAll('[data-panel]').forEach((panel) => { panel.hidden = panel.dataset.panel !== name; });
+    this.shadowRoot.querySelectorAll('[data-tab]').forEach((button) => {
+      const active = button.dataset.tab === name;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
+  }
   async request(fn, status, complete = false) {
     if (!this.api) {
       status.textContent = 'Falta configurar la conexión con el backend.';
       return null;
     }
     status.className = 'status';
-    status.textContent = 'Cargando…';
+    status.textContent = status === this.q('[data-queue-status]') ? 'Cargando consultas…' : 'Cargando…';
     try {
       const result = await this.control.read(status, fn);
       if (!result) return null;
@@ -295,7 +454,9 @@ class GalenosAcademicApp extends HTMLElement {
   }
   async loadQueue() {
     this.control.cancel(this.q('[data-queue-status]'));
-    this.q('[data-queue]').replaceChildren();
+    const queue = this.q('[data-queue]');
+    queue.replaceChildren();
+    queue.setAttribute('aria-busy', 'false');
     this.q('[data-page-summary]').textContent = '';
     this.q('[data-page-prev]').disabled = true;
     this.q('[data-page-next]').disabled = true;
@@ -311,26 +472,31 @@ class GalenosAcademicApp extends HTMLElement {
     this.control.cancel(this.q('[data-care-status]'));
     this.care = null;
     this.q('[data-care-content]').replaceChildren();
-    this.q('[data-queue]').replaceChildren();
+    const form = this.q('[data-staff-dates]');
+    const { fechaDesde, fechaHasta } = form.elements;
+    for (const field of [fechaDesde, fechaHasta]) field.removeAttribute('aria-invalid');
     let query, options;
     try {
       ({ query, options } = this.control.prepararBandeja(
         this.employeeSession,
         assignment.idPersonaRol,
-        this.form(this.q('[data-staff-dates]')),
+        this.form(form),
       ));
     } catch (error) {
+      if (fechaDesde.value && fechaHasta.value && fechaDesde.value > fechaHasta.value) {
+        for (const field of [fechaDesde, fechaHasta]) field.setAttribute('aria-invalid', 'true');
+      }
       this.q('[data-queue-status]').textContent = error.message;
       this.q('[data-queue-status]').className = 'status error';
       return;
     }
-    this.q('[data-queue]').setAttribute('aria-busy', 'true');
+    queue.setAttribute('aria-busy', 'true');
     const page = await this.request(
       (o) => this.api.findEmployeeAppointments(this.first, 20, query, { ...o, ...options }),
       this.q('[data-queue-status]'),
       true,
     );
-    this.q('[data-queue]').setAttribute(
+    queue.setAttribute(
       'aria-busy',
       String(this.control.requests.has(this.q('[data-queue-status]'))),
     );
@@ -341,7 +507,7 @@ class GalenosAcademicApp extends HTMLElement {
     this.q('[data-page-prev]').disabled = this.first === 0;
     this.q('[data-page-next]').disabled = this.first + rows.length >= page.totalDatos;
     this.q('[data-page-summary]').textContent =
-      `${page.totalDatos} consultas · ${rows.length ? this.first + 1 : 0}–${this.first + rows.length}`;
+      `${page.totalDatos} ${page.totalDatos === 1 ? 'consulta' : 'consultas'}${rows.length ? ` · ${this.first + 1}–${this.first + rows.length}` : ''}`;
     for (const row of rows) {
       const card = document.createElement('tarjeta-consulta');
       card.consulta = {
@@ -350,12 +516,17 @@ class GalenosAcademicApp extends HTMLElement {
         rolNombre: assignment.rolNombre,
         zonaHoraria: this.employeeSession.contexto.zonaHoraria,
       };
-      this.q('[data-queue]').append(card);
+      queue.append(card);
     }
-    if (!rows.length)
-      this.q('[data-queue]').textContent = page.totalDatos === 0
+    if (!rows.length) {
+      const empty = document.createElement('p');
+      empty.className = 'queue-empty';
+      empty.setAttribute('role', 'status');
+      empty.textContent = page.totalDatos === 0
         ? 'No hay consultas asignadas para este rango de fechas'
         : 'No hay consultas en esta página. Vuelve a la página anterior.';
+      queue.append(empty);
+    }
   }
   history(items = []) { return items.length ? `<ol>${items.map((i) => `<li class="step"><strong>${esc(i.nombre || 'Paso')}</strong> · ${esc(i.estado || '')}<div class="meta">Responsable: ${esc(i.responsable || 'No registrado')} · Rol: ${esc(i.rol || 'No registrado')} · ${time(i.fechaInicio)}${i.fechaFin ? ` – ${time(i.fechaFin)}` : ''}<details><summary>Ver registro</summary><p>${esc(i.valor || 'Sin datos registrados')}</p>${this.orders(i.ordenes || [])}</details></div></li>`).join('')}</ol>` : '<p>Aún no hay pasos registrados.</p>'; }
   context() { return this.control.prepararBandeja(this.employeeSession, this.q('[data-staff-role]').value, {}).query; }

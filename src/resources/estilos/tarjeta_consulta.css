@@ -71,3 +71,48 @@ button:disabled {
     text-align: left;
   }
 }
+
+.employee-card h3 {
+  color: var(--gs-text);
+  font-size: 1.17em;
+}
+.employee-card dl {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr));
+  align-items: start;
+  gap: .65rem 1rem;
+}
+.employee-card dl > div {
+  display: grid;
+  gap: .15rem;
+}
+.employee-card dt { font-size: .85em; }
+.employee-card dd {
+  max-width: none;
+  text-align: left;
+}
+.employee-details {
+  margin-top: .85rem;
+  padding: .8rem;
+  border: 1px solid var(--gs-border);
+  border-radius: .6rem;
+  background: var(--gs-raised);
+  overflow-wrap: anywhere;
+}
+.employee-details[hidden] { display: none; }
+.employee-details p { margin: 0 0 .4rem; }
+.employee-details [data-field="procedimiento"] { font-weight: 700; }
+.employee-details [data-field="estadoPasoActual"] { color: var(--gs-muted); }
+.employee-details > details {
+  margin-top: .7rem;
+  border-top: 1px solid var(--gs-border);
+}
+.employee-details > details > summary {
+  cursor: pointer;
+  padding-block: .65rem .3rem;
+  font-weight: 650;
+}
+.employee-details summary:focus-visible {
+  outline: 3px solid var(--gs-accent);
+  outline-offset: 2px;
+}
+.employee-card button { min-height: 44px; }

@@ -1,7 +1,18 @@
 let installEvent = null;
 let installButton = null;
+let installed = false;
 
-export const isAppInstalled = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+export const isAppInstalled = () => installed || window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+
+/** Las instrucciones dependen del navegador; el aviso nativo depende de beforeinstallprompt. */
+export function installationInstructions(browser = navigator) {
+  const userAgent = browser.userAgent || '';
+  if (/iPad|iPhone|iPod/.test(userAgent) || (/Macintosh/.test(userAgent) && browser.maxTouchPoints > 1))
+    return 'En iPhone o iPad, abre GalenosSV en Safari y pulsa Compartir → Añadir a pantalla de inicio → Añadir.';
+  if (/Macintosh/.test(userAgent) && /Safari/.test(userAgent) && !/Chrome|Chromium|Edg|OPR/.test(userAgent))
+    return 'En Safari para Mac, selecciona Archivo → Añadir al Dock… (o Compartir → Añadir al Dock) y confirma con Añadir. Safari no permite abrir esa ventana desde este botón.';
+  return 'El navegador no ha ofrecido el aviso de instalación. Abre su menú y busca Instalar GalenosSV o Instalar aplicación. Si no aparece, puedes seguir usando la versión web y descargar tu ticket PDF.';
+}
 
 export async function requestInstallation() {
   if (isAppInstalled()) return 'installed';
@@ -24,6 +35,7 @@ window.addEventListener('beforeinstallprompt', (event) => {
   installButton?.removeAttribute('hidden');
 });
 window.addEventListener('appinstalled', () => {
+  installed = true;
   installEvent = null;
   if (installButton) installButton.hidden = true;
 });

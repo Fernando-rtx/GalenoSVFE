@@ -33,3 +33,13 @@ npm run test:coverage
 El primer comando genera `coverage/browser/resultado.json`, capturas, ratios de contraste y medición V8 de funciones del navegador. El segundo prueba arranque frío con servidor realmente detenido. El informe unitario no suma porcentajes con Chromium y comprueba los hashes de las fuentes. Manifest y prompt automatizados no sustituyen la evidencia manual de instalar y abrir la aplicación. El usuario confirmó esa instalación; adjuntar captura/navegador/origen/commit a la entrega.
 
 Dependencias de desarrollo: Node>=22.12.0, herramientas principales conservadas. Los overrides glob14.0.6/minimatch11.0.9 se limitan a Mocha y fueron validados con descubrimiento TDD, transporte y cobertura; follow-redirects1.16.3 corrige la alerta de BrowserSync. `npm audit` quedó sin alertas en esta revisión.
+
+## Botón de instalación según el navegador (17/11/2026)
+
+El diálogo de ticket ofrece «Instalar app» y reutiliza `requestInstallation()` de `pwa.js`. Si existe un evento `beforeinstallprompt` disponible, el clic llama a su `prompt()` sin perder la activación del usuario. El aviso se consume una sola vez, se distingue cancelación de aceptación y `appinstalled` confirma que ya se instaló durante esta sesión. No se descarga un instalador ejecutable ni se considera instalada solo por mostrar el diálogo.
+
+Safari no implementa ese aviso programático. En Safari para Mac, seleccionar **Archivo → Añadir al Dock…**, o **Compartir → Añadir al Dock**, y confirmar **Añadir**. En iPhone/iPad, abrir en Safari y usar **Compartir → Añadir a pantalla de inicio → Añadir**. El botón explica el camino correspondiente; no puede activar menús del navegador desde JavaScript. Chrome/Edge solo mostrarán el aviso del botón si el navegador lo ha habilitado. Una sesión en pestaña tampoco permite detectar universalmente otras instalaciones anteriores.
+
+Referencias: [Apple: usar apps web de Safari en Mac](https://support.apple.com/es-es/104996), [MDN: BeforeInstallPromptEvent](https://developer.mozilla.org/en-US/docs/Web/API/BeforeInstallPromptEvent).
+
+Verificación: 423 pruebas unitarias, 9 de transporte, 126 archivos con sintaxis válida y 8 fixtures Chromium aprobados. `instalacion_pwa.html` comprueba aviso único, cancelación, confirmación, instrucciones de Mac/iPhone/iPad y PDF independiente. Un clic real de Playwright mantuvo la activación de usuario al llamar al prompt simulado. El arranque offline con servidor aislado detenido también pasó. Son pruebas de la integración del botón, no una instalación real ni una prueba ejecutada en Safari; la aceptación nativa queda a cargo del usuario. Shell actualizado a v41 para distribuir la corrección. No se cambió backend ni PostgreSQL.

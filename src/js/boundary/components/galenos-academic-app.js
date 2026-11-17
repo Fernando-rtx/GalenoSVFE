@@ -396,8 +396,8 @@ class GalenosAcademicApp extends HTMLElement {
   renderCare() {
     const d = this.care;
     const reception = receptionRole(d.rol);
-    const title = reception ? 'Recepción del paciente' : 'Atención de consulta';
-    const guidance = reception
+    const title = reception && !d.pasoFinal ? 'Recepción del paciente' : 'Atención de consulta';
+    const guidance = reception && !d.pasoFinal
       ? '<p>Confirma la llegada e identidad del paciente. La consulta médica la registra el médico en su paso.</p>'
       : '';
     const examSection = reception
@@ -414,11 +414,11 @@ class GalenosAcademicApp extends HTMLElement {
       ${d.siguientes.length
         ? `<label for="care-next-step">Siguiente paso o ruta alternativa<select id="care-next-step" name="idPasoSiguiente" aria-describedby="care-route-help"><option value="">Selecciona un destino</option>${d.siguientes.map((s) => `<option value="${esc(s.idPaso)}">${esc(s.nombre)} · ${esc(s.tipoSecuencia === 'ALTERNATIVA' ? 'Ruta alternativa' : (s.tipoSecuencia === 'SIGUIENTE' || !s.tipoSecuencia ? 'Siguiente paso' : s.tipoSecuencia))}</option>`).join('')}</select></label>
           <p id="care-route-help" class="status">Son los destinos permitidos desde «${esc(d.pasoActual)}». Seleccionar uno no avanza la consulta; confirma con el botón de avance.</p>`
-        : `<p>No hay pasos siguientes ni rutas alternativas configuradas desde «${esc(d.pasoActual)}» en este procedimiento.</p>${d.pasoFinal && !reception ? '<p>Este paso permite finalizar el procedimiento.</p>' : ''}`}
+        : `<p>No hay pasos siguientes ni rutas alternativas configuradas desde «${esc(d.pasoActual)}» en este procedimiento.</p>${d.pasoFinal ? '<p>Este paso permite finalizar el procedimiento.</p>' : ''}`}
       </fieldset>`;
     const advanceLabel = reception ? 'Confirmar recepción y avanzar' : 'Guardar y avanzar';
     const saveLabel = reception ? 'Guardar registro de recepción' : 'Guardar avance';
-    const noNextStep = reception && !d.siguientes.length
+    const noNextStep = reception && !d.pasoFinal && !d.siguientes.length
       ? '<p class="status error">Esta ruta no tiene un paso posterior a recepción. Solicita que revisen la ruta antes de finalizar.</p>'
       : '';
     this.q('[data-care-content]').innerHTML = `<h2>${title}</h2>${guidance}
@@ -428,12 +428,12 @@ class GalenosAcademicApp extends HTMLElement {
       Estado del paso: ${esc(d.estadoPasoActual || 'No informado')}</p>
       <details><summary>Historial previo</summary>${this.history(d.historial)}</details>
       ${reception ? '' : `<details><summary>Órdenes y resultados de este paso</summary>${this.orders(d.ordenesActuales || [])}</details>`}
-      <form data-care-form><label>${reception ? 'Registro de recepción' : 'Registro de atención'}<textarea name="valor" required minlength="1" maxlength="10000" placeholder="${reception ? 'Ejemplo: paciente llegó y se confirmó su identidad.' : ''}">${esc(d.valorActual || '')}</textarea></label>
+      <form data-care-form><label>${reception ? 'Registro de recepción' : 'Registro de atención'}<textarea name="valor" required minlength="1" maxlength="10000" placeholder="${reception && !d.pasoFinal ? 'Ejemplo: paciente llegó y se confirmó su identidad.' : ''}">${esc(d.valorActual || '')}</textarea></label>
       ${examSection}${continuation}
       <div class="actions"><button class="primary" name="accion" value="GUARDAR_PARCIAL">${saveLabel}</button>
       ${d.siguientes.length ? `<button class="primary" name="accion" value="AVANZAR">${advanceLabel}</button>` : ''}
       ${d.puedeRetroceder ? `${d.anteriores?.length > 1 ? `<label>Paso anterior<select name="idConsultaProcedimientoPasoAnterior"><option value="">Selecciona un paso</option>${d.anteriores.map((s) => `<option value="${esc(s.idConsultaProcedimientoPaso)}">${esc(s.nombre)}</option>`).join('')}</select></label>` : ''}<button name="accion" value="RETROCEDER">Retroceder</button>` : ''}
-      ${d.pasoFinal && !reception ? '<button name="accion" value="FINALIZAR">Finalizar procedimiento</button>' : ''}</div>${noNextStep}
+      ${d.pasoFinal ? '<button name="accion" value="FINALIZAR">Finalizar procedimiento</button>' : ''}</div>${noNextStep}
       <p class="status" data-save-status role="status" aria-live="polite"></p></form>`;
     this.q('[data-care-form]').addEventListener('submit', (event) => { event.preventDefault(); this.saveCare(event); });
     if (!reception && d.examenes.length) this.bindExamSearch();

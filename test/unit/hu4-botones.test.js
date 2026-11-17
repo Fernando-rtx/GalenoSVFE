@@ -108,6 +108,24 @@ suite('HU4: acciones de los botones de atención', () => {
     expect(app.api.register.firstCall.args[0].accion).to.equal('FINALIZAR');
   });
 
+  test('Atención al Público puede finalizar pago solo si el backend indica que es un paso final', async () => {
+    app.care.rol = 'Atencion al Publico';
+    app.employeeSession.contexto.asignaciones[0].idRol = 'recepcion';
+    app.care.pasoActual = 'pago';
+    app.care.siguientes = [];
+    app.renderCare();
+    expect(content.innerHTML).not.to.include('value="FINALIZAR"');
+    expect(content.innerHTML).to.include('Esta ruta no tiene un paso posterior a recepción');
+
+    app.care.pasoFinal = true;
+    app.api.register.resolves({ datos: { finalizada: true } });
+    app.renderCare();
+    expect(content.innerHTML).not.to.include('Esta ruta no tiene un paso posterior a recepción');
+    await submitButton('Finalizar procedimiento');
+    expect(app.api.register.firstCall.args[0]).to.include({ accion: 'FINALIZAR', idRol: 'recepcion' });
+    sinon.assert.calledOnce(app.loadQueue);
+  });
+
   test('espera confirmación REST antes del éxito y bloquea un segundo envío', async () => {
     let confirm;
     app.api.register.returns(new Promise((resolve) => { confirm = resolve; }));

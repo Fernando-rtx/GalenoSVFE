@@ -1,3 +1,4 @@
+import { normalizarFechaNacimiento } from '../../control/fecha-nacimiento.js';
 import { bindFormValidation, showAccessibleDialog } from './form-validation.js';
 import { editableRecord } from './editable-record.js';
 import { gestionError } from './dashboard-presentation.js';
@@ -77,6 +78,7 @@ export default class ConsultaGestionModel extends HTMLElement {
     this.form.onsubmit = (event) => {
       event.preventDefault();
       if (this.isNewAppointment && this.wizardStep === 1) return this.continueToAppointment();
+      if (control.state.editor === 'paciente' && !this.validateBirthInput(this.form.elements.fechaNacimiento)) return;
       return control.save(this.data(control.state));
     };
     const application = root.closest('galenos-application');
@@ -102,7 +104,42 @@ export default class ConsultaGestionModel extends HTMLElement {
     const title = node('label', label);
     title.htmlFor = input.id;
     target.append(title, input);
+    if (name === 'fechaNacimiento') this.prepareBirthInput(input);
     return input;
+  }
+  prepareBirthInput(input) {
+    input.type = 'text';
+    input.inputMode = 'text';
+    input.placeholder = 'DD/MM/AAAA';
+    input.maxLength = 10;
+    input.autocomplete = 'bday';
+    const hint = node('small', 'Escribe DD/MM/AAAA, por ejemplo 05/09/1998.');
+    hint.id = input.id + '-hint';
+    const message = node('p', '', 'action-error');
+    message.id = input.id + '-error';
+    message.setAttribute('role', 'alert');
+    input.setAttribute('aria-describedby', `${hint.id} ${message.id}`);
+    input.after(hint, message);
+    this.birthErrors ??= new WeakMap();
+    this.birthErrors.set(input, message);
+    input.addEventListener('input', () => {
+      message.textContent = '';
+      input.removeAttribute('aria-invalid');
+    });
+  }
+  validateBirthInput(input) {
+    const message = this.birthErrors.get(input);
+    try {
+      normalizarFechaNacimiento(input.value);
+      message.textContent = '';
+      input.removeAttribute('aria-invalid');
+      return true;
+    } catch (error) {
+      message.textContent = error.message;
+      input.setAttribute('aria-invalid', 'true');
+      input.focus();
+      return false;
+    }
   }
   continueToAppointment() {
     if (!this.patients?.value) {
@@ -176,6 +213,7 @@ export default class ConsultaGestionModel extends HTMLElement {
       const labelNode = node('label', label);
       labelNode.htmlFor = input.id;
       patientFields.append(labelNode, input);
+      if (name === 'fechaNacimiento') this.prepareBirthInput(input);
       this.newPatientInputs[name] = input;
     }
     const typeLabel = node('label', 'Tipo de documento');
@@ -348,7 +386,7 @@ export default class ConsultaGestionModel extends HTMLElement {
       return {
         nombres: f.nombres.value.trim(),
         apellidos: f.apellidos.value.trim(),
-        fechaNacimiento: new Date(`${f.fechaNacimiento.value}T12:00:00-06:00`).toISOString(),
+        fechaNacimiento: `${normalizarFechaNacimiento(f.fechaNacimiento.value)}T18:00:00.000Z`,
         idTipoDocumento: f.idTipoDocumento.value,
         documento: f.documento.value.trim(),
       };
@@ -381,12 +419,13 @@ export default class ConsultaGestionModel extends HTMLElement {
       return;
     }
     const fields = this.newPatientInputs;
+    if (!this.validateBirthInput(fields.fechaNacimiento)) return;
     const data = Object.fromEntries(Object.entries(fields).map(([key, input]) => [key, input.value.trim()]));
     if (Object.values(data).some((value) => !value)) {
       this.registrationStatus.textContent = 'Completa todos los datos para registrar al paciente.';
       return;
     }
-    data.fechaNacimiento = new Date(`${data.fechaNacimiento}T12:00:00-06:00`).toISOString();
+    data.fechaNacimiento = `${normalizarFechaNacimiento(data.fechaNacimiento)}T18:00:00.000Z`;
     await this.control.registerPatient(data);
   }
   renderRelationships(state, reception) {
@@ -589,7 +628,7 @@ export default class ConsultaGestionModel extends HTMLElement {
       this.catalogNext.disabled =
         state.writing || state.firstProcedimientos + 20 >= state.totalProcedimientos;
     }
-    if (this.registrationStatus) this.registrationStatus.textContent = state.error ? gestionError(state.error) : state.message;
+    if (this.registrationStatus) this.registrationStatus.textContent = state.error ? '' : state.message;
     this.error.textContent = state.error ? gestionError(state.error) : '';
   }
   updateProcedureStatus(target, state) {

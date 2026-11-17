@@ -1,0 +1,58 @@
+<!doctype html><html lang="es"><meta charset="utf-8"><title>Recepción y fecha manual — sintético</title><body>
+<output id="resultado">EJECUTANDO</output>
+<script type="module">
+import { mountGestion } from '/js/boundary/gestion.js';
+import { applicationMarkup } from '/js/boundary/components/application-markup.js';
+import { createApiConfig } from '/js/control/api-config.js';
+import { API_V2_ROUTES } from '/js/control/api-v2-routes.js';
+import { conectarEmpleado } from '/js/control/contexto-empleado.js';
+const id = n => `00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
+const assert = (ok, msg) => { if (!ok) throw Error(msg); };
+const requests = [], writes = [];
+const originalFetch = window.fetch;
+let mounted;
+try {
+ window.fetch = async (url, options = {}) => {
+  const path = new URL(url).pathname;requests.push(path);
+  const headers = {'Content-Type':'application/json','Total-registros':'0'};
+  if (path.endsWith('/v2/tipo_documento')) return new Response(JSON.stringify({mensaje:'Operación sin política de acceso habilitada'}),{status:403,headers});
+  if (path.endsWith('/v1/tipo_documento')) return new Response(JSON.stringify([{idTipoDocumento:id(2),nombre:'Documento académico',indicaciones:null,expresionRegular:'^ACAD[A-Z0-9]+$',activo:true}]),{status:200,headers:{...headers,'Total-registros':'1'}});
+  if (path.endsWith('/v2/empleado/paciente')) {
+    const data=JSON.parse(options.body);writes.push(data);
+    return new Response(JSON.stringify({idPersonaRol:id(8),idPersona:id(9),idClinica:id(1),nombres:data.nombres,apellidos:data.apellidos,rolNombre:'Paciente'}),{status:201,headers});
+  }
+  return new Response('[]',{status:200,headers});
+ };
+ conectarEmpleado({session:{token:'A'.repeat(43),contexto:{asignaciones:[{idPersonaRol:id(3),idRol:id(4),idClinica:id(1),rolNombre:'Atención al público'}]}},asignacionActiva:id(3)});
+ const scope=document.createElement('galenos-application');scope.innerHTML=applicationMarkup;document.body.append(scope);scope.querySelector('#main').hidden=false;
+ const dashboard={state:{idClinica:id(1),detalle:null},subscribe(fn){fn(this.state);return ()=>{};},loadConsultas:async()=>{},openConsulta:async()=>{}};
+ mounted=mountGestion({config:createApiConfig({baseUrl:location.origin+'/fixture/',routes:API_V2_ROUTES}),dashboard:{control:dashboard},scope});
+ const page=scope.querySelector('galenos-consulta-gestion');const control=page.control;
+ await control.editConsulta(true);
+ assert(control.state.tiposDocumento.length===1,'No recuperó el catálogo público');
+ assert(!control.state.error,'El catálogo produjo un error');
+ assert(requests.some(p=>p.endsWith('/v1/tipo_documento'))&&!requests.some(p=>p.endsWith('/v2/tipo_documento')),'Usó la ruta restringida v2');
+ await control.searchPatients('Paciente sintético');page.registerNewPatient.click();
+ const fields=page.newPatientInputs;fields.nombres.value='Persona';fields.apellidos.value='Sintética';fields.documento.value='ACADTEST001';fields.idTipoDocumento.value=id(2);
+ fields.fechaNacimiento.value='31/02/2000';
+ await page.registerPatient();
+ assert(writes.length===0,'Envió una fecha imposible al servidor');
+ assert(fields.fechaNacimiento.type==='text','Mantiene el calendario nativo obligatorio');
+ assert(fields.fechaNacimiento.getAttribute('aria-invalid')==='true','No asocia el error al campo');
+ assert(fields.fechaNacimiento.value==='31/02/2000','Perdió el texto escrito');
+ fields.fechaNacimiento.value='29/02/2000';fields.fechaNacimiento.dispatchEvent(new Event('input',{bubbles:true}));
+ await page.registerPatient();
+ assert(writes.length===1&&writes[0].fechaNacimiento==='2000-02-29T18:00:00.000Z','No conservó el día ni el contrato ISO');
+ control.cancel();await control.editPatient();
+ const birth=page.form.elements.fechaNacimiento;
+ page.form.elements.nombres.value='Otra persona';page.form.elements.apellidos.value='Sintética';page.form.elements.documento.value='ACADTEST002';page.form.elements.idTipoDocumento.value=id(2);
+ birth.value='31/04/2001';page.form.requestSubmit();await new Promise(r=>setTimeout(r,30));
+ assert(writes.length===1,'El formulario independiente envió una fecha imposible');
+ assert(birth.getAttribute('aria-invalid')==='true','Falta validación en registro independiente');
+ birth.value='01/01/2001';birth.dispatchEvent(new Event('input',{bubbles:true}));page.form.requestSubmit();
+ for(let n=0;n<100&&writes.length<2;n++) await new Promise(r=>setTimeout(r,10));
+ assert(writes.length===2&&writes[1].fechaNacimiento==='2001-01-01T18:00:00.000Z','No registró la fecha manual del formulario independiente');
+ document.querySelector('#resultado').textContent='PASS: catálogo v1 sin 403, fecha manual válida, rechazo de fechas imposibles, ARIA y DTO ISO en ambos registros (todo sintético)';
+} catch(error) {document.querySelector('#resultado').textContent='FAIL: '+error.message;console.error(error);}
+finally {mounted?.destroy();conectarEmpleado(null);window.fetch=originalFetch;}
+</script></body></html>

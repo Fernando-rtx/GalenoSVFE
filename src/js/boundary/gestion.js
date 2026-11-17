@@ -22,6 +22,7 @@ import {
   ProcedimientoPasoExamenService,
   ProcedimientoPasoSecuenciaService,
   DefaultError,
+  createApiConfig,
 } from '../index.js';
 import ConsultaGestionControl from '../control/ConsultaGestionControl.js';
 import AtencionPacienteService from '../control/AtencionPacienteService.js';
@@ -118,7 +119,8 @@ export function mountGestion({ config: api, dashboard: dashboardApp, scope = doc
     pacienteService: new PersonaRolService({ config: api }),
     atencionPacienteService: new AtencionPacienteService({ config: api }),
     atencionCitaService: new AtencionCitaService({ config: api }),
-    tipoDocumentoService: new TipoDocumentoService({ config: api }),
+    // El alta usa el mismo catálogo público v1 que la identificación.
+    tipoDocumentoService: new TipoDocumentoService({ config: createApiConfig({ baseUrl: api.baseUrl }) }),
     procedimientoService: new ProcedimientoService({ config: api }),
   });
   const orders = new OrdenControl({

@@ -45,7 +45,7 @@ try {
   const errors = [];
   page.on('pageerror', error => { errors.push(error.message); console.error(error.message); });
   await page.coverage.startJSCoverage({ resetOnNavigation: false, reportAnonymousScripts: false });
-  for (const fixture of ['componentes', 'page_components', 'hu3_componentes', 'hu4_componentes', 'notificaciones', 'accesibilidad']) {
+  for (const fixture of ['componentes', 'page_components', 'hu3_componentes', 'hu4_componentes', 'notificaciones', 'accesibilidad', 'recepcion_fecha']) {
     await page.goto(`${origin}/test/browser/${fixture}.html`);
     await page.waitForFunction(() => /^(PASS|FAIL):/.test(document.querySelector('#resultado').textContent));
     const result = await page.locator('#resultado').textContent();

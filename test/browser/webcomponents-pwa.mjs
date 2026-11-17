@@ -61,7 +61,7 @@ try {
     await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
     const pairs = await page.evaluate(() => {
       const style = getComputedStyle(document.documentElement);
-      const pairs = [['--gs-text', '--gs-surface'], ['--gs-muted', '--gs-surface'], ['--gs-placeholder', '--gs-input'], ['--gs-on-blue', '--gs-blue'], ['--gs-error', '--gs-error-bg']];
+      const pairs = [['--gs-text', '--gs-surface'], ['--gs-muted', '--gs-surface'], ['--gs-placeholder', '--gs-input'], ['--gs-on-blue', '--gs-blue'], ['--gs-error', '--gs-error-bg'], ['--gs-control-border', '--gs-input']];
       return pairs.map(([text, bg]) => ({ text, bg, foreground: style.getPropertyValue(text).trim(), background: style.getPropertyValue(bg).trim() }));
     });
     const luminance = hex => {
@@ -72,8 +72,9 @@ try {
     for (const pair of pairs) {
       const a = luminance(pair.foreground), b = luminance(pair.background);
       const ratio = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
-      contrast.push({ theme, ...pair, ratio });
-      assert(ratio >= 4.5, `Contraste ${theme} ${pair.text}: ${ratio}`);
+      const minimum = pair.text === '--gs-control-border' ? 3 : 4.5;
+      contrast.push({ theme, ...pair, ratio, minimum });
+      assert(ratio >= minimum, `Contraste ${theme} ${pair.text}: ${ratio}`);
     }
     for (const width of [390, 768, 1440]) {
       await page.setViewportSize({ width, height: 950 });
@@ -86,7 +87,19 @@ try {
     }
   }
   report.contrast = contrast;
-  report.checks.push('Responsive 390/768/1440 y pares de texto de ambos temas >=4.5:1');
+  report.checks.push('Responsive 390/768/1440, texto >=4.5:1 y bordes de controles >=3:1');
+  // El evento es sintético: comprueba el flujo, no afirma una instalación real.
+  await page.evaluate(() => {
+    window.syntheticInstallCalls = 0;
+    const event = new Event('beforeinstallprompt', { cancelable: true });
+    event.prompt = async () => { window.syntheticInstallCalls++; };
+    event.userChoice = Promise.resolve({ outcome: 'accepted' });
+    window.dispatchEvent(event);
+  });
+  await page.getByRole('button', { name: 'Instalar aplicación' }).click();
+  assert.equal(await page.evaluate(() => window.syntheticInstallCalls), 1);
+  assert(await page.locator('[data-install]').isHidden());
+  report.checks.push('beforeinstallprompt sintético: ofrece instalación y consume el prompt una sola vez');
   await page.getByRole('link', { name: 'Saltar al contenido' }).focus();
   await page.keyboard.press('Enter');
   assert.equal(await page.evaluate(() => document.activeElement.id), 'workspace');

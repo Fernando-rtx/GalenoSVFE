@@ -1,5 +1,5 @@
 // Solo recursos estáticos allowlisted; nunca se guarda una respuesta REST.
-const CACHE = 'galenossv-shell-v35';
+const CACHE = 'galenossv-shell-v36';
 const PREFIX = 'galenossv-shell-';
 // Lista cerrada: incluye todas las dependencias de arranque, incluso componentes de empleados.
 const ASSETS = new Set([

@@ -135,6 +135,7 @@ button {
 input,
 select {
   width: 100%;
+  border-color: var(--gs-control-border, #71869a);
   background: var(--gs-input, #f8fbfd);
   color: var(--gs-text, #243746);
 }

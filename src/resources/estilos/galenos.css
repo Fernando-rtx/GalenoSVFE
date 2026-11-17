@@ -41,6 +41,7 @@ galenos-application {
   --gs-surface: #192330;
   --gs-raised: #202d3d;
   --gs-input: #111b27;
+  --gs-control-border: #71869a;
   --gs-border: #34465a;
   --gs-text: #e5edf5;
   --gs-muted: #acbbcc;
@@ -477,7 +478,7 @@ textarea,
 .gestion select {
   background: var(--gs-input);
   color: var(--gs-text);
-  border: 1px solid var(--gs-border);
+  border: 1px solid var(--gs-control-border);
   border-radius: 4px;
   font: inherit;
   padding: 8px 10px;

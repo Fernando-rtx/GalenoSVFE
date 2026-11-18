@@ -69,8 +69,19 @@ suite('PWA: recursos y límite de caché', () => {
 
 suite('PWA: almacenamiento y recuperación del shell público', () => {
   let handlers, stored, removed, pending, network, cached, assets;
+  let attemptedAssets, unavailableAsset, skipWaitingCalled;
+
+  async function loadAsset(path) {
+    attemptedAssets.push(path);
+    if (path === unavailableAsset) throw new TypeError(`404 sintético: ${path}`);
+    return path;
+  }
+
   setup(async () => {
     handlers = {}; stored = []; removed = []; pending = []; assets = [];
+    attemptedAssets = [];
+    unavailableAsset = undefined;
+    skipWaitingCalled = false;
     network = async () => ({ ok: true, type: 'basic', headers: new Headers(), clone: () => 'shell' });
     cached = undefined;
     vm.runInNewContext(await readFile(new URL('service-worker.js', root), 'utf8'), {
@@ -78,13 +89,21 @@ suite('PWA: almacenamiento y recuperación del shell público', () => {
       self: {
         location: { origin: 'https://galenos.example' },
         addEventListener: (name, listener) => { handlers[name] = listener; },
-        skipWaiting() {}, clients: { claim: async () => {} },
+        skipWaiting() {
+          skipWaitingCalled = true;
+        },
+        clients: { claim: async () => {} },
       },
       fetch: (...args) => network(...args),
       caches: {
         open: async () => ({
           put: async (...args) => { stored.push(args); },
-          addAll: async (paths) => { assets = Array.from(paths); },
+          add: async (path) => {
+            assets.push(await loadAsset(path));
+          },
+          addAll: async (paths) => {
+            assets.push(...(await Promise.all(Array.from(paths, loadAsset))));
+          },
         }),
         keys: async () => ['galenossv-shell-old', 'otra-aplicacion'],
         delete: async (key) => { removed.push(key); },
@@ -113,9 +132,19 @@ suite('PWA: almacenamiento y recuperación del shell público', () => {
       await access(new URL(path === '/' ? 'index.html' : path.slice(1), root));
     }
   });
-  test('instala todas las dependencias de módulos antes de depender del servidor apagado', async () => {
+  test('instala el shell y todas sus dependencias de módulos aunque falle un recurso visual', async () => {
+    unavailableAsset = '/resources/imagenes/galenos-sv-logo.webp';
     handlers.install({ waitUntil: (promise) => pending.push(promise) });
     await Promise.all(pending);
+    expect(attemptedAssets).to.include(unavailableAsset);
+    expect(assets).not.to.include(unavailableAsset);
+    expect(assets).to.include.members([
+      '/',
+      '/manifest.webmanifest',
+      '/resources/estilos/galenos.css',
+    ]);
+    expect(assets).to.include('/resources/imagenes/icon-192.png');
+    expect(skipWaitingCalled).to.equal(true);
     const visited = new Set();
     async function checkModule(path) {
       if (visited.has(path)) return;

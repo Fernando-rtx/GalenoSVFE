@@ -1,5 +1,5 @@
 // Solo recursos estáticos allowlisted; nunca se guarda una respuesta REST.
-const CACHE = 'galenossv-shell-v46';
+const CACHE = 'galenossv-shell-v47';
 const PREFIX = 'galenossv-shell-';
 // Lista cerrada: incluye todas las dependencias de arranque, incluso componentes de empleados.
 const ASSETS = new Set([
@@ -99,10 +99,17 @@ const ASSETS = new Set([
   '/resources/iconos/temasoscuro.svg',
   '/resources/iconos/temasclaro.svg',
 ]);
+// El arranque de la SPA depende de todo su grafo de módulos. Los recursos
+// visuales son opcionales y no deben impedir instalar ese shell.
+const CORE_ASSETS = [...ASSETS].filter((path) =>
+  path === '/' || /\.(?:js|css|webmanifest)$/.test(path),
+);
+const OPTIONAL_ASSETS = [...ASSETS].filter((path) => !CORE_ASSETS.includes(path));
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
-    await cache.addAll([...ASSETS]);
+    await cache.addAll(CORE_ASSETS);
+    await Promise.allSettled(OPTIONAL_ASSETS.map((path) => cache.add(path)));
     await self.skipWaiting();
   })());
 });

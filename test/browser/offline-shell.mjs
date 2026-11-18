@@ -42,12 +42,18 @@ try {
   await context.setOffline(true);
   await page.reload({ waitUntil: 'networkidle' });
   await page.locator('inicio-sesion').waitFor({ state: 'visible' });
-  await page.getByText(/Sin conexión/).first().waitFor();
+  const employeeStatus = page.locator('inicio-sesion').locator('[data-status]');
+  await employeeStatus.filter({ hasText: /Sin conexión/ }).waitFor({ state: 'visible' });
   assert.equal(await page.evaluate(async () => { try { await fetch('/synthetic-api/consultas'); return true; } catch { return false; } }), false);
   const paths = await page.evaluate(async () => (await Promise.all((await caches.keys()).map(async key => (await (await caches.open(key)).keys()).map(r => new URL(r.url).pathname)))).flat());
   assert(paths.every(path => !/synthetic-api|environment\.local|\/resources\/v[12]|\.pdf/.test(path)));
+  const port = Number(new URL(url).port);
+  await new Promise(resolve => server.listen(port, '127.0.0.1', resolve));
+  await context.setOffline(false);
+  await employeeStatus.filter({ hasText: /Sin conexión/ }).waitFor({ state: 'hidden' });
+  assert.equal(await page.evaluate(async () => (await fetch('/synthetic-api/consultas')).ok), true);
   assert.deepEqual(errors, []);
-  console.log('PASS: instalación nueva, servidor detenido, recarga, navegación SPA, desconexión y caché sin datos clínicos.');
+  console.log('PASS: instalación nueva, servidor detenido, recarga, navegación SPA, desconexión, recuperación y caché sin datos clínicos.');
 } finally {
   await browser.close();
   if (server.listening) await new Promise(resolve => server.close(resolve));

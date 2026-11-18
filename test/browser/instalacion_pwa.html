@@ -41,6 +41,8 @@
         assert(installationInstructions({ userAgent: '' }).includes('El navegador no ha ofrecido'), 'No conserva ayuda para un navegador desconocido');
         document.querySelector('#volver').focus();
         const pdf = offerTicketDownload();
+        const modal = document.querySelector('galenos-ticket-options');
+        assert(modal?.querySelector('dialog[open]'), 'La vista de ticket debe vivir dentro de su Custom Element');
         document.querySelector('[data-ticket-install]').click();
         await until(() => document.querySelector('[data-install-status]').textContent.length > 0);
         assert(!document.querySelector('[data-install-status]').textContent.includes('Instalación solicitada'), 'Finge éxito sin aviso disponible');
@@ -71,6 +73,9 @@
         assert(document.querySelector('[data-ticket-install]').disabled && document.querySelector('[data-ticket-install]').textContent === 'App instalada', 'Ignora la confirmación appinstalled');
         document.querySelector('[data-ticket-cancel]').click();
         await installed;
+        const disconnected = offerTicketDownload();
+        document.querySelector('galenos-ticket-options').remove();
+        assert(await disconnected === false, 'Desmontar el modal deja pendiente el flujo de ticket');
         document.querySelector('#resultado').textContent = 'PASS: instalación sintética — aviso único, cancelación, confirmación, guía Safari/Chrome/Firefox por dispositivo y PDF independiente';
       } catch (error) {
         document.querySelector('#resultado').textContent = 'FAIL: ' + error.message;

@@ -137,7 +137,8 @@ try {
   await page.context().setOffline(true);
   await page.reload({ waitUntil: 'networkidle' });
   await page.locator('inicio-sesion').waitFor({ state: 'visible' });
-  await page.getByText(/Sin conexión/).first().waitFor();
+  const employeeStatus = page.locator('inicio-sesion').locator('[data-status]');
+  await employeeStatus.filter({ hasText: /Sin conexión/ }).waitFor({ state: 'visible' });
   const assets = await page.evaluate(async () => (await Promise.all((await caches.keys()).map(async key => (await (await caches.open(key)).keys()).map(r => new URL(r.url).pathname)))).flat());
   assert(assets.every(asset => !/synthetic-api|environment\.local|\/resources\/v[12]|\.pdf/.test(asset)));
   assert.deepEqual(errors, []);
